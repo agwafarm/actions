@@ -1,0 +1,23 @@
+name: 'node-install'
+description: 'Install Node Dependencies'
+runs:
+  using: "composite"
+  steps:
+    - run: |
+          if [ -f package-lock.json ]; then
+                npm ci
+          elif [ -f package.json ]; then
+                npm i
+          fi
+          if [ -d .github/actions ]; then
+             for d in .github/actions/*/ ; do
+                 if [ -f "$d"/package-lock.json ]; then
+                   cd "$d"
+                   npm ci
+                 elif [ -f "$d"/package.json ]; then
+                   cd "$d"
+                   npm i
+                 fi
+             done
+          fi     
+      shell: bash
