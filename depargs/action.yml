@@ -1,0 +1,24 @@
+name: 'depargs'
+description: 'Determines various deployment arguments'
+inputs:
+  awsRegion:
+    description: 'The AWS region from which to get SSM parameters'
+    required: true
+outputs:
+  env:
+    description: 'The environment to deploy to'
+  stacks:
+    description: 'A string determining the CDK stacks to deploy'
+  deploy:
+    description: 'Denotes whether deployment should occur'
+  corsOrigin:
+    description: 'Allowed CORS origin'
+  corsMethods:
+    description: 'Allowed CORS methods'
+  corsHeaders:
+    description: 'Allowed CORS headers'
+  libraryTag:
+    description: 'tag to use in requirements.txt'
+runs:
+  using: 'node12'
+  main: 'index.js'
