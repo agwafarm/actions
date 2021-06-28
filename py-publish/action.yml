@@ -1,4 +1,4 @@
-  name: 'py-configure'
+name: 'py-configure'
 description: 'Configure Python'
 runs:
   using: "composite"
