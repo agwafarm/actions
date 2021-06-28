@@ -1,0 +1,21 @@
+  name: 'py-configure'
+description: 'Configure Python'
+runs:
+  using: "composite"
+  steps:
+    - run: |
+          export TWINE_USERNAME=aws
+          export TWINE_PASSWORD=$(aws codeartifact get-authorization-token --domain agwafarm-private --domain-owner 953022346399 --query authorizationToken --output text)
+          export TWINE_REPOSITORY_URL=$(aws codeartifact get-repository-endpoint --domain agwafarm-private --domain-owner 953022346399 --repository agwafarm-private --format pypi --query repositoryEndpoint --output text)
+          export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain agwafarm-private --domain-owner 953022346399 --query authorizationToken --output text)
+          aws codeartifact delete-package-versions --domain agwafarm-private --domain-owner 953022346399 --repository agwafarm-private --format pypi --package $1 --versions $AGWA_SERVICE_LIBRARY_TAG &
+          sleep 5
+          for d in . ; do
+              lib_name=$(basename "$"$d"")
+              if [ -f "$d"/setup.py ]; then
+                cd $lib_name
+                python setup.py sdist
+                twine upload --non-interactive dist/*
+              fi
+          done
+      shell: bash

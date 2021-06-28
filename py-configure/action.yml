@@ -1,0 +1,9 @@
+name: 'py-configure'
+description: 'Configure Python'
+runs:
+  using: "composite"
+  steps:
+    - run: |
+          pip install twine
+          aws codeartifact login --tool twine --repository agwafarm-private --domain agwafarm-private --domain-owner 953022346399
+      shell: bash
