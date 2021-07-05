@@ -28,4 +28,11 @@ runs:
             done
           fi
           
+          for d in ./*/ ; do
+            if [ -f "$d"/setup.py ]; then
+              cd $d
+              pip3 install -e '.[dev]'  
+            fi
+          done
+          
       shell: bash
