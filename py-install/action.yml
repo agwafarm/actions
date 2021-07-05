@@ -31,7 +31,7 @@ runs:
           for d in ./*/ ; do
             if [ -f "$d"/setup.py ]; then
               cd $d
-              pip3 install -e '.[dev]'  
+              pip3 install -I --no-cache-dir -e '.[dev]'  
             fi
           done
           
