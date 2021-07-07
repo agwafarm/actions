@@ -38,4 +38,4 @@ runs:
               fi
           done
           
-      shell: bash
+      shell: zsh
