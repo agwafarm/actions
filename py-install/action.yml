@@ -36,7 +36,7 @@ runs:
               cd $CURRENT_DIR
               if [ -f "$d/setup.py" ]; then    
                   cd $d
-                  pip3 install --no-cache-dir -e '.[dev]'
+                  pip3 install -e '.[dev]'
               fi
           done
           
