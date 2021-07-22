@@ -1,4 +1,4 @@
-name: 'publish'
+name: 'py-monorepo-publish'
 description: 'Publish Python Package'
 inputs:
   account:
