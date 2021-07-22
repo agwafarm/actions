@@ -4,6 +4,18 @@ inputs:
   library-tag:
     description: 'Service Library tag to use'
     required: true
+outputs:
+  service-name:
+    description: "Service Name"
+  target-env:
+    description: "Target environment"
+  s3-prefix:
+    description: "S3 key prefix where the RC was uploaded"
+  s3-bucket:
+    description: "S3 bucket to where the RC was uploaded"
+  version:
+    description: "RC version"
+  
 runs:
   using: "composite"
   steps:
@@ -15,13 +27,16 @@ runs:
           aws codeartifact login --tool twine --repository $APP_CA_REPOSITORY --domain $APP_CA_DOMAIN --domain-owner $APP_CA_DOMAIN_OWNER_ACCOUNT
           pip config set global.extra-index-url https://aws:$CODEARTIFACT_AUTH_TOKEN@$APP_CA_DOMAIN-$APP_CA_DOMAIN_OWNER_ACCOUNT.d.codeartifact.us-west-2.amazonaws.com/pypi/$APP_CA_REPOSITORY/simple/
 
-          app_service_name=$(echo $GITHUB_REPOSITORY | sed -e 's/^agwafarm\///')
-          app_service_name=$(echo $app_service_name | sed -e 's/^agwa\-//')
-          app_service_name=$(echo $app_service_name | sed -e 's/^\-service//')
-          echo deploying service $app_service_name
+          service_name=$(echo $GITHUB_REPOSITORY | sed -e 's/^agwafarm\///')
+          service_name=$(echo $service_name | sed -e 's/^agwa\-//')
+          service_name=$(echo $service_name | sed -e 's/^\-service//')
+          
+          echo packaging service $service_name
+          echo '::set-output name=service-name::$service_name'
 
-          git_sha=$GITHUB_SHA
-          echo git sha $git_sha
+          rc_version=$GITHUB_SHA
+          echo RC version $rc_version
+          echo '::set-output name=version::$rc_version'
 
           event_name=$GITHUB_EVENT_NAME
           echo github event name $event_name
@@ -48,13 +63,20 @@ runs:
              export AGWA_SERVICE_LIBRARY_TAG=edge
              
              #  TODO add -$user_name
-             target_env=dev-$user_name
+             target_env=dev
           fi
 
           echo target env $target_env
+          echo '::set-output name=target-env::$target_env'
+          
+          s3_bucket=agwa-cloud-lambda-sourcecode
+          echo '::set-output name=s3-bucket::$s3_bucket'
 
-          s3_key_prefix=s3://agwa-cloud-lambda-sourcecode/$target_env/$app_service_name/$git_sha
-          echo s3 prefix $s3_key_prefix
+          s3_prefix=$target_env/$service_name/$rc_version
+          echo '::set-output name=s3-prefix::$s3_prefix'
+          
+          s3_path_base=s3://agwa-cloud-lambda-sourcecode/$s3_prefix
+          echo s3 path base $s3_path_base
 
           current_folder=$(pwd)
           common_layer_path=artifacts/layers/common
@@ -64,17 +86,17 @@ runs:
           python3 -m pip install -q -r requirements.txt --target $common_layer_path/python
           cd $common_layer_path
           zip -q -r $asset_name .
-          aws s3 cp $asset_name $s3_key_prefix/layers/cloud-common.zip
+          aws s3 cp $asset_name $s3_path_base/layers/cloud-common.zip
           cd $current_folder
 
           for d in src/lambdas/*/ ; do
             func_name=$(basename "$"$d"")
             func_path=src/lambdas/${func_name}
             func_artifact_folder=artifacts/lambdas/${func_name}
-            func_s3_key=$s3_key_prefix/functions/${func_name}.zip
+            func_s3_key=$s3_path_base/functions/${func_name}.zip
             req_path=src/lambdas/${func_name}/requirements.txt
             layer_path=artifacts/layers/lambdas/${func_name}
-            layer_s3_key=$s3_key_prefix/layers/${func_name}.zip
+            layer_s3_key=$s3_path_base/layers/${func_name}.zip
             
             cd $current_folder
             mkdir -p $func_artifact_folder
