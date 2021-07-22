@@ -78,7 +78,7 @@ runs:
           s3_prefix=$target_env/$service_name/$rc_version
           echo ::set-output name=s3_prefix::$s3_prefix
           
-          s3_path_base=s3://agwa-cloud-lambda-sourcecode/$s3_prefix
+          s3_path_base=s3://$s3_bucket/$s3_prefix
           echo s3 path base $s3_path_base
 
           current_folder=$(pwd)
