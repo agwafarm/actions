@@ -1,0 +1,19 @@
+name: 'ssm-set'
+description: 'updates ssm arguments'
+inputs:
+  awsRegion:
+    description: 'The AWS region in which the parameter is defined'
+    required: true
+  name:
+    description: 'The variable name'
+    required: true
+  value:
+    description: 'The variable value'
+    required: true
+  encrypted:
+    description: 'Denotes whether or not the variable is encrypted'
+    required: false
+    default: "true"
+runs:
+  using: 'node12'
+  main: 'index.js'
