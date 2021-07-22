@@ -1,0 +1,13 @@
+name: 'pack'
+description: 'Packakge RC for this service'
+inputs:
+  library-tag:
+    description: 'Service Library tag to use'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - run: |
+          export APP_SERVICE_NAME=${GITHUB_REPOSITORY//[_]/\-}
+          echo deploying service $APP_SERVICE_NAME
+      shell: bash
