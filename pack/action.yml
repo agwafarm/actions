@@ -8,8 +8,8 @@ runs:
   using: "composite"
   steps:
     - run: |
-          app_service_name=${GITHUB_REPOSITORY//[_]/\-}
+          app_service_name=$(echo $GITHUB_REPOSITORY | sed -e 's/^agwafarm\///')
           echo deploying service $app_service_name
           s3_key_prefix=s3://agwa-cloud-lambda-sourcecode/$GITHUB_SHA/
-          echo s3 prefix $s3_key_prefix
+          echo s3
       shell: bash
