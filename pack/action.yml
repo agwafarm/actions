@@ -39,7 +39,7 @@ runs:
              echo user name $user_name 
              
              #  TODO add -$user_name
-             export AGWA_SERVICE_LIBRARY_TAG=dev
+             export AGWA_SERVICE_LIBRARY_TAG=edge
              
              #  TODO add -$user_name
              target_env=dev-$user_name
