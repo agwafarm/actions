@@ -55,7 +55,7 @@ runs:
           echo branch name $branch_name
 
           if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
-             target_env=test
+             target_env=ci
              export AGWA_SERVICE_LIBRARY_TAG=latest
           else
              user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
