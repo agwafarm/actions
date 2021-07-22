@@ -34,4 +34,42 @@ runs:
           s3_key_prefix=s3://agwa-cloud-lambda-sourcecode/$target_env/$app_service_name/$git_sha
           echo s3 prefix $s3_key_prefix
 
+          export AGWA_SERVICE_LIBRARY_TAG=${{ inputs.library-tag }}
+          current_folder=$(pwd)
+          common_layer_path=artifacts/layers/common
+          asset_name=asset.zip
+
+          mkdir -p $common_layer_path
+          python3 -m pip install -q -r requirements.txt --target $common_layer_path/python
+          cd $common_layer_path
+          zip -q -r $asset_name .
+          aws s3 cp $asset_name $s3_key_prefix/layers/cloud-common.zip
+          cd $current_folder
+
+          for d in src/lambdas/*/ ; do
+            func_name=$(basename "$"$d"")
+            func_path=src/lambdas/${func_name}
+            func_artifact_folder=artifacts/lambdas/${func_name}
+            func_s3_key=$s3_key_prefix/functions/${func_name}.zip
+            req_path=src/lambdas/${func_name}/requirements.txt
+            layer_path=artifacts/layers/lambdas/${func_name}
+            layer_s3_key=$s3_key_prefix/layers/${func_name}.zip
+            
+            cd $current_folder
+            mkdir -p $func_artifact_folder
+            if [ -f $req_path ]; then
+              mkdir -p $layer_path
+              python3 -m pip install -q -r $req_path --target $layer_path/python
+              cd $layer_path
+              zip -q -r $asset_name .
+              aws s3 cp $asset_name $layer_s3_key
+              cd $current_folder
+            fi
+            
+            cd $func_path
+            zip -q -r $asset_name .
+            aws s3 cp $asset_name $func_s3_key
+            cd $current_folder
+          done
+
       shell: bash
