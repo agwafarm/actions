@@ -93,7 +93,7 @@ runs:
           mkdir -p $common_layer_path
           common_layer_target_path=$common_layer_path/python
           python3 -m pip install -q -r requirements.txt --target $common_layer_target_path
-          export PYTHONPATH="${PYTHONPATH}:$common_layer_target_path"
+          python3 -m pip install -q -r requirements.txt
 
           cd $common_layer_path
           zip -q -r $asset_name .
@@ -115,7 +115,7 @@ runs:
               mkdir -p $layer_path
               target_path=$layer_path/python
               python3 -m pip install -q -r $req_path --target $target_path
-              export PYTHONPATH="${PYTHONPATH}:$target_path"
+              python3 -m pip install -q -r $req_path
               cd $layer_path
               zip -q -r $asset_name .
               aws s3 cp $asset_name $layer_s3_key
