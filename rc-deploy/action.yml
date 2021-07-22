@@ -1,0 +1,19 @@
+name: 'rc-deploy'
+description: 'Cause the deployment of the RC for the specified environment'
+inputs:
+  service-name:
+    description: "Service Name"
+    required: true
+  environment:
+    description: "Target environment"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        pip install flake8==3.9.2
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude node_modules,dist,artifacts
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude node_modules,dist,artifacts
+      shell: bash
