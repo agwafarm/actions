@@ -8,6 +8,7 @@ runs:
   using: "composite"
   steps:
     - run: |
+          
           app_service_name=$(echo $GITHUB_REPOSITORY | sed -e 's/^agwafarm\///')
           app_service_name=$(echo $app_service_name | sed -e 's/^agwa\-//')
           app_service_name=$(echo $app_service_name | sed -e 's/^\-service//')
@@ -16,18 +17,19 @@ runs:
           branch_name=$GITHUB_HEAD_REF
           echo branch name $branch_name
 
-          rc_version=$GITHUB_SHA
-          echo RC Version $GITHUB_SHA
+          git_sha=$GITHUB_SHA
+          echo git sha $git_sha
 
-          s3_key_prefix=s3://agwa-cloud-lambda-sourcecode/$app_service_name/$rc_version
-          echo s3 prefix $s3_key_prefix
-          
           branch_name=$(echo $GITHUB_HEAD_REF | sed -e 's/^refs\/heads\///')
           echo $branch_name
 
           if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
-             echo "master branch"
+             target_env=test
           else
-             echo "dev branch"
+             target_env=dev-$GITHUB_ACTOR
           fi
+
+          s3_key_prefix=s3://agwa-cloud-lambda-sourcecode/$target_env/$app_service_name
+          echo s3 prefix $s3_key_prefix
+
       shell: bash
