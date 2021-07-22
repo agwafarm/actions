@@ -9,23 +9,18 @@ runs:
           fi
           if [ -f requirements.txt ]; then
                pip3 install -r requirements.txt
+               pip3 install -r requirements.txt -t dist/layers/common/python
           fi
           if [ -f requirements-dev.txt ]; then
                pip3 install -r requirements-dev.txt
           fi
           if [ -d src/functions ]; then
-             func_path=src/functions
-          elif [ -d src/lambdas ]; then
-             func_path=src/lambdas
-          else
-             func_path=.
-          fi
-          if [ -d $func_path ]; then
-            for d in $func_path/*/ ; do
+            for d in src/functions/*/ ; do
               func_name=$(basename "$"$d"")
               layer_path="dist/layers/functions/${func_name}/python"
               if [ -f "$d"/requirements.txt ]; then
                 pip3 install -r "$d"/requirements.txt
+                pip3 install -r "$d"/requirements.txt -t $layer_path
               fi
               if [ -f "$d"/requirements-dev.txt ]; then
                 pip3 install -r "$d"/requirements-dev.txt
