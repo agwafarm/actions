@@ -6,5 +6,5 @@ runs:
     - run: |
         pip install pytest==6.2.4
         pip install pytest-cov==2.12.1
-        pytest ./test* --cov=./test* --cov-report=xml
+        pytest ./test* --cov=./ --cov-report=xml
       shell: bash
