@@ -20,15 +20,6 @@ runs:
   using: "composite"
   steps:
     - run: |
-          # Login to Code Artifact and configure pip to use it as an extra pypi
-          APP_CA_DOMAIN=agwafarm-private
-          APP_CA_REPOSITORY=agwafarm-private
-          APP_CA_DOMAIN_OWNER_ACCOUNT=953022346399
-          APP_CA_REGION=us-west-2
-          CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain $APP_CA_DOMAIN --domain-owner $APP_CA_DOMAIN_OWNER_ACCOUNT --query authorizationToken --output text)
-          aws codeartifact login --tool twine --repository $APP_CA_REPOSITORY --domain $APP_CA_DOMAIN --domain-owner $APP_CA_DOMAIN_OWNER_ACCOUNT
-          pip config set global.extra-index-url https://aws:$CODEARTIFACT_AUTH_TOKEN@$APP_CA_DOMAIN-$APP_CA_DOMAIN_OWNER_ACCOUNT.d.codeartifact.$APP_CA_REGION.amazonaws.com/pypi/$APP_CA_REPOSITORY/simple/
-
           # Compute useful variables and outputs
           service_name=$(echo $GITHUB_REPOSITORY | sed -e 's/^agwafarm\///')
           service_name=$(echo $service_name | sed -e 's/^agwa\-//')
@@ -90,7 +81,10 @@ runs:
           
           # Upload Lambda & Layer Assets
           mkdir -p $common_layer_path
-          python3 -m pip install -q -r requirements.txt --target $common_layer_path/python
+          common_layer_target_path=$common_layer_path/python
+          python3 -m pip install -q -r requirements.txt --target $common_layer_target_path
+          export PYTHONPATH="${PYTHONPATH}:$common_layer_target_path"
+          
           cd $common_layer_path
           zip -q -r $asset_name .
           aws s3 cp $asset_name $s3_path_base/layers/cloud-common.zip
@@ -109,7 +103,9 @@ runs:
             mkdir -p $func_artifact_folder
             if [ -f $req_path ]; then
               mkdir -p $layer_path
-              python3 -m pip install -q -r $req_path --target $layer_path/python
+              target_path=$layer_path/python
+              python3 -m pip install -q -r $req_path --target $target_path
+              export PYTHONPATH="${PYTHONPATH}:$target_path"
               cd $layer_path
               zip -q -r $asset_name .
               aws s3 cp $asset_name $layer_s3_key
