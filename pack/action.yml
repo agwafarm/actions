@@ -9,6 +9,7 @@ runs:
   steps:
     - run: |
           app_service_name=$(echo $GITHUB_REPOSITORY | sed -e 's/^agwafarm\///')
+          app_service_name=$(echo $app_service_name | sed -e 's/^agwa\-//')
           echo deploying service $app_service_name
           s3_key_prefix=s3://agwa-cloud-lambda-sourcecode/$GITHUB_SHA/
           echo s3
