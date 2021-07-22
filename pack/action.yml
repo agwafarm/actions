@@ -14,7 +14,7 @@ runs:
           echo deploying service $app_service_name
           s3_key_prefix=s3://agwa-cloud-lambda-sourcecode/$GITHUB_SHA/
           echo s3 prefix $s3_key_prefix
-          echo github branch ${{ github.context.ref }}
+          echo github branch $GITHUB_REF
           if [ "$GITHUB_REF" = "refs/heads/cicd" ] || [ "$GITHUB_REF" = "refs/heads/master" ]; then
              echo "master branch"
           else
