@@ -50,7 +50,6 @@ runs:
           s3_key_prefix=s3://agwa-cloud-lambda-sourcecode/$target_env/$app_service_name/$git_sha
           echo s3 prefix $s3_key_prefix
 
-          export AGWA_SERVICE_LIBRARY_TAG=${{ inputs.library-tag }}
           current_folder=$(pwd)
           common_layer_path=artifacts/layers/common
           asset_name=asset.zip
