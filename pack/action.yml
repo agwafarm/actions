@@ -26,9 +26,9 @@ runs:
           service_name=$(echo $GITHUB_REPOSITORY | sed -e 's/^agwafarm\///')
           service_name=$(echo $service_name | sed -e 's/^agwa\-//')
           service_name=$(echo $service_name | sed -e 's/^\-service//')
-          
+          export SERVICE_NAME=$service_name
           echo packaging service $service_name
-          echo "::set-output name=service_name::ddd"
+          echo "::set-output name=service_name::$SERVICE_NAME"
 
           rc_version=$GITHUB_SHA
           echo RC version $rc_version
@@ -112,3 +112,4 @@ runs:
           done
 
       shell: bash
+      id: packer
