@@ -28,7 +28,7 @@ runs:
           service_name=$(echo $service_name | sed -e 's/^\-service//')
           
           echo packaging service $service_name
-          echo ::set-output name=service_name::ddd
+          echo "::set-output name=service_name::ddd"
 
           rc_version=$GITHUB_SHA
           echo RC version $rc_version
