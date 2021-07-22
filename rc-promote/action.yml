@@ -13,7 +13,7 @@ runs:
   using: "composite"
   steps:
     - run: |
-        param_name=/infra/rc-version/${{ inputs.service-name }}/${{ inputs.environment }}
+        param_name=/infra/rc-version/${{ inputs.environment }}/${{ inputs.service-name }}
         echo ssm param name $param_name
         param_value=${{ inputs.version }}
         echo ssm param value $param_value
