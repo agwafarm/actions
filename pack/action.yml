@@ -32,10 +32,16 @@ runs:
 
           if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
              target_env=test
+             export AGWA_SERVICE_LIBRARY_TAG=latest
           else
              user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
              user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
              echo user name $user_name 
+             
+             #  TODO add -$user_name
+             export AGWA_SERVICE_LIBRARY_TAG=dev
+             
+             #  TODO add -$user_name
              target_env=dev-$user_name
           fi
 
