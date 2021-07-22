@@ -17,7 +17,7 @@ runs:
           git_sha=$GITHUB_SHA
           echo git sha $git_sha
 
-          git_ref=$(echo git symbolic-ref -q HEAD)
+          git_ref=$(git symbolic-ref -q HEAD)
           echo git ref $git_ref
 
           branch_name=$(echo $git_ref | sed -e 's/^refs\/heads\///')
