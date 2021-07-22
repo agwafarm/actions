@@ -14,6 +14,8 @@ runs:
   steps:
     - run: |
         param_name=/infra/rc-version/${{ inputs.service-name }}/${{ inputs.environment }}
+        echo ssm param name $param_name
         param_value=${{ inputs.version }}
+        echo ssm param value $param_value
         aws ssm put-parameter --type String --overwrite --name $param_name --value $param_value
       shell: bash
