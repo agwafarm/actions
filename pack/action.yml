@@ -13,9 +13,6 @@ runs:
           app_service_name=$(echo $app_service_name | sed -e 's/^agwa\-//')
           app_service_name=$(echo $app_service_name | sed -e 's/^\-service//')
           echo deploying service $app_service_name
-          
-          branch_name=$GITHUB_HEAD_REF
-          echo branch name $branch_name
 
           git_sha=$GITHUB_SHA
           echo git sha $git_sha
