@@ -1,0 +1,36 @@
+name: 'publish'
+description: 'Publish Python Package'
+runs:
+  using: "composite"
+  steps:
+    - run: |
+          pip3 install twine==3.4.1
+          export TWINE_USERNAME=aws
+          export TWINE_PASSWORD=$(aws codeartifact get-authorization-token --domain $AWS_REPO --domain-owner $AWS_ACCOUNT --query authorizationToken --output text)
+          export TWINE_REPOSITORY_URL=$(aws codeartifact get-repository-endpoint --domain $AWS_REPO --domain-owner $AWS_ACCOUNT --repository $AWS_REPO --format pypi --query repositoryEndpoint --output text)
+          export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain $AWS_REPO --domain-owner $AWS_ACCOUNT --query authorizationToken --output text)
+    
+          IFS=$'\n'
+          set -f
+          libraries_list=$(find . -maxdepth 1 -type d)
+          export MONOREPO_DIR=$(pwd)
+          for d in $libraries_list; do
+              cd $MONOREPO_DIR
+              if [ -f "$d/setup.py" ]; then
+                  cd $d
+                  export CURRENT_DIR=$(pwd)
+                  export DIR_NAME=$(basename $CURRENT_DIR)
+                  export DIR_NAME=${DIR_NAME//[_]/\-}
+                  if [[ $DIR_NAME == agwa-* ]]; then
+                    export PACKAGE_NAME="$DIR_NAME"
+                  else
+                    export PACKAGE_NAME="agwa-$DIR_NAME"
+                  fi 
+                  echo package name: $PACKAGE_NAME
+                  (aws codeartifact delete-package-versions --domain $AWS_DOMAIN --domain-owner $AWS_ACCOUNT --repository $AWS_REPO --format pypi --package $PACKAGE_NAME --versions $AGWA_SERVICE_LIBRARY_TAG || echo "first publish! congrats!") & sleep 10
+                  python setup.py sdist
+                  twine upload --non-interactive --verbose dist/*
+              fi
+          done
+          
+      shell: bash
