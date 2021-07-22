@@ -18,7 +18,7 @@ runs:
           echo git sha $git_sha
 
           branch_name=$(echo $GITHUB_HEAD_REF | sed -e 's/^refs\/heads\///')
-          echo $branch_name
+          echo branch name $branch_name
 
           if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
              target_env=test
@@ -31,7 +31,7 @@ runs:
 
           echo target env $target_env
 
-          s3_key_prefix=s3://agwa-cloud-lambda-sourcecode/$target_env/$app_service_name
+          s3_key_prefix=s3://agwa-cloud-lambda-sourcecode/$target_env/$app_service_name/$git_sha
           echo s3 prefix $s3_key_prefix
 
       shell: bash
