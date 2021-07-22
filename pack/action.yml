@@ -23,8 +23,13 @@ runs:
           if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
              target_env=test
           else
-             target_env=dev-$GITHUB_ACTOR
+             user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
+             user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
+             echo user name $user_name 
+             target_env=dev-$user_name
           fi
+
+          echo target env $target_env
 
           s3_key_prefix=s3://agwa-cloud-lambda-sourcecode/$target_env/$app_service_name
           echo s3 prefix $s3_key_prefix
