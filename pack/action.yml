@@ -72,7 +72,7 @@ runs:
           echo target env $target_env
           echo ::set-output name=target_env::$target_env
           
-          s3_bucket=agwa-cloud-lambda-sourcecode
+          s3_bucket=agwa-ci-assets
           echo ::set-output name=s3_bucket::$s3_bucket
 
           s3_prefix=$target_env/$service_name/$rc_version
@@ -85,6 +85,10 @@ runs:
           common_layer_path=artifacts/layers/common
           asset_name=asset.zip
 
+          #Upload CloudFormation Assets
+          aws s3 sync --delete src/cloudformation $s3_path_base/cloudformation
+          
+          # Upload Lambda & Layer Assets
           mkdir -p $common_layer_path
           python3 -m pip install -q -r requirements.txt --target $common_layer_path/python
           cd $common_layer_path
