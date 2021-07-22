@@ -1,29 +1,35 @@
 name: 'pack'
 description: 'Packakge RC for this service'
 outputs:
-  service_name:
+  service-name:
     description: "Service Name"
     value: ${{ steps.packer.outputs.service_name }}
-  target_env:
+  target-env:
     description: "Target environment"
-  s3_prefix:
+    value: ${{ steps.packer.outputs.target_env }}
+  s3-prefix:
     description: "S3 key prefix where the RC was uploaded"
-  s3_bucket:
+    value: ${{ steps.packer.outputs.s3_prefix }}
+  s3-bucket:
     description: "S3 bucket to where the RC was uploaded"
-  rc_version:
+    value: ${{ steps.packer.outputs.s3_bucket }}
+  rc-version:
     description: "RC version"
-  
+    value: ${{ steps.packer.outputs.rc_version }}
 runs:
   using: "composite"
   steps:
     - run: |
-          export APP_CA_DOMAIN=agwafarm-private
-          export APP_CA_REPOSITORY=agwafarm-private
-          export APP_CA_DOMAIN_OWNER_ACCOUNT=953022346399
-          export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain $APP_CA_DOMAIN --domain-owner $APP_CA_DOMAIN_OWNER_ACCOUNT --query authorizationToken --output text)
+          # Login to Code Artifact and configure pip to use it as an extra pypi
+          APP_CA_DOMAIN=agwafarm-private
+          APP_CA_REPOSITORY=agwafarm-private
+          APP_CA_DOMAIN_OWNER_ACCOUNT=953022346399
+          APP_CA_REGION=us-west-2
+          CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain $APP_CA_DOMAIN --domain-owner $APP_CA_DOMAIN_OWNER_ACCOUNT --query authorizationToken --output text)
           aws codeartifact login --tool twine --repository $APP_CA_REPOSITORY --domain $APP_CA_DOMAIN --domain-owner $APP_CA_DOMAIN_OWNER_ACCOUNT
-          pip config set global.extra-index-url https://aws:$CODEARTIFACT_AUTH_TOKEN@$APP_CA_DOMAIN-$APP_CA_DOMAIN_OWNER_ACCOUNT.d.codeartifact.us-west-2.amazonaws.com/pypi/$APP_CA_REPOSITORY/simple/
+          pip config set global.extra-index-url https://aws:$CODEARTIFACT_AUTH_TOKEN@$APP_CA_DOMAIN-$APP_CA_DOMAIN_OWNER_ACCOUNT.d.codeartifact.$APP_CA_REGION.amazonaws.com/pypi/$APP_CA_REPOSITORY/simple/
 
+          # Compute useful variables and outputs
           service_name=$(echo $GITHUB_REPOSITORY | sed -e 's/^agwafarm\///')
           service_name=$(echo $service_name | sed -e 's/^agwa\-//')
           service_name=$(echo $service_name | sed -e 's/^\-service//')
