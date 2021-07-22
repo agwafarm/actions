@@ -3,6 +3,7 @@ description: 'Packakge RC for this service'
 outputs:
   service_name:
     description: "Service Name"
+    value: ${{ steps.packer.outputs.service_name }}
   target_env:
     description: "Target environment"
   s3_prefix:
