@@ -28,11 +28,11 @@ runs:
           service_name=$(echo $service_name | sed -e 's/^\-service//')
           
           echo packaging service $service_name
-          echo "::set-output name=service_name::$service_name"
+          echo ::set-output name=service_name::$service_name
 
           rc_version=$GITHUB_SHA
           echo RC version $rc_version
-          echo "::set-output name=rc_version::$rc_version"
+          echo ::set-output name=rc_version::$rc_version
 
           event_name=$GITHUB_EVENT_NAME
           echo github event name $event_name
@@ -63,13 +63,13 @@ runs:
           fi
 
           echo target env $target_env
-          echo "::set-output name=target_env::$target_env"
+          echo ::set-output name=target_env::$target_env
           
           s3_bucket=agwa-cloud-lambda-sourcecode
-          echo "::set-output name=s3_bucket::$s3_bucket"
+          echo ::set-output name=s3_bucket::$s3_bucket
 
           s3_prefix=$target_env/$service_name/$rc_version
-          echo "::set-output name=s3_prefix::$s3_prefix"
+          echo ::set-output name=s3_prefix::$s3_prefix
           
           s3_path_base=s3://agwa-cloud-lambda-sourcecode/$s3_prefix
           echo s3 path base $s3_path_base
