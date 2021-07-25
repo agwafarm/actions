@@ -59,7 +59,7 @@ async function downloadArtifactObject(key, folderName, fileName) {
 
   const template = streamToString(result.Body);
   console.log("template", template);
-  const templatePath = `${folderName}/${fileName}.yaml`;
+  const templatePath = `${folderName}/${fileName}`;
   await writeFile(templatePath, template, "utf-8");
   return path.join(process.cwd(), templatePath);
 }
