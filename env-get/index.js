@@ -58,7 +58,6 @@ async function downloadArtifactObject(key, folderName, fileName) {
   );
 
   const template = await streamToString(result.Body);
-  console.log("template", template);
   const templatePath = path.join(process.cwd(), `${folderName}/${fileName}`);
   await writeFile(templatePath, template, "utf-8");
   return templatePath;
