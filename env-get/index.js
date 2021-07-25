@@ -10,10 +10,11 @@ const {
   GetObjectCommand,
   ListObjectsV2Command,
 } = require("@aws-sdk/client-s3");
-const { writeFile } = require("fs/promises");
+const fs = require("fs");
+const util = require("util");
+const path = require("path");
 
-const { join } = require("path");
-
+const writeFile = util.promisify(fs.writeFile);
 dotenv.config({ path: ".config" });
 dotenv.config({ path: ".env" });
 
