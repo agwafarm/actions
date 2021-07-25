@@ -68,7 +68,7 @@ async function downloadCloudFormationTemplates(prefix, folderName) {
     })
   );
 
-  const stacks = result.Contents.map((o) => {
+  const stacks = result.Contents.map(async (o) => {
     const parts = o.Key.split("/");
     const fileName = parts[parts.length - 1];
     const stackName = fileName.replace(".yaml", "").replace(".yml", "");
