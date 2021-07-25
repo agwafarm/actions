@@ -10,11 +10,11 @@ const {
   GetObjectCommand,
   ListObjectsV2Command,
 } = require("@aws-sdk/client-s3");
-const fs = require("fs");
-const util = require("util");
+
 const path = require("path");
 
 const writeFile = util.promisify(fs.writeFile);
+const { ensureFile } = require("fs-extra");
 dotenv.config({ path: ".config" });
 dotenv.config({ path: ".env" });
 
@@ -59,6 +59,7 @@ async function downloadArtifactObject(key, folderName, fileName) {
 
   const template = await streamToString(result.Body);
   const templatePath = path.join(process.cwd(), `${folderName}/${fileName}`);
+  await ensureFile(templatePath);
   await writeFile(templatePath, template, "utf-8");
   return templatePath;
 }
