@@ -1,4 +1,4 @@
-name: 'env-deploy'
+name: 'env-get'
 description: 'Deploys the environment'
 inputs:
   env:
