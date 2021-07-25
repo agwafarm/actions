@@ -109,6 +109,7 @@ async function resolveService(parameter) {
       LambdaPrefix: rcPrefix,
       TemplateUrlPrefix: `https://s3.amazonaws.com/${artifactsBucket}/${templateUrlPrefix}`,
       ArtifactsBucket: aritfactsBucket,
+      CompanyName: process.env["COMPANY_NAME"],
     },
   };
 }
