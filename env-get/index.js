@@ -59,9 +59,9 @@ async function downloadArtifactObject(key, folderName, fileName) {
 
   const template = await streamToString(result.Body);
   console.log("template", template);
-  const templatePath = `${folderName}/${fileName}`;
+  const templatePath = path.join(process.cwd(), `${folderName}/${fileName}`);
   await writeFile(templatePath, template, "utf-8");
-  return path.join(process.cwd(), templatePath);
+  return templatePath;
 }
 
 async function downloadCloudFormationTemplates(prefix, folderName) {
