@@ -11,6 +11,8 @@ const { writeFile } = require("fs/promises");
 dotenv.config({ path: ".config" });
 dotenv.config({ path: ".env" });
 
+const artifactsBucket = "agwa-ci-assets";
+
 const env = core.getInput("env");
 
 if (!env) {
@@ -52,11 +54,12 @@ class ConfigurationService {
     const values = response.Parameters?.map(async (parameter) => {
       const service = parameter.Name.replace(`/infra/rc-version/${env}/`, "");
       const version = parameter.Value;
-      const templateUrlPrefix = `${env}/${service}/${version}/cloudformation`;
+      const rcPrefix = `${env}/${service}/${version}`;
+      const templateUrlPrefix = `${rcPrefix}/cloudformation`;
 
       const getObjectResult = await this.s3Client.send(
         new GetObjectCommand({
-          Bucket: "agwa-ci-assets",
+          Bucket: artifactsBucket,
           Key: `${templateUrlPrefix}/main.yaml`,
         })
       );
@@ -68,10 +71,13 @@ class ConfigurationService {
 
       return {
         service,
-        version,
-        template,
         templatePath,
-        templateUrlPrefix: `https://s3.amazonaws.com/agwa-ci-assets/${templateUrlPrefix}`,
+        parameters: {
+          Environment: env,
+          LambdaPrefix: rcPrefix,
+          TemplateUrlPrefix: `https://s3.amazonaws.com/agwa-ci-assets/${templateUrlPrefix}`,
+          ArtifactsBucket: aritfactsBucket,
+        },
       };
     });
 
