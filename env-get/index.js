@@ -5,8 +5,14 @@ const {
   GetParametersByPathCommand,
 } = require("@aws-sdk/client-ssm");
 
-const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
+const {
+  S3Client,
+  GetObjectCommand,
+  ListObjectsV2Command,
+} = require("@aws-sdk/client-s3");
 const { writeFile } = require("fs/promises");
+
+const { join } = require("path");
 
 dotenv.config({ path: ".config" });
 dotenv.config({ path: ".env" });
@@ -34,6 +40,79 @@ function streamToString(stream) {
   });
 }
 
+// stacks and service name behavior is related, this function emphasizes the relationship
+function resolveServiceName(service) {
+  return `${env}-${service}`;
+}
+
+async function downloadArtifactObject(key, folderName, fileName) {
+  const result = await this.s3Client.send(
+    new GetObjectCommand({
+      Bucket: artifactsBucket,
+      Key: key,
+    })
+  );
+
+  const template = streamToString(result.Body);
+  console.log("template", template);
+  const templatePath = `${folderName}/${fileName}.yaml`;
+  await writeFile(templatePath, template, "utf-8");
+  return path.join(process.cwd(), templatePath);
+}
+
+async function downloadCloudFormationTemplates(prefix, folderName) {
+  const result = await this.s3Client.send(
+    new ListObjectsV2Command({
+      Bucket: artifactsBucket,
+      Prefix: prefix,
+    })
+  );
+
+  const stacks = result.Contents.map((o) => {
+    const parts = o.Key.split("/");
+    const fileName = parts[parts.length - 1];
+    const stackName = fileName.replace(".yaml", "").replace(".yml", "");
+    const localPath = await downloadArtifactObject(o.Key, folderName, fileName);
+    console.log(
+      `downloaded stack: ${stackName} from key ${o.Key} to file ${localPath}`
+    );
+    return { stackName, localPath };
+  });
+
+  return await Promise.all(stacks);
+}
+
+async function resolveService(parameter) {
+  const serviceName = parameter.Name.replace(`/infra/rc-version/${env}/`, "");
+  const version = parameter.Value;
+  const rcPrefix = `${env}/${serviceName}/${version}`;
+  const templateUrlPrefix = `${rcPrefix}/cloudformation`;
+
+  const cfnTemplates = await downloadCloudFormationTemplates(
+    rcPrefix,
+    serviceName
+  );
+
+  const loadNestedStacks = cfnTemplates
+    .filter((o) => o.stackName !== "main")
+    .reduce((sum, item) => {
+      sum[item.stackName] = { templateFile: item.localPath };
+      return sum;
+    }, {});
+
+  return {
+    name: resolveServiceName(serviceName),
+    templatePath: cfnTemplates.find((o) => o.stackName == "main").localPath,
+    loadNestedStacks,
+    parameters: {
+      Environment: env,
+      LambdaPrefix: rcPrefix,
+      TemplateUrlPrefix: `https://s3.amazonaws.com/${artifactsBucket}/${templateUrlPrefix}`,
+      ArtifactsBucket: aritfactsBucket,
+    },
+  };
+}
+
 class ConfigurationService {
   constructor() {
     this.ssmClient = new SSMClient({ region });
@@ -51,38 +130,9 @@ class ConfigurationService {
     console.log("parameters response acquired");
     console.log(response.Parameters);
 
-    const values = response.Parameters?.map(async (parameter) => {
-      const service = parameter.Name.replace(`/infra/rc-version/${env}/`, "");
-      const version = parameter.Value;
-      const rcPrefix = `${env}/${service}/${version}`;
-      const templateUrlPrefix = `${rcPrefix}/cloudformation`;
-
-      const getObjectResult = await this.s3Client.send(
-        new GetObjectCommand({
-          Bucket: artifactsBucket,
-          Key: `${templateUrlPrefix}/main.yaml`,
-        })
-      );
-
-      const template = streamToString(getObjectResult.Body);
-      console.log("template", template);
-      const templatePath = `${service}.yaml`;
-      await writeFile(templatePath, template, "utf-8");
-
-      return {
-        service,
-        templatePath,
-        parameters: {
-          Environment: env,
-          LambdaPrefix: rcPrefix,
-          TemplateUrlPrefix: `https://s3.amazonaws.com/agwa-ci-assets/${templateUrlPrefix}`,
-          ArtifactsBucket: aritfactsBucket,
-        },
-      };
-    });
-
+    const values = response.Parameters?.map(resolveService);
     const services = await Promise.all(values);
-    const stacks = services.map((service) => `${env}-${service}`);
+    const stacks = services.map(resolveServiceName);
     return { services, stacks };
   };
 }
