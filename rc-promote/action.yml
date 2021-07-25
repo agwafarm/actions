@@ -14,6 +14,7 @@ runs:
   using: "composite"
   steps:
     - run: |
+        # aws ssm get-parameters-by-path --no-paginate --path /infra/rc-version/dev-eyalperry
         param_name=/infra/rc-version/${{ inputs.environment }}/${{ inputs.service-name }}
         echo ssm param name $param_name
         param_value=${{ inputs.version }}

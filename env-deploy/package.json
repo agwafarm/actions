@@ -1,0 +1,12 @@
+{
+  "name": "buildargs",
+  "version": "1.0.0",
+  "description": "build args resolver action",
+  "main": "index.js",
+  "dependencies": {
+    "@actions/core": "1.2.6",
+    "@actions/github": "4.0.0",
+    "@aws-sdk/client-ssm": "3.8.1",
+    "dotenv": "8.2.0"
+  }
+}
