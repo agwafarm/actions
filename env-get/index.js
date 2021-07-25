@@ -138,7 +138,9 @@ async function getParameters() {
 
 async function run() {
   try {
-    const { services, stacks } = await getParameters();
+    const parameters = await getParameters();
+    console.log(parameters);
+    const { services, stacks } = parameters;
     core.setOutput("services", JSON.stringify(services));
     core.setOutput("stacks", stacks.join(" "));
   } catch (error) {
