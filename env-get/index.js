@@ -5,8 +5,8 @@ const {
   GetParametersByPathCommand,
 } = require("@aws-sdk/client-ssm");
 
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { writeFile } from "fs/promises";
+const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { writeFile } = require("fs/promises");
 
 dotenv.config({ path: ".config" });
 dotenv.config({ path: ".env" });
@@ -52,10 +52,12 @@ class ConfigurationService {
     const values = response.Parameters?.map(async (parameter) => {
       const service = parameter.Name.replace(`/infra/rc-version/${env}/`, "");
       const version = parameter.Value;
+      const templateUrlPrefix = `${env}/${service}/${version}/cloudformation`;
+
       const getObjectResult = await this.s3Client.send(
         new GetObjectCommand({
           Bucket: "agwa-ci-assets",
-          Key: `${env}/${service}/${version}/cloudformation/main.yaml`,
+          Key: `${templateUrlPrefix}/main.yaml`,
         })
       );
 
@@ -69,6 +71,7 @@ class ConfigurationService {
         version,
         template,
         templatePath,
+        templateUrlPrefix: `https://s3.amazonaws.com/agwa-ci-assets/${templateUrlPrefix}`,
       };
     });
 
