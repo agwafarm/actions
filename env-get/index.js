@@ -32,6 +32,9 @@ if (!region) {
   throw new Error("Could not acquire aws region");
 }
 
+const ssmClient = new SSMClient({ region });
+const s3Client = new S3Client();
+
 function streamToString(stream) {
   const chunks = [];
   return new Promise((resolve, reject) => {
@@ -47,7 +50,7 @@ function resolveServiceName(service) {
 }
 
 async function downloadArtifactObject(key, folderName, fileName) {
-  const result = await this.s3Client.send(
+  const result = await s3Client.send(
     new GetObjectCommand({
       Bucket: artifactsBucket,
       Key: key,
@@ -62,7 +65,7 @@ async function downloadArtifactObject(key, folderName, fileName) {
 }
 
 async function downloadCloudFormationTemplates(prefix, folderName) {
-  const result = await this.s3Client.send(
+  const result = await s3Client.send(
     new ListObjectsV2Command({
       Bucket: artifactsBucket,
       Prefix: prefix,
@@ -115,34 +118,26 @@ async function resolveService(parameter) {
   };
 }
 
-class ConfigurationService {
-  constructor() {
-    this.ssmClient = new SSMClient({ region });
-    this.s3Client = new S3Client();
-  }
+async function getParameters() {
+  console.log(`fetching parameters for environment: ${env}`);
+  const response = await ssmClient.send(
+    new GetParametersByPathCommand({
+      Path: `/infra/rc-version/${env}/`,
+    })
+  );
 
-  getParameters = async () => {
-    console.log(`fetching parameters for environment: ${env}`);
-    const response = await this.ssmClient.send(
-      new GetParametersByPathCommand({
-        Path: `/infra/rc-version/${env}/`,
-      })
-    );
+  console.log("parameters response acquired");
+  console.log(response.Parameters);
 
-    console.log("parameters response acquired");
-    console.log(response.Parameters);
-
-    const values = response.Parameters.map(resolveService);
-    const services = await Promise.all(values);
-    const stacks = services.map(resolveServiceName);
-    return { services, stacks };
-  };
+  const values = response.Parameters.map(resolveService);
+  const services = await Promise.all(values);
+  const stacks = services.map(resolveServiceName);
+  return { services, stacks };
 }
 
 async function run() {
   try {
-    const configuration = new ConfigurationService();
-    const { services, stacks } = await configuration.getParameters();
+    const { services, stacks } = await getParameters();
     core.setOutput("services", JSON.stringify(services));
     core.setOutput("stacks", stacks.join(" "));
   } catch (error) {
