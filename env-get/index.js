@@ -131,7 +131,7 @@ class ConfigurationService {
     console.log("parameters response acquired");
     console.log(response.Parameters);
 
-    const values = response.Parameters?.map(resolveService);
+    const values = response.Parameters.map(resolveService);
     const services = await Promise.all(values);
     const stacks = services.map(resolveServiceName);
     return { services, stacks };
