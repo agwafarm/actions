@@ -47,7 +47,6 @@ function streamToString(stream) {
   });
 }
 
-// stacks and service name behavior is related, this function emphasizes the relationship
 function resolveServiceName(service) {
   return `${env}-${service}`;
 }
@@ -133,7 +132,7 @@ async function getParameters() {
   console.log(response.Parameters);
 
   const services = await Promise.all(response.Parameters.map(resolveService));
-  const stacks = services.map(resolveServiceName);
+  const stacks = services.map((service) => service.name);
   return { services, stacks };
 }
 
