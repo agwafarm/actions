@@ -96,7 +96,7 @@ async function resolveService(parameter) {
   const templateUrlPrefix = `${rcPrefix}/cloudformation`;
 
   const cfnTemplates = await downloadCloudFormationTemplates(
-    rcPrefix,
+    templateUrlPrefix,
     serviceName
   );
 
