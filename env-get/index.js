@@ -13,9 +13,11 @@ const {
 
 const path = require("path");
 const util = require("util");
+const fs = require("fs");
+const { ensureFile } = require("fs-extra");
 
 const writeFile = util.promisify(fs.writeFile);
-const { ensureFile } = require("fs-extra");
+
 dotenv.config({ path: ".config" });
 dotenv.config({ path: ".env" });
 
