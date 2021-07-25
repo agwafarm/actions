@@ -12,6 +12,7 @@ const {
 } = require("@aws-sdk/client-s3");
 
 const path = require("path");
+const util = require("util");
 
 const writeFile = util.promisify(fs.writeFile);
 const { ensureFile } = require("fs-extra");
