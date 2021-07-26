@@ -107,9 +107,8 @@ async function resolveService(parameter) {
       return sum;
     }, {});
 
-  const serviceName = resolveServiceName(serviceName);
   return {
-    name: serviceName,
+    name: resolveServiceName(serviceName),
     templatePath: cfnTemplates.find((o) => o.stackName == "main").localPath,
     loadNestedStacks,
     parameters: {
