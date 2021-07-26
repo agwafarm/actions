@@ -88,6 +88,9 @@ runs:
               mkdir src/cloudformation
               export ENV=$target_env
               export SERVICE_NAME=$service_name
+              export CORS_ORIGIN="*"
+              export CORS_HEADERS="Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,Accept,User-Agent,Referer"
+              export CORS_METHODS="OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD"
               cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $target_env-$service_name > src/cloudformation/main.yaml
           fi
 
