@@ -106,16 +106,19 @@ async function resolveService(parameter) {
       return sum;
     }, {});
 
+  const serviceName = resolveServiceName(serviceName);
   return {
-    name: resolveServiceName(serviceName),
+    name: serviceName,
     templatePath: cfnTemplates.find((o) => o.stackName == "main").localPath,
     loadNestedStacks,
     parameters: {
       Environment: env,
-      LambdaPrefix: rcPrefix,
+      LambdaPrefix: `${rcPrefix}/functions`,
+      LayerPrefix: `${rcPrefix}/layers`,
       TemplateUrlPrefix: `https://${artifactsBucket}.s3.amazonaws.com/${templateUrlPrefix}`,
       ArtifactsBucket: artifactsBucket,
       CompanyName: process.env["COMPANY_NAME"],
+      ServiceName: serviceName,
     },
   };
 }
