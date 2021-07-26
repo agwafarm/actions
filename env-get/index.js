@@ -112,6 +112,7 @@ async function resolveService(parameter) {
     loadNestedStacks,
     parameters: {
       Environment: env,
+      LambdaEnvironment: env.startsWith("dev-") ? "dev" : env,
       LambdaPrefix: rcPrefix,
       TemplateUrlPrefix: `https://${artifactsBucket}.s3.amazonaws.com/${templateUrlPrefix}`,
       ArtifactsBucket: artifactsBucket,
