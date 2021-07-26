@@ -1,13 +1,21 @@
 name: 'parse-env'
-description: 'get env name'
+description: 'Parse env variables'
 outputs:
+  stack-name:
+    description: "Service Name"
+    value: ${{ steps.packer.outputs.stack_name }}
   target-env:
     description: "Target environment"
     value: ${{ steps.packer.outputs.target_env }}
+  service-name:
+    description: "Service name"
+    value: ${{ steps.packer.outputs.service_name }}
 runs:
   using: "composite"
   steps:
     - run: |
+
+          # Compute useful variables and outputs
 
           event_name=$GITHUB_EVENT_NAME
           echo github event name $event_name
@@ -36,6 +44,18 @@ runs:
 
           echo target env $target_env
           echo ::set-output name=target_env::$target_env
+          
+          service_name=$(echo $GITHUB_REPOSITORY | sed -e 's/^agwafarm\///')
+          service_name=$(echo $service_name | sed -e 's/^agwa\-//')
+          service_name=$(echo $service_name | sed -e 's/^\-service//')
+          export SERVICE_NAME=$service_name
+          echo service $service_name
+          echo "::set-output name=service_name::$SERVICE_NAME"
+          
+          stack_name=$target_env-$service_name-service
+          echo stack $stack_name
+          export STACK_NAME=$stack_name
+          echo "::set-output name=stack_name::$STACK_NAME"
 
       shell: bash
       id: packer
