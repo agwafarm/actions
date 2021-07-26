@@ -22,6 +22,7 @@ dotenv.config({ path: ".config" });
 dotenv.config({ path: ".env" });
 
 const artifactsBucket = "agwa-ci-assets";
+const companyName = "agwa";
 
 const env = core.getInput("env");
 
@@ -117,7 +118,7 @@ async function resolveService(parameter) {
       LayerPrefix: `${rcPrefix}/layers`,
       TemplateUrlPrefix: `https://${artifactsBucket}.s3.amazonaws.com/${templateUrlPrefix}`,
       ArtifactsBucket: artifactsBucket,
-      CompanyName: process.env["COMPANY_NAME"],
+      CompanyName: companyName,
       ServiceName: serviceName,
     },
   };
