@@ -83,6 +83,14 @@ runs:
           common_layer_path=artifacts/layers/common
           asset_name=asset.zip
 
+          if [ -f "cdk.json" ]; then
+              npm i -g aws-cdk@1.94.1
+              mkdir src/cloudformation
+              export ENV=$target_env
+              export SERVICE_NAME=$service_name
+              cdk synthesize $target_env-$service_name > src/cloudformation/main.yaml
+          fi
+
           #Upload CloudFormation Assets
           aws s3 sync --delete src/cloudformation $s3_path_base/cloudformation
           
