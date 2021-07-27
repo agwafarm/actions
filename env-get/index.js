@@ -24,11 +24,13 @@ dotenv.config({ path: ".env" });
 const artifactsBucket = "agwa-ci-assets";
 const companyName = "agwa";
 
-const env = core.getInput("env");
+let env = core.getInput("env");
 
 if (!env) {
   throw new Error("Could not acquire env name");
 }
+
+env = env.replace("-", "_");
 
 const region = core.getInput("awsRegion");
 
