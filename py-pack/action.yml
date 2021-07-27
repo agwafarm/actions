@@ -93,7 +93,7 @@ runs:
               export CORS_ORIGIN="*"
               export CORS_HEADERS="Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,Accept,User-Agent,Referer"
               export CORS_METHODS="OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD"
-              cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $target_stack-$service_name > src/cloudformation/main.yaml
+              cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACK > src/cloudformation/main.yaml
           fi
 
           #Upload CloudFormation Assets
