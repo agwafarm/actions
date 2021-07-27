@@ -65,7 +65,7 @@ runs:
              echo user name $user_name 
              
              export AGWA_SERVICE_LIBRARY_TAG=edge-$user_name
-             target_env=dev_$user_name
+             target_env=dev$user_name
              target_stack=dev-$user_name
           fi
 
