@@ -30,10 +30,9 @@ if (!env) {
   throw new Error("Could not acquire env name");
 }
 
-console.log("downloading env: ", env);
-
 core.setOutput("stack", env.replace("_", "-"));
 const simpleEnv = env.replace("_", "").replace("-", "");
+console.log("downloading env: ", simpleEnv);
 
 const region = core.getInput("awsRegion");
 
@@ -51,10 +50,6 @@ function streamToString(stream) {
     stream.on("error", (err) => reject(err));
     stream.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
   });
-}
-
-function resolveServiceName(service) {
-  return `${env}-${service}`;
 }
 
 async function downloadArtifactObject(key, folderName, fileName) {
@@ -117,7 +112,7 @@ async function resolveService(parameter) {
     }, {});
 
   return {
-    name: resolveServiceName(serviceName),
+    name: `${env.replace("_", "-")}-${service}`,
     templatePath: cfnTemplates.find((o) => o.stackName == "main").localPath,
     loadNestedStacks,
     parameters: {
@@ -133,10 +128,9 @@ async function resolveService(parameter) {
 }
 
 async function getParameters() {
-  console.log(`fetching parameters for environment: ${env}`);
   const response = await ssmClient.send(
     new GetParametersByPathCommand({
-      Path: `/infra/rc-version/${env}/`,
+      Path: `/infra/rc-version/${simpleEnv}/`,
     })
   );
 
