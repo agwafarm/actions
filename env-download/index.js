@@ -135,7 +135,6 @@ async function getParameters() {
   console.log(response.Parameters);
 
   const services = await Promise.all(response.Parameters.map(resolveService));
-  const stacks = services.map((service) => service.name);
   return { services, stacks };
 }
 
@@ -143,9 +142,8 @@ async function run() {
   try {
     const parameters = await getParameters();
     console.log(JSON.stringify(parameters, null, 3));
-    const { services, stacks } = parameters;
+    const { services } = parameters;
     core.setOutput("services", JSON.stringify(services));
-    core.setOutput("stacks", stacks.join(" "));
   } catch (error) {
     console.log(error);
     core.setFailed(error.message);
