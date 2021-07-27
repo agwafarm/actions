@@ -30,6 +30,8 @@ if (!env) {
   throw new Error("Could not acquire env name");
 }
 
+console.log("downloading env: ", env);
+
 core.setOutput("stack", env.replace("_", "-"));
 const simpleEnv = env.replace("_", "").replace("-", "");
 
@@ -93,12 +95,14 @@ async function downloadCloudFormationTemplates(prefix, folderName) {
 }
 
 async function resolveService(parameter) {
-  const serviceName = parameter.Name.replace(`/infra/rc-version/${env}/`, "");
+  const serviceName = parameter.Name.replace(
+    `/infra/rc-version/${simpleEnv}/`,
+    ""
+  );
   const version = parameter.Value;
-  const rcPrefix = `${env}/${serviceName}/${version}`;
-  const simpleRcPrefix = rcPrefix.replace(env, simpleEnv);
+  const rcPrefix = `${simpleEnv}/${serviceName}/${version}`;
+  const templateUrlPrefix = `${rcPrefix}/cloudformation`;
 
-  const templateUrlPrefix = `${simpleRcPrefix}/cloudformation`;
   console.log("downloading: ", templateUrlPrefix, serviceName);
   const cfnTemplates = await downloadCloudFormationTemplates(
     templateUrlPrefix,
@@ -118,8 +122,8 @@ async function resolveService(parameter) {
     loadNestedStacks,
     parameters: {
       Environment: simpleEnv,
-      LambdaPrefix: `${simpleRcPrefix}/functions`,
-      LayerPrefix: `${simpleRcPrefix}/layers`,
+      LambdaPrefix: `${rcPrefix}/functions`,
+      LayerPrefix: `${rcPrefix}/layers`,
       TemplateUrlPrefix: `https://${artifactsBucket}.s3.amazonaws.com/${templateUrlPrefix}`,
       ArtifactsBucket: artifactsBucket,
       CompanyName: companyName,
