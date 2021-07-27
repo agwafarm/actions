@@ -30,8 +30,6 @@ if (!env) {
   throw new Error("Could not acquire env name");
 }
 
-env = env.replace("-", "_");
-
 const region = core.getInput("awsRegion");
 
 if (!region) {
@@ -114,7 +112,7 @@ async function resolveService(parameter) {
     templatePath: cfnTemplates.find((o) => o.stackName == "main").localPath,
     loadNestedStacks,
     parameters: {
-      Environment: env,
+      Environment: env.replace("_", "").replace("-", ""),
       LambdaPrefix: `${rcPrefix}/functions`,
       LayerPrefix: `${rcPrefix}/layers`,
       TemplateUrlPrefix: `https://${artifactsBucket}.s3.amazonaws.com/${templateUrlPrefix}`,
