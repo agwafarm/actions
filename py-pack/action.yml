@@ -57,6 +57,7 @@ runs:
 
           if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
              target_env=ci
+             target_stack=ci
              export AGWA_SERVICE_LIBRARY_TAG=latest
           else
              user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
@@ -65,6 +66,7 @@ runs:
              
              export AGWA_SERVICE_LIBRARY_TAG=edge-$user_name
              target_env=dev_$user_name
+             target_stack=dev-$user_name
           fi
 
           echo target env $target_env
@@ -90,7 +92,7 @@ runs:
               export CORS_ORIGIN="*"
               export CORS_HEADERS="Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,Accept,User-Agent,Referer"
               export CORS_METHODS="OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD"
-              cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $target_env-$service_name > src/cloudformation/main.yaml
+              cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $target_stack-$service_name > src/cloudformation/main.yaml
           fi
 
           #Upload CloudFormation Assets
