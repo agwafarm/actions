@@ -75,6 +75,7 @@ async function downloadCloudFormationTemplates(prefix, folderName) {
     })
   );
 
+  console.log("mapping prefix: ", prefix);
   const stacks = result.Contents.map(async (o) => {
     const parts = o.Key.split("/");
     const fileName = parts[parts.length - 1];
