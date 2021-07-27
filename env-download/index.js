@@ -135,7 +135,7 @@ async function getParameters() {
   console.log(response.Parameters);
 
   const services = await Promise.all(response.Parameters.map(resolveService));
-  return { services, stacks };
+  return { services };
 }
 
 async function run() {
