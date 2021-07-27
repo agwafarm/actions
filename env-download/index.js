@@ -97,9 +97,9 @@ async function resolveService(parameter) {
   const version = parameter.Value;
   const rcPrefix = `${env}/${serviceName}/${version}`;
   const simpleRcPrefix = rcPrefix.replace(env, simpleEnv);
-  console.log("downloading: ", templateUrlPrefix);
-  const templateUrlPrefix = `${simpleRcPrefix}/cloudformation`;
 
+  const templateUrlPrefix = `${simpleRcPrefix}/cloudformation`;
+  console.log("downloading: ", templateUrlPrefix, serviceName);
   const cfnTemplates = await downloadCloudFormationTemplates(
     templateUrlPrefix,
     serviceName
