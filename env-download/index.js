@@ -24,11 +24,14 @@ dotenv.config({ path: ".env" });
 const artifactsBucket = "agwa-ci-assets";
 const companyName = "agwa";
 
-let env = core.getInput("env");
+const env = core.getInput("env");
 
 if (!env) {
   throw new Error("Could not acquire env name");
 }
+
+core.setOutput("stack", env.replace("_", "-"));
+const simpleEnv = env.replace("_", "").replace("-", "");
 
 const region = core.getInput("awsRegion");
 
@@ -93,7 +96,8 @@ async function resolveService(parameter) {
   const serviceName = parameter.Name.replace(`/infra/rc-version/${env}/`, "");
   const version = parameter.Value;
   const rcPrefix = `${env}/${serviceName}/${version}`;
-  const templateUrlPrefix = `${rcPrefix}/cloudformation`;
+  const simpleRcPrefix = rcPrefix.replace(env, simpleEnv);
+  const templateUrlPrefix = `${simpleRcPrefix}/cloudformation`;
 
   const cfnTemplates = await downloadCloudFormationTemplates(
     templateUrlPrefix,
@@ -112,9 +116,9 @@ async function resolveService(parameter) {
     templatePath: cfnTemplates.find((o) => o.stackName == "main").localPath,
     loadNestedStacks,
     parameters: {
-      Environment: env.replace("_", "").replace("-", ""),
-      LambdaPrefix: `${rcPrefix}/functions`,
-      LayerPrefix: `${rcPrefix}/layers`,
+      Environment: simpleEnv,
+      LambdaPrefix: `${simpleRcPrefix}/functions`,
+      LayerPrefix: `${simpleRcPrefix}/layers`,
       TemplateUrlPrefix: `https://${artifactsBucket}.s3.amazonaws.com/${templateUrlPrefix}`,
       ArtifactsBucket: artifactsBucket,
       CompanyName: companyName,
@@ -144,7 +148,6 @@ async function run() {
     console.log(JSON.stringify(parameters, null, 3));
     const { services } = parameters;
     core.setOutput("services", JSON.stringify(services));
-    core.setOutput("stack", env.replace("_", "-"));
   } catch (error) {
     console.log(error);
     core.setFailed(error.message);
