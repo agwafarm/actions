@@ -63,8 +63,8 @@ runs:
              user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
              echo user name $user_name 
              
-             export AGWA_SERVICE_LIBRARY_TAG=edge-$user_name
-             target_env=dev-$user_name
+             export AGWA_SERVICE_LIBRARY_TAG=edge_$user_name
+             target_env=dev_$user_name
           fi
 
           echo target env $target_env
