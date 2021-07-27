@@ -10,8 +10,8 @@ inputs:
 outputs:
   services:
     description: 'A JSON array which configures the deployment of the current environment'
-  stacks:
-    description: 'CDK stacks to deploy'
+  stack:
+    description: 'CDK stack to deploy'
 runs:
   using: 'node12'
   main: 'index.js'

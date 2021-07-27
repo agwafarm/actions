@@ -144,7 +144,7 @@ async function run() {
     console.log(JSON.stringify(parameters, null, 3));
     const { services } = parameters;
     core.setOutput("services", JSON.stringify(services));
-    core.setOutput("stacks", env.replace("_", "-"));
+    core.setOutput("stack", env.replace("_", "-"));
   } catch (error) {
     console.log(error);
     core.setFailed(error.message);
