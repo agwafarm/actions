@@ -9,8 +9,7 @@ runs:
   steps:
     - run: |
          export APP_SPEC=${{ inputs.spec }}
-         echo spec
-         echo ${{ inputs.spec }}
+         echo listing stacks
          stacks=$(cdk list)
          stacks=$(echo "$stacks" | tr '\n' ' ')
          echo deploying stacks $stacks
