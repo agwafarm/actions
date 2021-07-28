@@ -82,7 +82,7 @@ async function resolveService(env, serviceName, version) {
     }, {});
 
   return {
-    name: serviceName,
+    name: `${env}-${serviceName}`,
     templatePath: cfnTemplates.find((o) => o.fileNameNoPrefix == "main")
       .localPath,
     loadNestedStacks,
