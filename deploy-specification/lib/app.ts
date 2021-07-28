@@ -15,5 +15,5 @@ console.log(JSON.stringify(spec, null, 3));
 
 const app = new cdk.App();
 spec.services.forEach((service) => {
-  return new Service(app, service.name, service);
+  return new Service(app, service.name, { service });
 });
