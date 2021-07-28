@@ -5,7 +5,7 @@
     "ci": "bin/ci.js"
   },
   "scripts": {
-    "deploy": "cdk deploy --verbose --require-approval never",
+    "deploy": "cdk deploy --require-approval never",
     "destroy": "cdk destroy --force"
   },
   "devDependencies": {

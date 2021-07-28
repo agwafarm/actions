@@ -41,7 +41,7 @@ async function downloadArtifactObject(key, folderName, fileName) {
   return `/github/workspace/${templatePath}`;
 }
 
-async function downloadCloudFormationTemplates(prefix, folderName) {
+async function downloadS3Prefix(prefix, folderName) {
   const result = await s3Client.send(
     new ListObjectsV2Command({
       Bucket: artifactsBucket,
@@ -53,12 +53,12 @@ async function downloadCloudFormationTemplates(prefix, folderName) {
   const stacks = result.Contents.map(async (o) => {
     const parts = o.Key.split("/");
     const fileName = parts[parts.length - 1];
-    const stackName = fileName.replace(".yaml", "").replace(".yml", "");
+    const fileNameNoPrefix = fileName.split(".")[0];
     const localPath = await downloadArtifactObject(o.Key, folderName, fileName);
     console.log(
-      `downloaded stack: ${stackName} from key ${o.Key} to file ${localPath}`
+      `downloaded object: ${fileNameNoPrefix} from key ${o.Key} to file ${localPath}`
     );
-    return { stackName, localPath };
+    return { fileNameNoPrefix, localPath };
   });
 
   return await Promise.all(stacks);
@@ -69,21 +69,22 @@ async function resolveService(env, serviceName, version) {
   const templateUrlPrefix = `${rcPrefix}/cloudformation`;
 
   console.log("downloading: ", templateUrlPrefix, serviceName);
-  const cfnTemplates = await downloadCloudFormationTemplates(
+  const cfnTemplates = await downloadS3Prefix(
     templateUrlPrefix,
     `specs/${serviceName}`
   );
 
   const loadNestedStacks = cfnTemplates
-    .filter((o) => o.stackName !== "main")
+    .filter((o) => o.fileNameNoPrefix !== "main")
     .reduce((sum, item) => {
-      sum[item.stackName] = { templateFile: item.localPath };
+      sum[item.fileNameNoPrefix] = { templateFile: item.localPath };
       return sum;
     }, {});
 
   return {
     name: serviceName,
-    templatePath: cfnTemplates.find((o) => o.stackName == "main").localPath,
+    templatePath: cfnTemplates.find((o) => o.fileNameNoPrefix == "main")
+      .localPath,
     loadNestedStacks,
     parameters: {
       Environment: env,
