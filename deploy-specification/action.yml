@@ -5,14 +5,7 @@ inputs:
     description: "Deployment specification"
     required: true
 runs:
-  using: "composite"
-  steps:
-    - run: |
-         export APP_SPEC=${{ inputs.spec }}
-         
-         ls -la /
-         
-         stacks=$(cdk list)
-         echo deploying stacks $stacks
-         cdk deploy --require-approval never $stacks
-      shell: bash
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.spec }}
