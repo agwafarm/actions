@@ -1,0 +1,22 @@
+{
+  "name": "ci",
+  "version": "0.1.0",
+  "bin": {
+    "ci": "bin/ci.js"
+  },
+  "scripts": {
+    "deploy": "cdk deploy --verbose --require-approval never",
+    "destroy": "cdk destroy --force"
+  },
+  "devDependencies": {
+    "@types/node": "16.4.2",
+    "aws-cdk": "1.94.1",
+    "ts-node": "^9.0.0",
+    "typescript": "~3.9.7"
+  },
+  "dependencies": {
+    "@aws-cdk/cloudformation-include": "1.94.1",
+    "@aws-cdk/core": "1.94.1",
+    "source-map-support": "0.5.16"
+  }
+}

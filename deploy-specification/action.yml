@@ -1,0 +1,16 @@
+name: 'deploy-specification'
+description: 'Deploys a given specification to an environment'
+inputs:
+  spec:
+    description: "Deployment specification"
+    required: true
+  stacks:
+    description: "CFN Stacks to deploy"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - run: |
+         export APP_SPEC=${{ inputs.spec }}
+         cdk deploy --verbose --require-approval never ${{ inputs.stacks }}
+      shell: bash
