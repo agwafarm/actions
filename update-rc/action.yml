@@ -1,4 +1,4 @@
-name: 'rc-update'
+name: 'update-rc'
 description: 'Updates the service RC version'
 runs:
   using: "composite"
