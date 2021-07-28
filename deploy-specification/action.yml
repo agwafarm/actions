@@ -11,6 +11,8 @@ runs:
          export APP_SPEC=${{ inputs.spec }}
          echo listing stacks
          #  stacks=$(cdk list)
+         pwd
+         ls -la
          cdk list
          stacks=deveyalperryagronomist6A99AC48
          echo deploying stacks $stacks
