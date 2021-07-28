@@ -37,7 +37,8 @@ async function downloadArtifactObject(key, folderName, fileName) {
   const templatePath = `${folderName}/${fileName}`;
   await ensureFile(templatePath);
   await writeFile(templatePath, template, "utf-8");
-  return templatePath;
+  // map to docker mounted volume where deploy-specification action will run
+  return `/github/workspace/${templatePath}`;
 }
 
 async function downloadCloudFormationTemplates(prefix, folderName) {
