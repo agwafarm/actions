@@ -11,5 +11,5 @@ export interface DeploymentSpec {
 const spec: DeploymentSpec = JSON.parse(process.env["APP_SPEC"] as string);
 const app = new cdk.App();
 spec.services.forEach((service) => {
-  return new Service(app, service.name, { service });
+  return new Service(app, service.stackName, { service });
 });
