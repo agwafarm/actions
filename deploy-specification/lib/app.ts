@@ -9,6 +9,7 @@ export interface DeploymentSpec {
 }
 
 const spec: DeploymentSpec = JSON.parse(process.env["APP_SPEC"] as string);
+
 console.log("deploying spec");
 console.log(JSON.stringify(spec, null, 3));
 

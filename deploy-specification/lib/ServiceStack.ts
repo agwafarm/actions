@@ -22,7 +22,7 @@ export class ServiceStack extends cdk.Stack {
 
     const { service } = props;
 
-    this.included = new cinc.CfnInclude(this, service.name, {
+    this.included = new cinc.CfnInclude(this, "include", {
       templateFile: service.templatePath,
       parameters: service.parameters,
       loadNestedStacks: service.loadNestedStacks,

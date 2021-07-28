@@ -14,5 +14,6 @@ runs:
          export APP_SPEC=${{ inputs.spec }}
          echo deploying stacks
          echo ${{ inputs.stacks }}
+         cdk list
          cdk deploy --require-approval never ${{ inputs.stacks }}
       shell: bash
