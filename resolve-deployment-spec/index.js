@@ -1,8 +1,4 @@
 const core = require("@actions/core");
-const {
-  SSMClient,
-  GetParametersByPathCommand,
-} = require("@aws-sdk/client-ssm");
 const dotenv = require("dotenv");
 
 dotenv.config({ path: ".config" });
@@ -19,29 +15,6 @@ if (!env) {
 }
 
 console.log("env: ", env);
-
-const ssmClient = new SSMClient({ region: "us-west-2" });
-
-async function resolveEnvSpec(env) {
-  const ssmPrefix = `/infra/rc-version/`;
-  const response = await ssmClient.send(
-    new GetParametersByPathCommand({
-      Path: ssmPrefix,
-    })
-  );
-
-  console.log("parameters response acquired");
-  console.log(response.Parameters);
-
-  const services = await Promise.all(
-    response.Parameters.map((ssmParameter) => {
-      const serviceName = ssmParameter.Name.replace(ssmPrefix, "");
-      const version = ssmParameter.Value;
-      return resolveService(env, serviceName, version);
-    })
-  );
-  return { services };
-}
 
 async function run() {
   try {
