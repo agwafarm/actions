@@ -15,7 +15,7 @@ class ServiceStack extends cdk.Stack {
   public readonly included: cinc.CfnInclude;
 
   constructor(scope: cdk.Construct, id: string, props: ServiceProps) {
-    super(scope, id, props);
+    super(scope, id);
 
     const { service } = props;
 
