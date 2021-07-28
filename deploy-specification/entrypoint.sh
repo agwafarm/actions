@@ -6,4 +6,7 @@ export APP_SPEC=$1
 
 cd /action
 stacks=$(cdk list)
+echo hi
+echo $stacks
+echo bye
 npm run deploy -- $stacks
