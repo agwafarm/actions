@@ -34,7 +34,7 @@ async function downloadArtifactObject(key, folderName, fileName) {
   );
 
   const template = await streamToString(result.Body);
-  const templatePath = path.join(process.cwd(), `${folderName}/${fileName}`);
+  const templatePath = `${folderName}/${fileName}`;
   await ensureFile(templatePath);
   await writeFile(templatePath, template, "utf-8");
   return templatePath;
@@ -70,7 +70,7 @@ async function resolveService(env, serviceName, version) {
   console.log("downloading: ", templateUrlPrefix, serviceName);
   const cfnTemplates = await downloadCloudFormationTemplates(
     templateUrlPrefix,
-    serviceName
+    `specs/${serviceName}`
   );
 
   const loadNestedStacks = cfnTemplates
