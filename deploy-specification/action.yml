@@ -10,8 +10,8 @@ runs:
     - run: |
          export APP_SPEC=${{ inputs.spec }}
          echo listing stacks
-         stacks=$(cdk list)
-         stacks=$(echo "$stacks" | tr '\n' ' ')
+         #  stacks=$(cdk list)
+         stacks=deveyalperryagronomist6A99AC48
          echo deploying stacks $stacks
          cdk deploy --require-approval never $stacks
       shell: bash
