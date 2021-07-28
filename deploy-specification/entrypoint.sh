@@ -6,4 +6,4 @@ export APP_SPEC=$1
 cd /action
 stacks=$(cdk list)
 echo deploying stacks $stacks
-cdk deploy --require-approval never $stacks
+npm run deploy -- $stacks

@@ -20,7 +20,7 @@ class ServiceStack extends cdk.Stack {
     const { service } = props;
 
     this.included = new cinc.CfnInclude(this, "include", {
-      templateFile: path.join(process.cwd(), service.templatePath),
+      templateFile: service.templatePath,
       parameters: service.parameters,
       loadNestedStacks: service.loadNestedStacks,
     });
