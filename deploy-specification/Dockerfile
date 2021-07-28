@@ -9,6 +9,4 @@ RUN npm ci
 
 COPY . .
 
-ENV PATH="/action/node_modules/.bin:${PATH}"
-
 ENTRYPOINT ["/action/entrypoint.sh"]
