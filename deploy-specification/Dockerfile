@@ -9,4 +9,6 @@ RUN npm ci
 
 COPY . .
 
+WORKDIR /
+
 ENTRYPOINT ["/action/entrypoint.sh"]
