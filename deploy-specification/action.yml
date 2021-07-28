@@ -4,16 +4,13 @@ inputs:
   spec:
     description: "Deployment specification"
     required: true
-  stacks:
-    description: "CFN Stacks to deploy"
-    required: true
 runs:
   using: "composite"
   steps:
     - run: |
          export APP_SPEC=${{ inputs.spec }}
-         echo deploying stacks
-         echo ${{ inputs.stacks }}
-         cdk list
-         cdk deploy --require-approval never ${{ inputs.stacks }}
+         stacks=$(cdk list)
+         stacks=$(echo "$stacks" | tr '\n' ' ')
+         echo deploying stacks $stacks
+         cdk deploy --require-approval never $stacks
       shell: bash

@@ -1,5 +1,6 @@
 import * as cdk from "@aws-cdk/core";
 import * as cinc from "@aws-cdk/cloudformation-include";
+import * as path from "path";
 
 export interface ServiceDefinition {
   name: string;
@@ -23,7 +24,7 @@ export class ServiceStack extends cdk.Stack {
     const { service } = props;
 
     this.included = new cinc.CfnInclude(this, "include", {
-      templateFile: service.templatePath,
+      templateFile: path.join(process.cwd(), service.templatePath),
       parameters: service.parameters,
       loadNestedStacks: service.loadNestedStacks,
     });

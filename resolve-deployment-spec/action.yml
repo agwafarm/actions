@@ -15,8 +15,6 @@ inputs:
 outputs:
   spec:
     description: 'A JSON string representing the deployment specification'
-  stacks:
-    description: 'CFN/CDK stacks to deploy'
 runs:
   using: 'node12'
   main: 'index.js'
