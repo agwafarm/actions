@@ -1,0 +1,19 @@
+name: 'resolve-service-name'
+description: 'Resolves the service name'
+outputs:
+  service-name:
+    description: "Service Name"
+    value: ${{ steps.resolver.outputs.service_name }}
+runs:
+  id: resolver
+  using: "composite"
+  steps:
+    - run: |
+        service_name=$GITHUB_REPOSITORY
+        service_name=$(echo $service_name | sed -e 's/^agwafarm\-//')
+        service_name=$(echo $service_name | sed -e 's/^agwa\-//')
+        service_name=$(echo $service_name | sed -e 's/\-service$//')
+
+        echo service $service_name
+        echo "::set-output name=service_name::$service_name"
+      shell: bash
