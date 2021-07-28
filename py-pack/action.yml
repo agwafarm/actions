@@ -1,5 +1,21 @@
 name: 'py-pack'
 description: 'Package RC for this service'
+outputs:
+  service-name:
+    description: "Service Name"
+    value: ${{ steps.packer.outputs.service_name }}
+  environment:
+    description: "Environment name"
+    value: ${{ steps.packer.outputs.target_env }}
+  s3-prefix:
+    description: "S3 key prefix where the RC was uploaded"
+    value: ${{ steps.packer.outputs.s3_prefix }}
+  s3-bucket:
+    description: "S3 bucket to where the RC was uploaded"
+    value: ${{ steps.packer.outputs.s3_bucket }}
+  version:
+    description: "RC version"
+    value: ${{ steps.packer.outputs.rc_version }}
 runs:
   using: "composite"
   steps:
@@ -15,14 +31,17 @@ runs:
           pip config set global.extra-index-url https://aws:$ca_token@$ca_domain-$ca_account.d.codeartifact.$ca_region.amazonaws.com/pypi/$ca_repo/simple/
           
           # Compute useful variables
-          service_name=$(echo $GITHUB_REPOSITORY | sed -e 's/^agwafarm\///')
+          service_name=$GITHUB_REPOSITORY
+          service_name=$(echo $service_name | sed -e 's/^agwafarm\-//')
           service_name=$(echo $service_name | sed -e 's/^agwa\-//')
-          service_name=$(echo $service_name | sed -e 's/^\-service//')
-          export SERVICE_NAME=$service_name
-          echo packaging service $service_name
+          service_name=$(echo $service_name | sed -e 's/\-service$//')
+
+          echo packing service $service_name
+          echo "::set-output name=service_name::$service_name"
 
           rc_version=$GITHUB_SHA
           echo RC version $rc_version
+          echo ::set-output name=rc_version::$rc_version
 
           event_name=$GITHUB_EVENT_NAME
           echo github event name $event_name
@@ -39,12 +58,16 @@ runs:
 
           if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
              export AGWA_SERVICE_LIBRARY_TAG=latest
+             target_env=ci
           else
              user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
              user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
              echo user name $user_name              
              export AGWA_SERVICE_LIBRARY_TAG=edge-$user_name
+             target_env=dev$user_name
           fi
+
+          echo ::set-output name=target_env::$target_env
           
           s3_bucket=agwa-ci-assets
           s3_prefix=$service_name/$rc_version

@@ -1,15 +1,5 @@
 name: 'py-monorepo-install'
 description: 'Install Python Monorepo Dependencies'
-inputs:
-  service-name:
-    description: "Service Name"
-    required: true
-  version:
-    description: "RC version"
-    required: true
-  environment:
-    description: "Target environment"
-    required: true
 runs:
   using: "composite"
   steps:

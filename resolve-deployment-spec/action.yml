@@ -1,0 +1,22 @@
+name: 'resolve-deployment-spec'
+description: 'Resolves the deployment specification'
+inputs:
+  environment:
+    description: 'Environment to apply to the speification'
+    required: true
+  service:
+    description: 'Service to resolve (if applicable). If not specified, resolves all services'
+    required: false
+    default: 'all'
+  version:
+    description: 'Service version to resolve. Defaults to latest. Applies only if service input is specified'
+    required: false
+    default: 'latest'
+outputs:
+  spec:
+    description: 'A JSON string representing the deployment specification'
+  stacks:
+    description: 'CFN/CDK stacks to deploy'
+runs:
+  using: 'node12'
+  main: 'index.js'
