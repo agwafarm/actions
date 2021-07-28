@@ -11,14 +11,10 @@ export interface ServiceDefinition {
   parameters: Record<string, string>;
 }
 
-export interface ServiceStackProps extends cdk.StackProps {
-  service: ServiceDefinition;
-}
-
-export class ServiceStack extends cdk.Stack {
+class ServiceStack extends cdk.Stack {
   public readonly included: cinc.CfnInclude;
 
-  constructor(scope: cdk.Construct, id: string, props: ServiceStackProps) {
+  constructor(scope: cdk.Construct, id: string, props: ServiceProps) {
     super(scope, id, props);
 
     const { service } = props;
@@ -28,5 +24,16 @@ export class ServiceStack extends cdk.Stack {
       parameters: service.parameters,
       loadNestedStacks: service.loadNestedStacks,
     });
+  }
+}
+
+export interface ServiceProps {
+  service: ServiceDefinition;
+}
+
+export class Service extends cdk.Construct {
+  constructor(scope: cdk.Construct, id: string, props: ServiceProps) {
+    super(scope, id);
+    new ServiceStack(this, props.service.name, props);
   }
 }
