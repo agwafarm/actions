@@ -32,7 +32,7 @@ runs:
           
           # Compute useful variables
           service_name=$GITHUB_REPOSITORY
-          service_name=$(echo $service_name | sed -e 's/^agwafarm\-//')
+          service_name=$(echo $service_name | sed -e 's/^agwafarm\///')
           service_name=$(echo $service_name | sed -e 's/^agwa\-//')
           service_name=$(echo $service_name | sed -e 's/\-service$//')
 
