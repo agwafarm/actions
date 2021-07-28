@@ -5,8 +5,5 @@
 export APP_SPEC=$1
 
 cd /action
-stacks=$(cdk list)
-echo hi
-echo $stacks
-echo bye
-npm run deploy -- $stacks
+export APP_STACKS=$(cdk list)
+cdk deploy --require-approval never $APP_STACKS
