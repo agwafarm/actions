@@ -2,7 +2,7 @@
 import "source-map-support/register";
 import * as cdk from "@aws-cdk/core";
 
-import { ServiceStack, ServiceDefinition } from "./env";
+import { ServiceStack, ServiceDefinition } from "./ServiceStack";
 
 export interface DeploymentSpec {
   services: ServiceDefinition[];
