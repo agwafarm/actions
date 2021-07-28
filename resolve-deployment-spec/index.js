@@ -23,14 +23,7 @@ async function run() {
       : resolveEnvSpec(env));
 
     core.setOutput("spec", JSON.stringify(spec));
-    console.log("spec:", JSON.stringify(spec, null, 3));
-
-    const { services } = spec;
-
-    const stacks = services.map((service) => service.name).join(" ");
-
-    console.log("stacks:", JSON.stringify(stacks, null, 3));
-    core.setOutput("stacks", stacks);
+    console.log(JSON.stringify(spec, null, 3));
   } catch (error) {
     console.log(error);
     core.setFailed(error.message);
