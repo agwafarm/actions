@@ -1,4 +1,4 @@
-FROM alpine:3.14.0
+FROM node:14-alpine3.14
 
 WORKDIR /action
 COPY . .
