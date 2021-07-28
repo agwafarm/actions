@@ -1,21 +1,5 @@
 name: 'py-pack'
 description: 'Package RC for this service'
-outputs:
-  service-name:
-    description: "Service Name"
-    value: ${{ steps.packer.outputs.service_name }}
-  target-env:
-    description: "Target environment"
-    value: ${{ steps.packer.outputs.target_env }}
-  s3-prefix:
-    description: "S3 key prefix where the RC was uploaded"
-    value: ${{ steps.packer.outputs.s3_prefix }}
-  s3-bucket:
-    description: "S3 bucket to where the RC was uploaded"
-    value: ${{ steps.packer.outputs.s3_bucket }}
-  rc-version:
-    description: "RC version"
-    value: ${{ steps.packer.outputs.rc_version }}
 runs:
   using: "composite"
   steps:
@@ -26,21 +10,19 @@ runs:
           ca_repo=agwafarm-private
           ca_account=953022346399
           ca_token=$(aws codeartifact get-authorization-token --domain $ca_domain --domain-owner $ca_account --query authorizationToken --output text)
-          APP_CA_REGION=us-west-2
+          ca_region=us-west-2
           aws codeartifact login --tool twine --repository $ca_repo --domain $ca_domain --domain-owner $ca_account
-          pip config set global.extra-index-url https://aws:$ca_token@$ca_domain-$ca_account.d.codeartifact.$APP_CA_REGION.amazonaws.com/pypi/$ca_repo/simple/
+          pip config set global.extra-index-url https://aws:$ca_token@$ca_domain-$ca_account.d.codeartifact.$ca_region.amazonaws.com/pypi/$ca_repo/simple/
           
-          # Compute useful variables and outputs
+          # Compute useful variables
           service_name=$(echo $GITHUB_REPOSITORY | sed -e 's/^agwafarm\///')
           service_name=$(echo $service_name | sed -e 's/^agwa\-//')
           service_name=$(echo $service_name | sed -e 's/^\-service//')
           export SERVICE_NAME=$service_name
           echo packaging service $service_name
-          echo "::set-output name=service_name::$SERVICE_NAME"
 
           rc_version=$GITHUB_SHA
           echo RC version $rc_version
-          echo ::set-output name=rc_version::$rc_version
 
           event_name=$GITHUB_EVENT_NAME
           echo github event name $event_name
@@ -56,55 +38,45 @@ runs:
           echo branch name $branch_name
 
           if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
-             target_env=ci
-             target_stack=ci
              export AGWA_SERVICE_LIBRARY_TAG=latest
           else
              user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
              user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
-             echo user name $user_name 
-             
+             echo user name $user_name              
              export AGWA_SERVICE_LIBRARY_TAG=edge-$user_name
-             target_env=dev$user_name
-             target_stack=dev-$user_name
           fi
-
-          echo target env $target_env
-          echo ::set-output name=target_env::$target_env
           
           s3_bucket=agwa-ci-assets
-          echo ::set-output name=s3_bucket::$s3_bucket
-
-          s3_prefix=$target_env/$service_name/$rc_version
-          echo ::set-output name=s3_prefix::$s3_prefix
-          
+          s3_prefix=$service_name/$rc_version
           s3_path_base=s3://$s3_bucket/$s3_prefix
+          echo s3 bucket $s3_bucket
           echo s3 path base $s3_path_base
 
           current_folder=$(pwd)
           common_layer_path=artifacts/layers/common
           asset_name=asset.zip
 
+          #Synthesize CDK apps into cloudformation templates.
           if [ -f "cdk.json" ]; then
               npm i -g aws-cdk@1.94.1
               mkdir src/cloudformation
-              export ENV=$target_env
-              export APP_STACK=$target_stack-$service_name
+              export APP_STACK=$service_name
               export CORS_ORIGIN="*"
               export CORS_HEADERS="Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,Accept,User-Agent,Referer"
               export CORS_METHODS="OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD"
               cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACK > src/cloudformation/main.yaml
           fi
 
-          #Upload CloudFormation Assets
+          #Upload CloudFormation Assets, delete files in target folder if they no longer exist.
           aws s3 sync --delete src/cloudformation $s3_path_base/cloudformation
           
-          # Upload Lambda & Layer Assets
+          # Create and Upload Lambda & Layer Assets
           mkdir -p $common_layer_path
           common_layer_target_path=$common_layer_path/python
           python3 -m pip install -q -r requirements.txt --target $common_layer_target_path
           python3 -m pip install -q -r requirements.txt
 
+          # Common Lambda Layer
           cd $common_layer_path
           zip -q -r $asset_name .
           aws s3 cp $asset_name $s3_path_base/layers/cloud-common.zip
@@ -121,6 +93,8 @@ runs:
             
             cd $current_folder
             mkdir -p $func_artifact_folder
+            
+            #Lambda has specific dependencies
             if [ -f $req_path ]; then
               mkdir -p $layer_path
               target_path=$layer_path/python
