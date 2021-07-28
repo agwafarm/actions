@@ -79,6 +79,12 @@ runs:
           common_layer_path=artifacts/layers/common
           asset_name=asset.zip
 
+          if [ -f "package-lock.json" ]; then
+              npm ci
+          elif [ -f "package.json" ]; then
+              npm i
+          fi
+
           #Synthesize CDK apps into cloudformation templates.
           if [ -f "cdk.json" ]; then
               npm i -g aws-cdk@1.94.1
