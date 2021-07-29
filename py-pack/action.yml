@@ -90,9 +90,11 @@ runs:
               npm i -g aws-cdk@1.94.1
               mkdir src/cloudformation
               export APP_STACK=$service_name
-              export CORS_ORIGIN="*"
-              export CORS_HEADERS="Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,Accept,User-Agent,Referer"
-              export CORS_METHODS="OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD"
+              export APP_ENV=$target_env
+              export APP_SERVICE=$service_name
+              export APP_CORS_ORIGIN="*"
+              export APP_CORS_HEADERS="Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,Accept,User-Agent,Referer"
+              export APP_CORS_METHODS="OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD"
               cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACK > src/cloudformation/main.yaml
           fi
 
