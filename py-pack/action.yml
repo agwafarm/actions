@@ -59,18 +59,20 @@ runs:
           if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
              export AGWA_SERVICE_LIBRARY_TAG=latest
              target_env=ci
+             s3_retainment=standard
           else
              user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
              user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
              echo user name $user_name              
              export AGWA_SERVICE_LIBRARY_TAG=edge-$user_name
              target_env=dev$user_name
+             s3_retainment=low
           fi
 
           echo ::set-output name=target_env::$target_env
           
           s3_bucket=agwa-ci-assets
-          s3_prefix=$service_name/$rc_version
+          s3_prefix=$s3_retainment/$service_name/$rc_version
           s3_path_base=s3://$s3_bucket/$s3_prefix
           echo s3 bucket $s3_bucket
           echo s3 path base $s3_path_base
