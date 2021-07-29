@@ -89,6 +89,7 @@ runs:
           if [ -f "cdk.json" ]; then
               npm i -g aws-cdk@1.94.1
               mkdir src/cloudformation
+              export APP_COMPANY_NAME=agwa
               export APP_STACK=$service_name
               export APP_ENV=$target_env
               export APP_SERVICE=$service_name
