@@ -12,6 +12,9 @@ inputs:
     description: 'Service version to resolve. Defaults to latest. Applies only if service input is specified'
     required: false
     default: 'latest'
+  stack:
+    description: 'provides an override for the stack name suffix. defaults to $service'
+    required: false
 outputs:
   spec:
     description: 'A JSON string representing the deployment specification'

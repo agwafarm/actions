@@ -9,7 +9,7 @@ const resolveService = require("./resolve-service");
 const ssmClient = new SSMClient({ region: "us-west-2" });
 const ssmPrefix = `/infra/rc-version/`;
 
-async function resolveServiceSpec(env, serviceName, version) {
+async function resolveServiceSpec({ env, service, version, stackName }) {
   if (!version || version === "latest") {
     const response = await ssmClient.send(
       new GetParameterCommand({
@@ -23,7 +23,12 @@ async function resolveServiceSpec(env, serviceName, version) {
     );
   }
 
-  const service = await resolveService(env, serviceName, version);
+  const service = await resolveService({
+    env,
+    serviceName,
+    version,
+    stackName,
+  });
 
   return { services: [service] };
 }
@@ -43,7 +48,7 @@ async function resolveEnvSpec(env) {
     response.Parameters.map((ssmParameter) => {
       const serviceName = ssmParameter.Name.replace(ssmPrefix, "");
       const version = ssmParameter.Value;
-      return resolveService(env, serviceName, version);
+      return resolveService({ env, serviceName, version });
     })
   );
   return { services };

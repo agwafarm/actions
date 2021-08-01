@@ -14,6 +14,10 @@ runs:
         service_name=$(echo $service_name | sed -e 's/^agwa\-//')
         service_name=$(echo $service_name | sed -e 's/\-service$//')
 
+        if [ "$service_name" = "cloud-components" ]; then
+             $service_name=cloud-parent
+        fi
+
         echo service $service_name
         echo "::set-output name=service_name::$service_name"
       shell: bash
