@@ -23,6 +23,7 @@ class ServiceStack extends cdk.Stack {
       templateFile: service.templatePath,
       parameters: service.parameters,
       loadNestedStacks: service.loadNestedStacks,
+      preserveLogicalIds: true,
     });
   }
 }
