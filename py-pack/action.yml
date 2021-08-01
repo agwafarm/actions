@@ -113,6 +113,7 @@ runs:
           common_layer_target_path=$common_layer_path/python
           python3 -m pip install -q -r requirements.txt --target $common_layer_target_path
           python3 -m pip install -q -r requirements.txt
+          python3 -m pip install -q -r requirements-dev.txt
 
           # Common Lambda Layer
           cd $common_layer_path
