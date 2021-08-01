@@ -64,7 +64,7 @@ async function downloadS3Prefix(prefix, folderName) {
   return await Promise.all(stacks);
 }
 
-async function resolveService(env, serviceName, version) {
+async function resolveService({ env, serviceName, version, stackName }) {
   const rcPrefix = `${serviceName}/${version}`;
   const templateUrlPrefix = `${rcPrefix}/cloudformation`;
 
@@ -82,7 +82,7 @@ async function resolveService(env, serviceName, version) {
     }, {});
 
   return {
-    stackName: `${env}-${serviceName}`,
+    stackName: `${env}-${stackName}`,
     templatePath: cfnTemplates.find((o) => o.fileNameNoPrefix == "main")
       .localPath,
     loadNestedStacks,
