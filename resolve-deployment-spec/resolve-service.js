@@ -48,16 +48,16 @@ async function downloadS3Prefix(prefix, folderName) {
     })
   );
 
-  console.log("mapping prefix: ", artifactsBucket, iprefix);
+  console.log("mapping prefix: ", artifactsBucket, prefix);
   const stacks = result.Contents.map(async (o) => {
     const parts = o.Key.split("/");
     const fileName = parts[parts.length - 1];
-    const fileNameNoPrefix = fileName.split(".")[0];
+    const fileNameWithoutExtension = fileName.split(".")[0];
     const localPath = await downloadArtifactObject(o.Key, folderName, fileName);
     console.log(
-      `downloaded object: ${fileNameNoPrefix} from key ${o.Key} to file ${localPath}`
+      `downloaded object: ${fileNameWithoutExtension} from key ${o.Key} to file ${localPath}`
     );
-    return { fileNameNoPrefix, localPath };
+    return { fileNameWithoutExtension, localPath };
   });
 
   return await Promise.all(stacks);
@@ -75,15 +75,15 @@ async function resolveService(env, serviceName, version, stackName) {
   );
 
   const loadNestedStacks = cfnTemplates
-    .filter((o) => o.fileNameNoPrefix !== "main")
+    .filter((o) => o.fileNameWithoutExtension !== "main")
     .reduce((sum, item) => {
-      sum[item.fileNameNoPrefix] = { templateFile: item.localPath };
+      sum[item.fileNameWithoutExtension] = { templateFile: item.localPath };
       return sum;
     }, {});
 
   return {
     stackName: `${env}-${stackName}`,
-    templatePath: cfnTemplates.find((o) => o.fileNameNoPrefix == "main")
+    templatePath: cfnTemplates.find((o) => o.fileNameWithoutExtension == "main")
       .localPath,
     loadNestedStacks,
     parameters: {
