@@ -64,7 +64,7 @@ async function downloadS3Prefix(prefix, folderName) {
   return await Promise.all(stacks);
 }
 
-async function resolveService({ env, serviceName, version, stackName }) {
+async function resolveService(env, serviceName, version, stackName) {
   const rcPrefix = `${serviceName}/${version}`;
   const templateUrlPrefix = `${rcPrefix}/cloudformation`;
 

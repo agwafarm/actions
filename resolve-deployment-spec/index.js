@@ -15,12 +15,14 @@ if (!env) {
   throw new Error("Could not acquire env name");
 }
 
+console.log("inputs: ", env, serviceName, version, stackName);
+
 console.log("env: ", env);
 
 async function run() {
   try {
     const spec = await (serviceName
-      ? resolveServiceSpec({ env, serviceName, version, stackName })
+      ? resolveServiceSpec(env, serviceName, version, stackName)
       : resolveEnvSpec(env));
 
     core.setOutput("spec", JSON.stringify(spec));
