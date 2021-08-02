@@ -6,7 +6,11 @@ dotenv.config({ path: ".env" });
 
 const { resolveEnvSpec, resolveServiceSpec } = require("./resolve-spec");
 
-const env = core.getInput("environment").replace("_", "").replace("-", "");
+const env = core
+  .getInput("environment")
+  .replace("_", "")
+  .replace("-", "")
+  .toLowerCase();
 const serviceName = core.getInput("service");
 const version = core.getInput("version");
 const stackName = core.getInput("stack") || serviceName;

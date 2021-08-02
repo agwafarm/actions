@@ -4,7 +4,6 @@ const {
   ListObjectsV2Command,
 } = require("@aws-sdk/client-s3");
 
-const path = require("path");
 const util = require("util");
 const fs = require("fs");
 const { ensureFile } = require("fs-extra");
@@ -49,7 +48,7 @@ async function downloadS3Prefix(prefix, folderName) {
     })
   );
 
-  console.log("mapping prefix: ", prefix);
+  console.log("mapping prefix: ", artifactsBucket, iprefix);
   const stacks = result.Contents.map(async (o) => {
     const parts = o.Key.split("/");
     const fileName = parts[parts.length - 1];
@@ -65,8 +64,9 @@ async function downloadS3Prefix(prefix, folderName) {
 }
 
 async function resolveService(env, serviceName, version, stackName) {
-  const rcPrefix = `${serviceName}/${version}`;
-  const templateUrlPrefix = `${rcPrefix}/cloudformation`;
+  const retainmentPrefix = env.startsWith("dev") ? "low" : "standard";
+  const serviceS3Prefix = `${retainmentPrefix}/${serviceName}/${version}`;
+  const templateUrlPrefix = `${serviceS3Prefix}/cloudformation`;
 
   console.log("downloading: ", templateUrlPrefix, serviceName);
   const cfnTemplates = await downloadS3Prefix(
@@ -88,8 +88,8 @@ async function resolveService(env, serviceName, version, stackName) {
     loadNestedStacks,
     parameters: {
       Environment: env,
-      LambdaPrefix: `${rcPrefix}/functions`,
-      LayerPrefix: `${rcPrefix}/layers`,
+      LambdaPrefix: `${serviceS3Prefix}/functions`,
+      LayerPrefix: `${serviceS3Prefix}/layers`,
       TemplateUrlPrefix: `https://${artifactsBucket}.s3.amazonaws.com/${templateUrlPrefix}`,
       ArtifactsBucket: artifactsBucket,
       CompanyName: companyName,
