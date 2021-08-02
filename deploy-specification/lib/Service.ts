@@ -1,6 +1,5 @@
 import * as cdk from "@aws-cdk/core";
 import * as cinc from "@aws-cdk/cloudformation-include";
-import * as path from "path";
 
 export interface ServiceDefinition {
   stackName: string;
@@ -11,7 +10,11 @@ export interface ServiceDefinition {
   parameters: Record<string, string>;
 }
 
-class ServiceStack extends cdk.Stack {
+export interface ServiceProps {
+  service: ServiceDefinition;
+}
+
+export class Service extends cdk.Stack {
   public readonly included: cinc.CfnInclude;
 
   constructor(scope: cdk.Construct, id: string, props: ServiceProps) {
@@ -25,16 +28,5 @@ class ServiceStack extends cdk.Stack {
       loadNestedStacks: service.loadNestedStacks,
       preserveLogicalIds: true,
     });
-  }
-}
-
-export interface ServiceProps {
-  service: ServiceDefinition;
-}
-
-export class Service extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: ServiceProps) {
-    super(scope, id);
-    new ServiceStack(this, props.service.stackName, props);
   }
 }
