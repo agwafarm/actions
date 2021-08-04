@@ -11,5 +11,5 @@ runs:
             test_dir=./src
         fi
         
-        pytest $test_dir --cov=./ --cov-report=xml
+        pytest $test_dir
       shell: bash
