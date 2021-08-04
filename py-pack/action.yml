@@ -16,6 +16,9 @@ outputs:
   version:
     description: "RC version"
     value: ${{ steps.packer.outputs.rc_version }}
+  library-version:
+    description: "Library version"
+    value: ${{ steps.packer.outputs.library_version }}
 runs:
   using: "composite"
   steps:
@@ -73,6 +76,7 @@ runs:
           fi
 
           echo using library tag $AGWA_SERVICE_LIBRARY_TAG
+          echo ::set-output name=library_version::$AGWA_SERVICE_LIBRARY_TAG
 
           echo ::set-output name=target_env::$target_env
           

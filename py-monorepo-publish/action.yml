@@ -10,6 +10,10 @@ inputs:
   domain:
     description: "Code Artifact Domain"
     required: true
+  library-version:
+    description: "Library Version to publish"
+    required: false
+    default: "auto"
 runs:
   using: "composite"
   steps:
@@ -39,7 +43,9 @@ runs:
           branch_name=$(echo $git_ref | sed -e 's/^refs\/heads\///')
           echo branch name $branch_name
 
-          if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
+          if [ "${{ inputs.library-version }}" != "auto" ]; then
+             export AGWA_SERVICE_LIBRARY_TAG=${{ inputs.library-version }}
+          elif [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
              export AGWA_SERVICE_LIBRARY_TAG=latest
           else
              user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
@@ -47,6 +53,8 @@ runs:
              echo user name $user_name 
              export AGWA_SERVICE_LIBRARY_TAG=edge-$user_name
           fi
+
+          echo publishing library version $AGWA_SERVICE_LIBRARY_TAG
 
           # Build and Publish Monorepo
           IFS=$'\n'
