@@ -48,7 +48,11 @@ async function downloadS3Prefix(prefix, folderName) {
     })
   );
 
-  console.log("mapping prefix: ", artifactsBucket, prefix);
+  console.log("mapping prefix: ", prefix);
+  if (!result.Contents || result.Contents.length === 0) {
+    throw new Error("prefix does not contain objects");
+  }
+
   const stacks = result.Contents.map(async (o) => {
     const parts = o.Key.split("/");
     const fileName = parts[parts.length - 1];
