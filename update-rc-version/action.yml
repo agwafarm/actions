@@ -10,7 +10,7 @@ runs:
         service_name=$(echo $service_name | sed -e 's/\-service$//')
 
         if [ "$service_name" = "cloud-components" ]; then
-             $service_name=cloud-parent
+             service_name=cloud-parent
         fi
 
         param_name=/infra/rc-version/$service_name
