@@ -13,11 +13,11 @@ async function resolveServiceSpec(env, serviceName, version, stackName) {
   if (!version || version === "latest") {
     const response = await ssmClient.send(
       new GetParameterCommand({
-        Path: `${ssmPrefix}${serviceName}`,
+        Name: `${ssmPrefix}${serviceName}`,
       })
     );
 
-    version = response.Value;
+    version = response.Parameter.Value;
     console.log(
       `Resolved latest version of service ${serviceName} to ${version}`
     );
