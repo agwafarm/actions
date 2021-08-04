@@ -5,19 +5,21 @@ outputs:
     description: "Service Name"
     value: ${{ steps.resolver.outputs.service_name }}
 runs:
-  id: resolver
   using: "composite"
+  
   steps:
-    - run: |
-        service_name=$GITHUB_REPOSITORY
-        service_name=$(echo $service_name | sed -e 's/^agwafarm\///')
-        service_name=$(echo $service_name | sed -e 's/^agwa\-//')
-        service_name=$(echo $service_name | sed -e 's/\-service$//')
+    - shell: bash
+      id: resolver
+      run: |
+          service_name=$GITHUB_REPOSITORY
+          service_name=$(echo $service_name | sed -e 's/^agwafarm\///')
+          service_name=$(echo $service_name | sed -e 's/^agwa\-//')
+          service_name=$(echo $service_name | sed -e 's/\-service$//')
 
-        if [ "$service_name" = "cloud-components" ]; then
-             service_name=cloud-parent
-        fi
+          if [ "$service_name" = "cloud-components" ]; then
+              service_name=cloud-parent
+          fi
 
-        echo service $service_name
-        echo "::set-output name=service_name::$service_name"
-      shell: bash
+          echo service $service_name
+          echo "::set-output name=service_name::$service_name"
+      
