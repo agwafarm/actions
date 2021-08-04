@@ -72,6 +72,8 @@ runs:
              s3_retainment=low
           fi
 
+          echo using library tag $AGWA_SERVICE_LIBRARY_TAG
+
           echo ::set-output name=target_env::$target_env
           
           s3_bucket=agwa-ci-assets
