@@ -1,17 +1,9 @@
 name: 'py-pack'
 description: 'Package RC for this service'
-inputs:
-  environment:
-    description: "Environment name"
-    default: "auto"
-    required: false
 outputs:
   service-name:
     description: "Service Name"
     value: ${{ steps.packer.outputs.service_name }}
-  environment:
-    description: "Environment name which was resolved by the action"
-    value: ${{ steps.packer.outputs.target_env }}
   s3-prefix:
     description: "S3 key prefix where the RC was uploaded"
     value: ${{ steps.packer.outputs.s3_prefix }}
@@ -75,21 +67,8 @@ runs:
              s3_retainment=low
           fi
 
-          if [ "${{ inputs.environment }}" != "auto" ]; then
-             target_env=${{ inputs.environment }}
-          elif [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
-             target_env=ci
-          else
-             user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
-             user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
-             echo user name $user_name
-             target_env=dev$user_name
-          fi
-
           echo using library tag $AGWA_SERVICE_LIBRARY_TAG
           echo ::set-output name=library_version::$AGWA_SERVICE_LIBRARY_TAG
-
-          echo ::set-output name=target_env::$target_env
           
           s3_bucket=agwa-ci-assets
           s3_prefix=$s3_retainment/$service_name/$rc_version
@@ -113,7 +92,6 @@ runs:
               mkdir src/cloudformation
               export APP_COMPANY_NAME=agwa
               export APP_STACK=$service_name
-              export APP_ENV=$target_env
               export APP_SERVICE=$service_name
               export APP_CORS_ORIGIN="*"
               export APP_CORS_HEADERS="Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,Accept,User-Agent,Referer"
