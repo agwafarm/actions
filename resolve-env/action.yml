@@ -30,14 +30,6 @@ runs:
              target_env=dev$user_name
           fi
 
-          if [ "${{ inputs.environment }}" != "auto" ]; then
-             target_env=${{ inputs.environment }}
-          elif [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
-            
-          else
-             
-          fi
-
           echo ::set-output name=target_env::$target_env
 
       shell: bash
