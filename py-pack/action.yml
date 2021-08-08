@@ -1,11 +1,16 @@
 name: 'py-pack'
 description: 'Package RC for this service'
+inputs:
+  environment:
+    description: "Environment name"
+    default: "auto"
+    required: false
 outputs:
   service-name:
     description: "Service Name"
     value: ${{ steps.packer.outputs.service_name }}
   environment:
-    description: "Environment name"
+    description: "Environment name which was resolved by the action"
     value: ${{ steps.packer.outputs.target_env }}
   s3-prefix:
     description: "S3 key prefix where the RC was uploaded"
@@ -64,15 +69,21 @@ runs:
 
           if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
              export AGWA_SERVICE_LIBRARY_TAG=latest
-             target_env=ci
              s3_retainment=standard
+          else
+             export AGWA_SERVICE_LIBRARY_TAG=edge-$user_name
+             s3_retainment=low
+          fi
+
+          if [ "${{ inputs.environment }}" == "auto" ]; then
+             target_env=${{ inputs.environment }}
+          elif [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
+             target_env=ci
           else
              user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
              user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
-             echo user name $user_name              
-             export AGWA_SERVICE_LIBRARY_TAG=edge-$user_name
+             echo user name $user_name
              target_env=dev$user_name
-             s3_retainment=low
           fi
 
           echo using library tag $AGWA_SERVICE_LIBRARY_TAG
