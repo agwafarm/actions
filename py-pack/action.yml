@@ -75,7 +75,7 @@ runs:
              s3_retainment=low
           fi
 
-          if [ "${{ inputs.environment }}" == "auto" ]; then
+          if [ "${{ inputs.environment }}" != "auto" ]; then
              target_env=${{ inputs.environment }}
           elif [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
              target_env=ci
