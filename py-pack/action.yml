@@ -63,6 +63,9 @@ runs:
              export AGWA_SERVICE_LIBRARY_TAG=latest
              s3_retainment=standard
           else
+             user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
+             user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
+             echo user name $user_name
              export AGWA_SERVICE_LIBRARY_TAG=edge-$user_name
              s3_retainment=low
           fi
