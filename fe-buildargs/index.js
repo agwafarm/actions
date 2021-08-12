@@ -68,7 +68,7 @@ async function run() {
       `auth/cognito/identity-pool/id/${appBackend}`
     );
 
-    console.log("client app id", clientAppId);
+    console.log("identity pool id", identityPoolId);
 
     const httpApiUrl = await configuration.getParameter(
       `backend/rest/url/${appBackend}`
