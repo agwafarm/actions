@@ -79,11 +79,17 @@ async function run() {
     const frontendUrl = await configuration.getParameter(`frontend/url/${app}`);
     console.log("frontend url", frontendUrl);
 
+    const analyticsDashboardId = await configuration.getParameter(
+      "frontend/url/analytics-dashboard/id"
+    );
+    console.log("analytics dashboard id", analyticsDashboardId);
+
     core.setOutput("userPoolId", userPoolId);
     core.setOutput("clientAppId", clientAppId);
     core.setOutput("identityPoolId", identityPoolId);
     core.setOutput("restApiUrl", httpApiUrl);
     core.setOutput("frontendUrl", frontendUrl);
+    core.setOutput("analyticsDashboardId", analyticsDashboardId);
   } catch (error) {
     console.log(error);
     core.setFailed(error.message);
