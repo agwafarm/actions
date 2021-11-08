@@ -43,11 +43,11 @@ async function resolveEnvSpec(env, version) {
   console.log("Resolved version spec:");
   console.log(JSON.stringify(versionSpec, null, 3));
 
-  const services = await Promise.all(
-    ...versionSpec.services.map((service) =>
-      resolveService(env, service.name, service.version)
-    )
+  const servicePromises = versionSpec.services.map((service) =>
+    resolveService(env, service.name, service.version)
   );
+
+  const services = await Promise.all(...servicePromises);
 
   return { services };
 }

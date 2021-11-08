@@ -72,11 +72,13 @@ async function resolveService(env, serviceName, version) {
   const serviceS3Prefix = `${retainmentPrefix}/${serviceName}/${version}`;
   const templateUrlPrefix = `${serviceS3Prefix}/cloudformation`;
 
-  console.log("downloading: ", templateUrlPrefix, serviceName);
+  console.log("downloading spec: ", templateUrlPrefix, serviceName);
   const cfnTemplates = await downloadS3Prefix(
     templateUrlPrefix,
     `specs/${serviceName}`
   );
+
+  console.log("downloaded spec:", templateUrlPrefix, serviceName);
 
   const loadNestedStacks = cfnTemplates
     .filter((o) => o.fileNameWithoutExtension !== "main")
@@ -85,7 +87,7 @@ async function resolveService(env, serviceName, version) {
       return sum;
     }, {});
 
-  return {
+  const serviceSpec = {
     stackName: `${env}-${serviceName}`,
     templatePath: cfnTemplates.find((o) => o.fileNameWithoutExtension == "main")
       .localPath,
@@ -100,6 +102,13 @@ async function resolveService(env, serviceName, version) {
       ServiceName: serviceName,
     },
   };
+  console.log(
+    "spec resolved: ",
+    templateUrlPrefix,
+    serviceName,
+    JSON.stringify(serviceSpec, null, 3)
+  );
+  return serviceSpec;
 }
 
 module.exports = resolveService;
