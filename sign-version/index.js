@@ -74,8 +74,17 @@ class ConfigurationService {
 
 async function run() {
   try {
+    if (versionName.length === 0) {
+      throw new Error("Version length can not be empty");
+    }
+
     const configuration = new ConfigurationService();
     const services = await configuration.getRcServices();
+
+    if (services.length === 0) {
+      throw new Error("No services detected");
+    }
+
     const spec = {
       name: versionName,
       services,
