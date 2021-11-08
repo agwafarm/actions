@@ -67,7 +67,7 @@ async function downloadS3Prefix(prefix, folderName) {
   return await Promise.all(stacks);
 }
 
-async function resolveService(env, serviceName, version, stackName) {
+async function resolveService(env, serviceName, version) {
   const retainmentPrefix = env.startsWith("dev") ? "low" : "standard";
   const serviceS3Prefix = `${retainmentPrefix}/${serviceName}/${version}`;
   const templateUrlPrefix = `${serviceS3Prefix}/cloudformation`;
@@ -86,7 +86,7 @@ async function resolveService(env, serviceName, version, stackName) {
     }, {});
 
   return {
-    stackName: `${env}-${stackName}`,
+    stackName: `${env}-${serviceName}`,
     templatePath: cfnTemplates.find((o) => o.fileNameWithoutExtension == "main")
       .localPath,
     loadNestedStacks,

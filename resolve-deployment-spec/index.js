@@ -11,23 +11,25 @@ const env = core
   .replace("_", "")
   .replace("-", "")
   .toLowerCase();
+
 const serviceName = core.getInput("service");
 const version = core.getInput("version");
-const stackName = core.getInput("stack") || serviceName;
 
-if (!env) {
-  throw new Error("Could not acquire env name");
-}
-
-console.log("inputs: ", env, serviceName, version, stackName);
-
-console.log("env: ", env);
+console.log(`inputs: ${{ env, serviceName, version }}`);
 
 async function run() {
   try {
+    if (!serviceName && !version) {
+      throw new Error("either service or version must be specified");
+    }
+
+    if (!env) {
+      throw new Error("Could not acquire env name");
+    }
+
     const spec = await (serviceName
-      ? resolveServiceSpec(env, serviceName, version, stackName)
-      : resolveEnvSpec(env));
+      ? resolveServiceSpec(env, serviceName, version)
+      : resolveEnvSpec(env, version));
 
     core.setOutput("spec", JSON.stringify(spec));
     console.log(JSON.stringify(spec, null, 3));

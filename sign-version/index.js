@@ -44,8 +44,8 @@ class ConfigurationService {
 
     for (const parameter of response.Parameters) {
       const version = parameter.Value;
-      const service = parameter.Name.replace(rcPath + "/", "");
-      const serviceSpec = { service, version };
+      const name = parameter.Name.replace(rcPath + "/", "");
+      const serviceSpec = { name, version };
       console.log(JSON.stringify(serviceSpec, null, 3));
       services.push(serviceSpec);
     }

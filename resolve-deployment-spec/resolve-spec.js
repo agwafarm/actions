@@ -1,15 +1,11 @@
-const {
-  SSMClient,
-  GetParametersByPathCommand,
-  GetParameterCommand,
-} = require("@aws-sdk/client-ssm");
+const { SSMClient, GetParameterCommand } = require("@aws-sdk/client-ssm");
 
 const resolveService = require("./resolve-service");
 
 const ssmClient = new SSMClient({ region: "us-west-2" });
 const ssmPrefix = `/infra/rc-version/`;
 
-async function resolveServiceSpec(env, serviceName, version, stackName) {
+async function resolveServiceSpec(env, serviceName, version) {
   if (!version || version === "latest") {
     const response = await ssmClient.send(
       new GetParameterCommand({
@@ -23,34 +19,35 @@ async function resolveServiceSpec(env, serviceName, version, stackName) {
     );
   }
 
-  const serviceSpec = await resolveService(
-    env,
-    serviceName,
-    version,
-    stackName
-  );
+  const serviceSpec = await resolveService(env, serviceName, version);
 
   return { services: [serviceSpec] };
 }
 
-async function resolveEnvSpec(env) {
-  const ssmPrefix = `/infra/rc-version/`;
+async function resolveEnvSpec(env, version) {
+  console.log("Resolving version spec");
+
+  const paramName = `/infra/version/${version}`;
   const response = await ssmClient.send(
-    new GetParametersByPathCommand({
-      Path: ssmPrefix,
+    new GetParameterCommand({
+      Name: paramName,
     })
   );
 
-  console.log("parameters response acquired");
-  console.log(response.Parameters);
+  if (!response.Parameter) {
+    throw new Error(`no such parameter: ${paramName}`);
+  }
+
+  const versionSpec = JSON.parse(response.Parameter.Value);
+  console.log("Resolved version spec:");
+  console.log(JSON.stringify(versionSpec, null, 3));
 
   const services = await Promise.all(
-    response.Parameters.map((ssmParameter) => {
-      const serviceName = ssmParameter.Name.replace(ssmPrefix, "");
-      const version = ssmParameter.Value;
-      return resolveService({ env, serviceName, version });
-    })
+    ...versionSpec.services.map((service) =>
+      resolveService(env, service.name, service.version)
+    )
   );
+
   return { services };
 }
 
