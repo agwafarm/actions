@@ -17,7 +17,6 @@ const region = core.getInput("awsRegion", { required: true });
 const timestamp = Date.now();
 const author = github.context.actor;
 
-console.log(`creating version: ${versionName}`);
 class ConfigurationService {
   constructor() {
     this.client = new SSMClient({ region });
@@ -32,7 +31,7 @@ class ConfigurationService {
       })
     );
 
-    console.log(`parameter response acquired: ${response.Parameters}`);
+    console.log(`get parameters by path response acquired`);
 
     const services = [];
 
@@ -82,11 +81,13 @@ async function run() {
       throw new Error("Version length can not be empty");
     }
 
+    console.log(`signing version: ${versionName}`);
+
     const configuration = new ConfigurationService();
     const services = await configuration.getRcServices();
 
     if (services.length === 0) {
-      throw new Error("No services detected");
+      throw new Error("No services detected for version");
     }
 
     const spec = {
