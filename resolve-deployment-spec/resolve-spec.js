@@ -55,8 +55,8 @@ async function resolveEnvSpec(env, version) {
 module.exports.resolveEnvSpec = resolveEnvSpec;
 module.exports.resolveServiceSpec = resolveServiceSpec;
 
-resolveEnvSpec("ops", "8-11-21-1421")
-  .then(console.log)
-  .catch((e) => {
-    console.log(e);
-  });
+// resolveEnvSpec("ops", "8-11-21-1421")
+//   .then(console.log)
+//   .catch((e) => {
+//     console.log(e);
+//   });
