@@ -55,18 +55,19 @@ class ConfigurationService {
 
   createVersion = async ({ name, spec, timestamp, author }) => {
     const versionPath = `/infra/version/${name}`;
-    console.log(`creating version ${name} with spec:`);
+    console.log(`creating version ${name} in path: ${versionPath} with spec:`);
     console.log(JSON.stringify(spec, null, 3));
 
     await this.client.send(
       new PutParameterCommand({
-        Path: versionPath,
+        Name: versionPath,
         Value: JSON.stringify(spec),
         Description: `Version Specification for ${name}`,
         Type: "String",
         Tags: [
-          { Key: "author", Value: author },
+          { Key: "author", Value: `${author}` },
           { Key: "timestamp", Value: `${timestamp}` },
+          { Key: "versionName", Value: `${name}` },
         ],
       })
     );
