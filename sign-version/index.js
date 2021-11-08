@@ -42,7 +42,7 @@ class ConfigurationService {
 
     console.log(`Resolving service specifications`);
 
-    for (const parameter in response.Parameters) {
+    for (const parameter of response.Parameters) {
       const version = parameter.Value;
       const service = parameter.Name.replace(rcPath + "/", "");
       const serviceSpec = { service, version };
