@@ -6,6 +6,7 @@ const ssmClient = new SSMClient({ region: "us-west-2" });
 const ssmPrefix = `/infra/rc-version/`;
 
 async function resolveServiceSpec(env, serviceName, version) {
+  console.log("Resolving service spec");
   if (!version || version === "latest") {
     const response = await ssmClient.send(
       new GetParameterCommand({

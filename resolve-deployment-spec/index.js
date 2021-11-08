@@ -6,7 +6,7 @@ dotenv.config({ path: ".env" });
 
 const { resolveEnvSpec, resolveServiceSpec } = require("./resolve-spec");
 
-const env = core
+const environment = core
   .getInput("environment")
   .replace("_", "")
   .replace("-", "")
@@ -15,7 +15,13 @@ const env = core
 const serviceName = core.getInput("service");
 const version = core.getInput("version");
 
-console.log(`inputs: ${{ env, serviceName, version }}`);
+console.log(
+  `inputs: ${JSON.stringify(
+    { env: environment, serviceName, version },
+    null,
+    3
+  )}`
+);
 
 async function run() {
   try {
@@ -23,13 +29,13 @@ async function run() {
       throw new Error("either service or version must be specified");
     }
 
-    if (!env) {
+    if (!environment) {
       throw new Error("Could not acquire env name");
     }
 
     const spec = await (serviceName
-      ? resolveServiceSpec(env, serviceName, version)
-      : resolveEnvSpec(env, version));
+      ? resolveServiceSpec(environment, serviceName, version)
+      : resolveEnvSpec(environment, version));
 
     core.setOutput("spec", JSON.stringify(spec));
     console.log(JSON.stringify(spec, null, 3));
