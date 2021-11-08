@@ -11,7 +11,7 @@ const {
 dotenv.config({ path: ".config" });
 dotenv.config({ path: ".env" });
 
-const versionName = core.getInput("versionName", { required: true });
+const versionName = core.getInput("version", { required: true });
 const region = core.getInput("awsRegion", { required: true });
 
 const timestamp = Date.now();

@@ -1,7 +1,7 @@
 name: 'sign-version'
 description: 'Creates a named version from current RC pointers'
 inputs:
-  versionName:
+  version:
     description: 'The version name'
     required: true
   awsRegion:
