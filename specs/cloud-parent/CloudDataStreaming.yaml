@@ -1,0 +1,1808 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Description: Deploy the data streaming pipeline
+
+Parameters:
+
+  Environment:
+    Type: String
+
+  LambdaPrefix:
+    Type: String
+
+  CommonLayer:
+    Type: String
+
+  ArtifactsBucket:
+    Type: String
+
+  LambdaRole:
+    Type: String
+
+  NotificationsSns:
+    Type: String
+
+  LayerPrefix:
+    Type: String
+
+Mappings:
+  Timers:
+    prod:
+      BackoffIdleTimer: 604800
+      BackoffDelayedTimer: 172800
+      LowWaterLevelSupportTimer: 86400
+      LowWaterLevelIncidentTimer: 172800
+    test:
+      BackoffIdleTimer: 604800
+      BackoffDelayedTimer: 172800
+      LowWaterLevelSupportTimer: 86400
+      LowWaterLevelIncidentTimer: 172800
+    ci:
+      BackoffIdleTimer: 90
+      BackoffDelayedTimer: 60
+      LowWaterLevelSupportTimer: 60
+      LowWaterLevelIncidentTimer: 90
+    dev:
+      BackoffIdleTimer: 90
+      BackoffDelayedTimer: 60
+      LowWaterLevelSupportTimer: 60
+      LowWaterLevelIncidentTimer: 90
+    deveyalperry:
+      BackoffIdleTimer: 90
+      BackoffDelayedTimer: 60
+      LowWaterLevelSupportTimer: 60
+      LowWaterLevelIncidentTimer: 90
+    devnivsto:
+      BackoffIdleTimer: 90
+      BackoffDelayedTimer: 60
+      LowWaterLevelSupportTimer: 60
+      LowWaterLevelIncidentTimer: 90
+    devhusamibrahem:
+      BackoffIdleTimer: 90
+      BackoffDelayedTimer: 60
+      LowWaterLevelSupportTimer: 60
+      LowWaterLevelIncidentTimer: 90
+
+Resources:
+
+  ActuatorsDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${Environment}-agwa-actuators-data"
+      LifecycleConfiguration:
+        Rules:
+          - ExpirationInDays: 30
+            Prefix: "firehose-data/"
+            Status: Enabled
+
+  SensorsDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${Environment}-agwa-sensors-data"
+      LifecycleConfiguration:
+        Rules:
+          - ExpirationInDays: 30
+            Prefix: "firehose-data/"
+            Status: Enabled
+
+  IotRuleRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Environment}_glue_iot_rule_role"
+      Description: Firehose data processor role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: iot.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: FirehoseDeliveryPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - firehose:PutRecord
+                Resource: "*"
+        - PolicyName: IoTEventsDeliveryPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iotevents:BatchPutMessage
+                Resource: "*"
+        - PolicyName: SendToSqs
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource: "*"
+        - PolicyName: PassIAMRole
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                Resource: "*"
+
+  GlueCrawlerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Environment}_glue_crawler_role"
+      Description: Firehose data processor role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: glue.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+
+  FirehoseRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Environment}_firehose_role"
+      Description: Firehose data processor role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: firehose.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AWSLambda_FullAccess
+        - arn:aws:iam::aws:policy/AmazonKinesisReadOnlyAccess
+      Policies:
+        - PolicyName: GlueAccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - glue:GetTable
+                  - glue:GetTableVersion
+                  - glue:GetTableVersions
+                Resource: "*"
+        - PolicyName: FirehoseLogsPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:PutLogEvents
+                Resource: "*"
+        - PolicyName: KmsAccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                Resource: "*"
+
+  SensoryDataEtlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Environment}_sensory_data_etl"
+      Description: An ETL for restructuring sensory firehose data in a larger partitioned files.
+      Handler: sensory_data_etl.lambda_handler
+      Role: !Ref LambdaRole
+      Runtime: python3.8
+      CodeUri:
+        Bucket: !Ref ArtifactsBucket
+        Key: !Sub "${LambdaPrefix}/sensory_data_etl.zip"
+      Layers:
+        - !Ref CommonLayer
+      Timeout: 300
+      Environment:
+        Variables:
+          SENSORS_FIREHOSE_TABLE: !Ref SensorsFirehoseTable
+          SENSORS_PARTITIONED_TABLE: !Ref SensorsPartitionedTable
+          DATABASE: !Ref AgwaGlueDatabase
+
+  SensoryDataEtlAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-sensory-data-etl-alarm"
+      AlarmDescription: Trigger an alarm if an error is recorded
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref SensoryDataEtlFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  ActuatorsDataEtlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Environment}_actuators_data_etl"
+      Description: An ETL for restructuring actuators firehose data in a larger partitioned files.
+      Handler: actuators_data_etl.lambda_handler
+      Role: !Ref LambdaRole
+      Runtime: python3.8
+      CodeUri:
+        Bucket: !Ref ArtifactsBucket
+        Key: !Sub "${LambdaPrefix}/actuators_data_etl.zip"
+      Layers:
+        - !Ref CommonLayer
+      Timeout: 300
+      Environment:
+        Variables:
+          ACTUATORS_FIREHOSE_TABLE: !Ref ActuatorsFirehoseTable
+          ACTUATORS_PARTITIONED_TABLE: !Ref ActuatorsPartitionedTable
+          DATABASE: !Ref AgwaGlueDatabase
+
+  ActuatorsDataEtlAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-actuators-data-etl-alarm"
+      AlarmDescription: Trigger an alarm if an error is recorded
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref ActuatorsDataEtlFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  SensoryDataEtlTimer:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Run ETL to move greenhouse sensory data to a partitioned table every day
+      Name: !Sub "${Environment}_sensory_data_etl_event"
+      State: ENABLED
+      EventPattern:
+        detail-type:
+          - "Glue Crawler State Change"
+        source:
+          - aws.glue
+        detail:
+          crawlerName:
+            - !Ref FirehoseCrawler
+          state:
+            - Succeeded
+      Targets:
+        - Arn: !GetAtt SensoryDataEtlFunction.Arn
+          Id: !Ref SensoryDataEtlFunction
+
+  SensoryDataEtlTimerAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-sensory-data-etl-timer-alarm"
+      AlarmDescription: Trigger an alarm if an error is recorded
+      MetricName: FailedInvocations
+      Namespace: AWS/Events
+      Dimensions:
+        - Name: RuleName
+          Value: !Ref SensoryDataEtlTimer
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  ActuatorsDataEtlTimer:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Run ETL to move greenhouse actuators data to a partitioned table every day
+      Name: !Sub "${Environment}_actuators_data_etl_event"
+      State: ENABLED
+      EventPattern:
+        detail-type:
+          - "Glue Crawler State Change"
+        source:
+          - aws.glue
+        detail:
+          crawlerName:
+            - !Ref FirehoseCrawler
+          state:
+            - Succeeded
+      Targets:
+        - Arn: !GetAtt ActuatorsDataEtlFunction.Arn
+          Id: !Ref ActuatorsDataEtlFunction
+
+  ActuatorsDataEtlTimerAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-actuators-data-etl-timer-alarm"
+      AlarmDescription: Trigger an alarm if an error is recorded
+      MetricName: FailedInvocations
+      Namespace: AWS/Events
+      Dimensions:
+        - Name: RuleName
+          Value: !Ref ActuatorsDataEtlTimer
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  SensorsEtlPermissionInvokeLambdaRule:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref SensoryDataEtlFunction
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt SensoryDataEtlTimer.Arn
+
+  ActuatorsEtlPermissionInvokeLambdaRule:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ActuatorsDataEtlFunction
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt ActuatorsDataEtlTimer.Arn
+
+  UpdateLatestMeasurementsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Environment}_update_latest_measurements"
+      Description: Updates the latest measurements of each sensors of each controller.
+      Handler: update_latest_measurements.lambda_handler
+      Role: !Ref LambdaRole
+      Runtime: python3.8
+      CodeUri:
+        Bucket: !Ref ArtifactsBucket
+        Key: !Sub "${LambdaPrefix}/update_latest_measurements.zip"
+      Layers:
+        - !Ref CommonLayer
+      Timeout: 60
+      Environment:
+        Variables:
+          ENV: !Ref Environment
+
+  UpdateLatestMeasurementsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-update-latest-measurements-alarm"
+      AlarmDescription: Trigger an alarm if an error is recorded
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref UpdateLatestMeasurementsFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  SensorsFirehoseStream:
+    Type: AWS::KinesisFirehose::DeliveryStream
+    Properties:
+      DeliveryStreamName: !Sub "${Environment}-sensors-data"
+      ExtendedS3DestinationConfiguration:
+        BucketARN: !GetAtt SensorsDataBucket.Arn
+        BufferingHints:
+          IntervalInSeconds: 300
+          SizeInMBs: 64
+        CloudWatchLoggingOptions:
+          Enabled: true
+          LogGroupName: deliverystream
+          LogStreamName: !Sub "${Environment}-sensors-data"
+        DataFormatConversionConfiguration:
+          Enabled: true
+          InputFormatConfiguration:
+            Deserializer:
+              OpenXJsonSerDe: { }
+          OutputFormatConfiguration:
+            Serializer:
+              ParquetSerDe: { }
+          SchemaConfiguration:
+            DatabaseName: !Ref AgwaGlueDatabase
+            TableName: !Ref SensorsFirehoseTable
+            RoleARN: !GetAtt FirehoseRole.Arn
+        Prefix: firehose-data/!{timestamp:yyyy/MM/dd/}
+        ErrorOutputPrefix: firehose-data-errors/!{firehose:error-output-type}/!{timestamp:yyyy/MM/dd/}
+        ProcessingConfiguration:
+          Enabled: true
+          Processors:
+            - Parameters:
+                - ParameterName: LambdaArn
+                  ParameterValue: !GetAtt UpdateLatestMeasurementsFunction.Arn
+                - ParameterName: BufferIntervalInSeconds
+                  ParameterValue: "60"
+                - ParameterName: BufferSizeInMBs
+                  ParameterValue: "3"
+              Type: Lambda
+        RoleARN: !GetAtt FirehoseRole.Arn
+
+  SensorsFirehoseStreamNotDelieveredDataAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-sensors-firehose-stream-delivery-delay-alarm"
+      AlarmDescription: Trigger an alarm if no data delivered to S3 for the last 15 minutes
+      MetricName: DeliveryToS3.DataFreshness
+      Namespace: AWS/Firehose
+      Dimensions:
+        - Name: DeliveryStreamName
+          Value: !Ref SensorsFirehoseStream
+      Statistic: Maximum
+      Period: 900
+      EvaluationPeriods: 1
+      Threshold: 900
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  SensorsFirehoseStreamThrottledDataAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-sensors-firehose-stream-throttled-records-alarm"
+      AlarmDescription: Trigger an alarm if there are throttled records
+      MetricName: ThrottledRecords
+      Namespace: AWS/Firehose
+      Dimensions:
+        - Name: DeliveryStreamName
+          Value: !Ref SensorsFirehoseStream
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  ActuatorsFirehoseStream:
+    Type: AWS::KinesisFirehose::DeliveryStream
+    Properties:
+      DeliveryStreamName: !Sub "${Environment}-actuators-data"
+      ExtendedS3DestinationConfiguration:
+        BucketARN: !GetAtt ActuatorsDataBucket.Arn
+        BufferingHints:
+          IntervalInSeconds: 300
+          SizeInMBs: 64
+        CloudWatchLoggingOptions:
+          Enabled: true
+          LogGroupName: deliverystream
+          LogStreamName: !Sub "${Environment}-actuators-data"
+        DataFormatConversionConfiguration:
+          Enabled: true
+          InputFormatConfiguration:
+            Deserializer:
+              OpenXJsonSerDe: { }
+          OutputFormatConfiguration:
+            Serializer:
+              ParquetSerDe: { }
+          SchemaConfiguration:
+            DatabaseName: !Ref AgwaGlueDatabase
+            TableName: !Ref ActuatorsFirehoseTable
+            RoleARN: !GetAtt FirehoseRole.Arn
+        Prefix: firehose-data/!{timestamp:yyyy/MM/dd/}
+        ErrorOutputPrefix: firehose-data-errors/!{firehose:error-output-type}/!{timestamp:yyyy/MM/dd/}
+        RoleARN: !GetAtt FirehoseRole.Arn
+
+  ActuatorsFirehoseStreamNotDelieveredDataAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-actuators-firehose-stream-delivery-delay-alarm"
+      AlarmDescription: Trigger an alarm if no data delivered to S3 for the last 15 minutes
+      MetricName: DeliveryToS3.DataFreshness
+      Namespace: AWS/Firehose
+      Dimensions:
+        - Name: DeliveryStreamName
+          Value: !Ref ActuatorsFirehoseStream
+      Statistic: Maximum
+      Period: 900
+      EvaluationPeriods: 1
+      Threshold: 900
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  ActuatorsFirehoseStreamThrottledDataAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-actuators-firehose-stream-throttled-records-alarm"
+      AlarmDescription: Trigger an alarm if there are throttled records
+      MetricName: ThrottledRecords
+      Namespace: AWS/Firehose
+      Dimensions:
+        - Name: DeliveryStreamName
+          Value: !Ref ActuatorsFirehoseStream
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  SensorsDataRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: !Sub "${Environment}_sensors_data_to_firehose"
+      TopicRulePayload:
+        Actions:
+          - Firehose:
+              DeliveryStreamName: !Ref SensorsFirehoseStream
+              RoleArn: !GetAtt IotRuleRole.Arn
+              Separator: "\n"
+        AwsIotSqlVersion: "2016-03-23"
+        Description: A processing rule that handles all sensory data points.
+        Sql: !Sub "SELECT topic(3) as controller_id, topic(5) as sensor, measured_timestamp, measured_value FROM '${Environment}/data/+/sensor/#'"
+        RuleDisabled: false
+
+  WaterLevelRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: !Sub "${Environment}_water_level_action"
+      TopicRulePayload:
+        Actions:
+          - IotEvents:
+              InputName: !Ref WaterLevelInput
+              RoleArn: !GetAtt IotRuleRole.Arn
+          - Firehose:
+              DeliveryStreamName: !Ref SensorsFirehoseStream
+              RoleArn: !GetAtt IotRuleRole.Arn
+              Separator: "\n"
+        AwsIotSqlVersion: "2016-03-23"
+        Description: A processing rule that handles all sensor policy backoffs.
+        Sql: !Sub "SELECT topic(3) as controller_id, topic(5) as sensor, measured_timestamp, measured_value FROM '${Environment}/data/+/sensor/water_level'"
+        RuleDisabled: false
+
+  SensorsDataRuleParsingErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-sensors-data-parsing-alarm"
+      AlarmDescription: Trigger an alarm if there are data parsing errors
+      MetricName: ParseError
+      Namespace: AWS/IoT
+      Dimensions:
+        - Name: RuleName
+          Value: !Ref SensorsDataRule
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  SensorsDataRuleMessageThrottledAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-sensors-data-throttled-alarm"
+      AlarmDescription: Trigger an alarm if there are throttled messages
+      MetricName: RuleMessageThrottled
+      Namespace: AWS/IoT
+      Dimensions:
+        - Name: RuleName
+          Value: !Ref SensorsDataRule
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  SensorsDataRuleFirehoseDeliveryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-sensors-data-delivery-failed-alarm"
+      AlarmDescription: Trigger an alarm if there are errors deliver the data to firehose
+      MetricName: Failure
+      Namespace: AWS/IoT
+      Dimensions:
+        - Name: RuleName
+          Value: !Ref SensorsDataRule
+        - Name: ActionType
+          Value: Firehose
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  ActuatorsDataRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: !Sub "${Environment}_actuators_data_to_firehose"
+      TopicRulePayload:
+        Actions:
+          - Firehose:
+              DeliveryStreamName: !Ref ActuatorsFirehoseStream
+              RoleArn: !GetAtt IotRuleRole.Arn
+              Separator: "\n"
+        AwsIotSqlVersion: "2016-03-23"
+        Description: A processing rule that handles all actuators data points.
+        Sql: !Sub "SELECT topic(3) as controller_id, topic(5) as actuator, * FROM '${Environment}/data/+/actuator/#'"
+        RuleDisabled: false
+
+  ActuatorsDataRuleParsingErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-actuators-data-parsing-alarm"
+      AlarmDescription: Trigger an alarm if there are data parsing errors
+      MetricName: ParseError
+      Namespace: AWS/IoT
+      Dimensions:
+        - Name: RuleName
+          Value: !Ref ActuatorsDataRule
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  ActuatorsDataRuleMessageThrottledAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-actuators-data-throttled-alarm"
+      AlarmDescription: Trigger an alarm if there are throttled messages
+      MetricName: RuleMessageThrottled
+      Namespace: AWS/IoT
+      Dimensions:
+        - Name: RuleName
+          Value: !Ref ActuatorsDataRule
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  ActuatorsDataRuleFirehoseDeliveryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-actuators-data-delivery-failed-alarm"
+      AlarmDescription: Trigger an alarm if there are errors deliver the data to firehose
+      MetricName: Failure
+      Namespace: AWS/IoT
+      Dimensions:
+        - Name: RuleName
+          Value: !Ref ActuatorsDataRule
+        - Name: ActionType
+          Value: Firehose
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  AgwaGlueDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Description: Agwa's raw data
+        Name: !Sub "${Environment}_agwa_data"
+
+  SensorsFirehoseTable:
+    Type: AWS::Glue::Table
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseName: !Ref AgwaGlueDatabase
+      TableInput:
+        Description: Greenhouses sensory raw data
+        Name: greenhouse_sensors_firehose
+        PartitionKeys:
+          - Name: insertion_year
+            Type: string
+          - Name: insertion_month
+            Type: string
+          - Name: insertion_day
+            Type: string
+        StorageDescriptor:
+          Columns:
+            - Name: controller_id
+              Type: string
+            - Name: sensor
+              Type: string
+            - Name: measured_timestamp
+              Type: timestamp
+            - Name: measured_value
+              Type: float
+          Location: !Sub "s3://${SensorsDataBucket}/firehose-data/"
+          SerdeInfo:
+            SerializationLibrary: org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe
+            Parameters:
+              serialization.format: 1
+          InputFormat: org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat
+          OutputFormat: org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          classification: parquet
+
+  ActuatorsFirehoseTable:
+    Type: AWS::Glue::Table
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseName: !Ref AgwaGlueDatabase
+      TableInput:
+        Description: Greenhouses actuators raw data
+        Name: greenhouse_actuators_firehose
+        PartitionKeys:
+          - Name: insertion_year
+            Type: string
+          - Name: insertion_month
+            Type: string
+          - Name: insertion_day
+            Type: string
+        StorageDescriptor:
+          Columns:
+            - Name: controller_id
+              Type: string
+            - Name: actuator
+              Type: string
+            - Name: timestamp
+              Type: timestamp
+            - Name: state
+              Type: string
+            - Name: amount
+              Type: float
+            - Name: unit
+              Type: string
+            - Name: initiator
+              Type: string
+          Location: !Sub "s3://${ActuatorsDataBucket}/firehose-data/"
+          SerdeInfo:
+            SerializationLibrary: org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe
+            Parameters:
+              serialization.format: 1
+          InputFormat: org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat
+          OutputFormat: org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          classification: parquet
+
+  FirehoseCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Configuration: "{\"Version\":1.0,\"Grouping\":{\"TableGroupingPolicy\":\"CombineCompatibleSchemas\"},\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"}}}"
+      DatabaseName: !Ref AgwaGlueDatabase
+      Description: A crawler to find new partitions in the firehose data
+      Name: !Sub "${Environment}_firehose"
+      Role: !Ref GlueCrawlerRole
+      Schedule:
+        ScheduleExpression: "cron(17 0 * * ? *)"
+      SchemaChangePolicy:
+        DeleteBehavior: LOG
+        UpdateBehavior: LOG
+      Targets:
+        CatalogTargets:
+          - DatabaseName: !Ref AgwaGlueDatabase
+            Tables:
+              - !Ref SensorsFirehoseTable
+              - !Ref ActuatorsFirehoseTable
+  FireHoseCrawlerFailedNotifier:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Send Notifications about Firehose Crawler Failures to Slack
+      Name: !Sub "${Environment}_firehose_crawler_failure_notification"
+      State: ENABLED
+      EventPattern:
+        detail-type:
+          - "Glue Crawler State Change"
+        source:
+          - aws.glue
+        detail:
+          crawlerName:
+            - !Ref FirehoseCrawler
+          state:
+            - Failed
+      Targets:
+        - Arn: !Ref NotificationsSns
+          Id: DataAlertsSns
+
+  SensorsPartitionedTable:
+    Type: AWS::Glue::Table
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseName: !Ref AgwaGlueDatabase
+      TableInput:
+        Description: Greenhouses sensory partitioned raw data
+        Name: greenhouse_sensors_partitioned
+        PartitionKeys:
+          - Name: controller_id
+            Type: string
+          - Name: measured_year
+            Type: string
+          - Name: measured_month
+            Type: string
+        StorageDescriptor:
+          Columns:
+            - Name: sensor
+              Type: string
+            - Name: measured_timestamp
+              Type: timestamp
+            - Name: measured_value
+              Type: float
+          Location: !Sub "s3://${SensorsDataBucket}/partitioned-data/"
+          SerdeInfo:
+            SerializationLibrary: org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe
+            Parameters:
+              serialization.format: 1
+          InputFormat: org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat
+          OutputFormat: org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          classification: parquet
+
+  ActuatorsPartitionedTable:
+    Type: AWS::Glue::Table
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseName: !Ref AgwaGlueDatabase
+      TableInput:
+        Description: Greenhouses actuator partitioned raw data
+        Name: greenhouse_actuators_partitioned
+        PartitionKeys:
+          - Name: controller_id
+            Type: string
+          - Name: measured_year
+            Type: string
+          - Name: measured_month
+            Type: string
+        StorageDescriptor:
+          Columns:
+            - Name: actuator
+              Type: string
+            - Name: timestamp
+              Type: timestamp
+            - Name: state
+              Type: string
+            - Name: amount
+              Type: float
+            - Name: unit
+              Type: string
+            - Name: initiator
+              Type: string
+          Location: !Sub "s3://${ActuatorsDataBucket}/partitioned-data/"
+          SerdeInfo:
+            SerializationLibrary: org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe
+            Parameters:
+              serialization.format: 1
+          InputFormat: org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat
+          OutputFormat: org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          classification: parquet
+
+  PartitionedCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Configuration: "{\"Version\":1.0,\"Grouping\":{\"TableGroupingPolicy\":\"CombineCompatibleSchemas\"},\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"}}}"
+      DatabaseName: !Ref AgwaGlueDatabase
+      Description: A crawler to find new partitions in the partitioned data
+      Name: !Sub "${Environment}_partitioned"
+      Role: !Ref GlueCrawlerRole
+      Schedule:
+        ScheduleExpression: "cron(30 00 1 * ? *)"
+      SchemaChangePolicy:
+        DeleteBehavior: LOG
+        UpdateBehavior: LOG
+      Targets:
+        CatalogTargets:
+          - DatabaseName: !Ref AgwaGlueDatabase
+            Tables:
+              - !Ref SensorsPartitionedTable
+              - !Ref ActuatorsPartitionedTable
+
+  SensorsDataView:
+    Type: AWS::Glue::Table
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseName: !Ref AgwaGlueDatabase
+      TableInput:
+        Description: Greenhouses sensory unified raw data view
+        Name: greenhouse_sensors_data
+        PartitionKeys: [ ]
+        StorageDescriptor:
+          Columns:
+            - Name: controller_id
+              Type: string
+            - Name: measured_year
+              Type: string
+            - Name: measured_month
+              Type: string
+            - Name: sensor
+              Type: string
+            - Name: measured_timestamp
+              Type: timestamp
+            - Name: measured_value
+              Type: float
+          SerdeInfo: { }
+        TableType: VIRTUAL_VIEW
+        Parameters:
+          comment: Presto View
+          presto_view: true
+        ViewOriginalText: !Join
+          - " "
+          - - "/* Presto View:"
+            - Fn::Base64:
+                !Sub '{"catalog":"awsdatacatalog","schema":"${AgwaGlueDatabase}","columns":[{"name":"controller_id","type":"varchar"},{"name":"measured_year","type":"varchar"},{"name":"measured_month","type":"varchar"},{"name":"sensor","type":"varchar"},{"name":"measured_timestamp","type":"timestamp"},{"name":"measured_value","type":"real"}],"originalSql":"SELECT controller_id, measured_year, measured_month, sensor, measured_timestamp, measured_value FROM greenhouse_sensors_partitioned UNION ALL SELECT controller_id, CAST(year(measured_timestamp) AS varchar(4)), CAST(month(measured_timestamp) AS varchar(2)), sensor, measured_timestamp, measured_value FROM greenhouse_sensors_firehose WHERE (((CAST(insertion_year AS integer) = year(now())) AND (CAST(insertion_month AS integer) = month(now()))) AND (CAST(insertion_day AS integer) = day(now())))"}'
+            - "*/"
+        ViewExpandedText: "/* Presto View */"
+
+  ActuatorsDataView:
+    Type: AWS::Glue::Table
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseName: !Ref AgwaGlueDatabase
+      TableInput:
+        Description: Greenhouses actuators unified raw data view
+        Name: greenhouse_actuators_data
+        PartitionKeys: [ ]
+        StorageDescriptor:
+          Columns:
+            - Name: controller_id
+              Type: string
+            - Name: measured_year
+              Type: string
+            - Name: measured_month
+              Type: string
+            - Name: actuator
+              Type: string
+            - Name: timestamp
+              Type: timestamp
+            - Name: state
+              Type: string
+            - Name: amount
+              Type: float
+            - Name: unit
+              Type: string
+            - Name: initiator
+              Type: string
+          SerdeInfo: { }
+        TableType: VIRTUAL_VIEW
+        Parameters:
+          comment: Presto View
+          presto_view: true
+        ViewOriginalText: !Join
+          - " "
+          - - "/* Presto View:"
+            - Fn::Base64:
+                !Sub '{"catalog":"awsdatacatalog","schema":"${AgwaGlueDatabase}","columns":[{"name":"controller_id","type":"varchar"},{"name":"measured_year","type":"varchar"},{"name":"measured_month","type":"varchar"},{"name":"actuator","type":"varchar"},{"name":"timestamp","type":"timestamp"},{"name":"state","type":"varchar"},{"name":"amount","type":"double"},{"name":"unit","type":"varchar"},{"name":"initiator","type":"varchar"}],"originalSql":"SELECT controller_id, measured_year, measured_month, actuator, timestamp, state, amount, unit, initiator FROM greenhouse_actuators_partitioned UNION ALL SELECT controller_id, CAST(year(timestamp) AS varchar(4)), CAST(month(timestamp) AS varchar(2)), actuator, timestamp, state, amount, unit, initiator FROM greenhouse_actuators_firehose WHERE (((CAST(insertion_year AS integer) = year(now())) AND (CAST(insertion_month AS integer) = month(now()))) AND (CAST(insertion_day AS integer) = day(now())))"}'
+            - "*/"
+        ViewExpandedText: "/* Presto View */"
+
+  IoTEventsDetectorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Environment}_iot_events_detector"
+      Description: IoT Events detector role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: iotevents.amazonaws.com
+            Action: 'sts:AssumeRole'
+          - Effect: Allow
+            Principal:
+              Service: iot.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: PublishSnsPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: "*"
+        - PolicyName: PublishIoTEventsInput
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iotevents:BatchPutMessage
+                Resource: "*"
+
+        - PolicyName: LambdaInvoke
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: "*"
+
+  SensorPolicyActionInput:
+    Type: AWS::IoTEvents::Input
+    Properties:
+      InputDefinition:
+        Attributes:
+          - JsonPath: detector_key
+          - JsonPath: action
+          - JsonPath: controller
+          - JsonPath: sensor
+          - JsonPath: activation_value
+          - JsonPath: backoff_value
+          - JsonPath: timestamp
+          - JsonPath: direction
+          - JsonPath: reason
+      InputDescription: A sensor policy backoff input
+      InputName: !Sub "${Environment}_sensor_policy_backoff"
+
+  WaterLevelInput:
+    Type: AWS::IoTEvents::Input
+    Properties:
+      InputDefinition:
+        Attributes:
+          - JsonPath: controller_id
+          - JsonPath: sensor
+          - JsonPath: measured_timestamp
+          - JsonPath: measured_value
+      InputDescription: A sensor policy backoff input
+      InputName: !Sub "${Environment}_water_level"
+
+  SensorBackoffHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Environment}_sensor_backoff_handler"
+      Description: A function that handles sensor backoffs.
+      Handler: sensor_backoff_handler.lambda_handler
+      Role: !Ref LambdaRole
+      Runtime: python3.8
+      CodeUri:
+        Bucket: !Ref ArtifactsBucket
+        Key: !Sub "${LambdaPrefix}/sensor_backoff_handler.zip"
+      Layers:
+        - !Ref CommonLayer
+      Timeout: 300
+      Environment:
+        Variables:
+          ENV: !Ref Environment
+
+  LowEcHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Environment}_low_ec_handler"
+      Description: A function that handles low ec.
+      Handler: low_ec_handler.lambda_handler
+      Role: !Ref LambdaRole
+      Runtime: python3.8
+      CodeUri:
+        Bucket: !Ref ArtifactsBucket
+        Key: !Sub "${LambdaPrefix}/low_ec_handler.zip"
+      Layers:
+        - !Ref CommonLayer
+      Timeout: 300
+      Environment:
+        Variables:
+          ENV: !Ref Environment
+
+  LowWaterLevelHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Environment}_low_water_level_handler"
+      Description: A function that handles low water level.
+      Handler: low_water_level_handler.lambda_handler
+      Role: !Ref LambdaRole
+      Runtime: python3.8
+      CodeUri:
+        Bucket: !Ref ArtifactsBucket
+        Key: !Sub "${LambdaPrefix}/low_water_level_handler.zip"
+      Layers:
+        - !Ref CommonLayer
+      Timeout: 300
+      Environment:
+        Variables:
+          ENV: !Ref Environment
+
+  LowEcHandlerAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-low-ec-handler-alarm"
+      AlarmDescription: Trigger an alarm if an error is recorded
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LowEcHandlerFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  LowWaterLevelHandlerAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-low-water-level-handler-alarm"
+      AlarmDescription: Trigger an alarm if an error is recorded
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LowWaterLevelHandlerFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  SensorBackoffHandlerAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-sensor-backoff-handler-alarm"
+      AlarmDescription: Trigger an alarm if an error is recorded
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref SensorBackoffHandlerFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  SensorBackoffDelayedHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Environment}_sensor_backoff_delayed_handler"
+      Description: A function that handles sensor backoff after a delay.
+      Handler: sensor_backoff_delayed_handler.lambda_handler
+      Role: !Ref LambdaRole
+      Runtime: python3.8
+      CodeUri:
+        Bucket: !Ref ArtifactsBucket
+        Key: !Sub "${LambdaPrefix}/sensor_backoff_delayed_handler.zip"
+      Layers:
+        - !Ref CommonLayer
+      Timeout: 300
+      Environment:
+        Variables:
+          ENV: !Ref Environment
+
+  SensorBackoffDelayedHandlerAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-sensor-backoff-delayed-handler-alarm"
+      AlarmDescription: Trigger an alarm if an error is recorded
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref SensorBackoffDelayedHandlerFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  SensorPolicyActionRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: !Sub "${Environment}_sensor_policy_action"
+      TopicRulePayload:
+        Actions:
+          - IotEvents:
+              InputName: !Ref SensorPolicyActionInput
+              RoleArn: !GetAtt IotRuleRole.Arn
+        AwsIotSqlVersion: "2016-03-23"
+        Description: A processing rule that handles all sensor policy backoffs.
+        Sql: !Sub "SELECT concat(topic(3), '_', topic(5), '_', direction) as detector_key, action, topic(3) as controller, topic(5) as sensor, activation_value, backoff_value, timestamp, direction, reason FROM '${Environment}/device/+/sensor/+/policy/action' WHERE (action = 'backoff' OR action = 'deactivation') AND (topic(5) = 'ph' OR (topic(5) = 'ec' AND direction = 'up'))"
+        RuleDisabled: false
+
+  SensorPolicyBackoffDetector:
+    Type: AWS::IoTEvents::DetectorModel
+    Properties:
+      Key: detector_key
+      EvaluationMethod: SERIAL
+      DetectorModelDescription: Handles sensor policy backoff events
+      DetectorModelName: !Sub "${Environment}-sensor-policy-backoff-detector"
+      RoleArn: !GetAtt IoTEventsDetectorRole.Arn
+      DetectorModelDefinition:
+        InitialStateName: idle
+        States:
+          - StateName: idle
+            OnInput:
+               TransitionEvents:
+                - EventName: EC_PolicyBackoff_Up
+                  Condition: !Sub '$input.${SensorPolicyActionInput}.action == "backoff" && (($input.${SensorPolicyActionInput}.sensor == "ec" && ($input.${SensorPolicyActionInput}.backoff_value - 100 <= $input.${SensorPolicyActionInput}.activation_value) && ($input.${SensorPolicyActionInput}.activation_value <= $input.${SensorPolicyActionInput}.backoff_value + 50)))'
+                  NextState: monitor
+                  Actions:
+                    - SetVariable:
+                        VariableName: sensor
+                        Value: !Sub '$input.${SensorPolicyActionInput}.sensor'
+                    - SetVariable:
+                        VariableName: direction
+                        Value: !Sub '$input.${SensorPolicyActionInput}.direction'
+                    - SetVariable:
+                        VariableName: controller
+                        Value: !Sub '$input.${SensorPolicyActionInput}.controller'
+                    - SetVariable:
+                        VariableName: activation_value
+                        Value: !Sub '$input.${SensorPolicyActionInput}.activation_value'
+                    - SetVariable:
+                        VariableName: backoff_value
+                        Value: !Sub '$input.${SensorPolicyActionInput}.backoff_value'
+                - EventName: PH_PolicyBackoff_Up
+                  Condition: !Sub '$input.${SensorPolicyActionInput}.action == "backoff" && $input.${SensorPolicyActionInput}.sensor == "ph" && $input.${SensorPolicyActionInput}.direction == "up" && $input.${SensorPolicyActionInput}.backoff_value - $input.${SensorPolicyActionInput}.activation_value < 0.3'
+                  NextState: monitor
+                  Actions:
+                    - SetVariable:
+                        VariableName: sensor
+                        Value: !Sub '$input.${SensorPolicyActionInput}.sensor'
+                    - SetVariable:
+                        VariableName: direction
+                        Value: !Sub '$input.${SensorPolicyActionInput}.direction'
+                    - SetVariable:
+                        VariableName: controller
+                        Value: !Sub '$input.${SensorPolicyActionInput}.controller'
+                    - SetVariable:
+                        VariableName: activation_value
+                        Value: !Sub '$input.${SensorPolicyActionInput}.activation_value'
+                    - SetVariable:
+                        VariableName: backoff_value
+                        Value: !Sub '$input.${SensorPolicyActionInput}.backoff_value'
+                - EventName: PH_PolicyBackoff_Down
+                  Condition: !Sub '$input.${SensorPolicyActionInput}.action == "backoff" && $input.${SensorPolicyActionInput}.sensor == "ph" && $input.${SensorPolicyActionInput}.direction == "down" && $input.${SensorPolicyActionInput}.activation_value - $input.${SensorPolicyActionInput}.backoff_value < 0.3'
+                  NextState: monitor
+                  Actions:
+                    - SetVariable:
+                        VariableName: sensor
+                        Value: !Sub '$input.${SensorPolicyActionInput}.sensor'
+                    - SetVariable:
+                        VariableName: direction
+                        Value: !Sub '$input.${SensorPolicyActionInput}.direction'
+                    - SetVariable:
+                        VariableName: controller
+                        Value: !Sub '$input.${SensorPolicyActionInput}.controller'
+                    - SetVariable:
+                        VariableName: activation_value
+                        Value: !Sub '$input.${SensorPolicyActionInput}.activation_value'
+                    - SetVariable:
+                        VariableName: backoff_value
+                        Value: !Sub '$input.${SensorPolicyActionInput}.backoff_value'
+          - StateName: monitor
+            OnEnter:
+              Events:
+                - EventName: StartTimers
+                  Actions:
+                    - SetTimer:
+                        TimerName: BackToIdleTimer
+                        Seconds: !FindInMap [Timers, !Ref Environment, BackoffIdleTimer]
+                    - SetTimer:
+                        TimerName: DelayedHandlerTimer
+                        Seconds: !FindInMap [Timers, !Ref Environment, BackoffDelayedTimer]
+                - EventName: InvokeHandler
+                  Actions:
+                    - Lambda:
+                        FunctionArn: !GetAtt SensorBackoffHandlerFunction.Arn
+            OnInput:
+              Events:
+                - EventName: InvokeDelayedHandler
+                  Condition: 'timeout("DelayedHandlerTimer")'
+                  Actions:
+                    - Lambda:
+                        FunctionArn: !GetAtt SensorBackoffDelayedHandlerFunction.Arn
+              TransitionEvents:
+                - EventName: PolicyDeactivated
+                  Condition: !Sub '$input.${SensorPolicyActionInput}.action == "deactivation" && $input.${SensorPolicyActionInput}.reason != "policy_update"'
+                  NextState: idle
+                - EventName: TimedOut
+                  Condition: timeout("BackToIdleTimer")
+                  NextState: idle
+            OnExit:
+              Events:
+                - EventName: ClearTimers
+                  Actions:
+                    - ClearTimer:
+                        TimerName: BackToIdleTimer
+                    - ClearTimer:
+                        TimerName: DelayedHandlerTimer
+
+  LowEcDetector:
+    Type: AWS::IoTEvents::DetectorModel
+    Properties:
+      Key: detector_key
+      EvaluationMethod: SERIAL
+      DetectorModelDescription: Handles low ec events
+      DetectorModelName: !Sub "${Environment}-low-ec-detector"
+      RoleArn: !GetAtt IoTEventsDetectorRole.Arn
+      DetectorModelDefinition:
+        InitialStateName: normal
+        States:
+          - StateName: normal
+            OnInput:
+              TransitionEvents:
+                - EventName: Low
+                  Condition: !Sub '$input.${SensorPolicyActionInput}.action == "backoff" && $input.${SensorPolicyActionInput}.direction == "up" &&  $input.${SensorPolicyActionInput}.sensor == "ec" && $input.${SensorPolicyActionInput}.backoff_value - $input.${SensorPolicyActionInput}.activation_value < 100'
+                  NextState: low
+                  Actions:
+                    - SetVariable:
+                        VariableName: controller
+                        Value: !Sub '$input.${SensorPolicyActionInput}.controller'
+                    - SetVariable:
+                        VariableName: timestamp
+                        Value: !Sub '$input.${SensorPolicyActionInput}.timestamp'
+                    - Lambda:
+                        FunctionArn: !GetAtt LowEcHandlerFunction.Arn
+          - StateName: low
+            OnInput:
+              TransitionEvents:
+                - EventName: Normal
+                  Condition: !Sub '$input.${SensorPolicyActionInput}.action == "deactivation"'
+                  NextState: normal
+                  Actions:
+                    - SetVariable:
+                        VariableName: timestamp
+                        Value: !Sub '$input.${SensorPolicyActionInput}.timestamp'
+                    - Lambda:
+                        FunctionArn: !GetAtt LowEcHandlerFunction.Arn
+
+  LowWaterLevelDetector:
+    Type: AWS::IoTEvents::DetectorModel
+    Properties:
+      Key: controller_id
+      EvaluationMethod: SERIAL
+      DetectorModelDescription: Handles low water level events
+      DetectorModelName: !Sub "${Environment}-low-water-level-detector-model"
+      RoleArn: !GetAtt IoTEventsDetectorRole.Arn
+      DetectorModelDefinition:
+        InitialStateName: normal
+        States:
+          - StateName: normal
+            OnInput:
+              TransitionEvents:
+                - EventName: TransitionToLow
+                  Condition: !Sub '$input.${WaterLevelInput}.measured_value == 0'
+                  NextState: low
+                  Actions:
+                    - SetVariable:
+                        VariableName: status
+                        Value: !Sub '$input.${WaterLevelInput}.measured_value'
+                    - SetVariable:
+                        VariableName: controller
+                        Value: !Sub '$input.${WaterLevelInput}.controller_id'
+                    - SetVariable:
+                        VariableName: low_timestamp
+                        Value: !Sub '$input.${WaterLevelInput}.measured_timestamp'
+          - StateName: low
+            OnEnter:
+              Events:
+                - EventName: StartSupportTimer
+                  Actions:
+                    - SetTimer:
+                        TimerName: SupportTimer
+                        Seconds: !FindInMap [Timers, !Ref Environment, LowWaterLevelSupportTimer]
+                - EventName: StartIncidentTimer
+                  Actions:
+                    - SetTimer:
+                        TimerName: IncidentTimer
+                        Seconds: !FindInMap [Timers, !Ref Environment, LowWaterLevelIncidentTimer]
+                - EventName: OnEnterLow
+                  Actions:
+                    - Lambda:
+                        FunctionArn: !GetAtt LowWaterLevelHandlerFunction.Arn
+            OnExit:
+              Events:
+                - EventName: ResetSupportTimer
+                  Actions:
+                    - ResetTimer:
+                        TimerName: SupportTimer
+                - EventName: ResetIncidentTimer
+                  Actions:
+                    - ResetTimer:
+                        TimerName: IncidentTimer
+            OnInput:
+              TransitionEvents:
+                - EventName: TransitionToNormal
+                  Condition: !Sub '$input.${WaterLevelInput}.measured_value == 1'
+                  NextState: normal
+                  Actions:
+                    - SetVariable:
+                        VariableName: status
+                        Value: !Sub '$input.${WaterLevelInput}.measured_value'
+                    - SetVariable:
+                        VariableName: normal_timestamp
+                        Value: !Sub '$input.${WaterLevelInput}.measured_timestamp'
+                    - Lambda:
+                        FunctionArn: !GetAtt LowWaterLevelHandlerFunction.Arn
+              Events:
+                - EventName: SupportTrigger
+                  Condition: 'timeout("SupportTimer")'
+                  Actions:
+                    - Lambda:
+                        FunctionArn: !GetAtt LowWaterLevelHandlerFunction.Arn
+                - EventName: IncidentTrigger
+                  Condition: 'timeout("IncidentTimer")'
+                  Actions:
+                    - Lambda:
+                        FunctionArn: !GetAtt LowWaterLevelHandlerFunction.Arn
+
+  SensorPolicyBackoffDetectorPermissionInvokeTimeoutHandlerRule:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref SensorBackoffDelayedHandlerFunction
+      Action: "lambda:InvokeFunction"
+      Principal: "iotevents.amazonaws.com"
+
+  SensorPolicyBackoffDetectorPermissionInvokeHandlerRule:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref SensorBackoffHandlerFunction
+      Action: "lambda:InvokeFunction"
+      Principal: "iotevents.amazonaws.com"
+  
+  LowEcIotEventsInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LowEcHandlerFunction
+      Action: "lambda:InvokeFunction"
+      Principal: "iotevents.amazonaws.com"
+  
+  LowWaterLevelIotEventsInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LowWaterLevelHandlerFunction
+      Action: "lambda:InvokeFunction"
+      Principal: "iotevents.amazonaws.com"
+
+  DisconnectionDetectorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Environment}_disconnection_detector"
+      Description: A function that tracks data collection across all sensors and mark sensors as not connected.
+      Handler: disconnection_detector.lambda_handler
+      Role: !Ref LambdaRole
+      Runtime: python3.8
+      CodeUri:
+        Bucket: !Ref ArtifactsBucket
+        Key: !Sub "${LambdaPrefix}/disconnection_detector.zip"
+      Layers:
+        - !Ref CommonLayer
+      Timeout: 300
+      Environment:
+        Variables:
+          ENV: !Ref Environment
+
+  DisconnectionDetectorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-disconnection-detector-alarm"
+      AlarmDescription: Trigger an alarm if an error is recorded
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref DisconnectionDetectorFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  DisconnectionDetectorTimer:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Run lambda to check for data issues
+      Name: !Sub "${Environment}_disconnection_detector_event"
+      ScheduleExpression: "cron(0/60 * * * ? *)"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt DisconnectionDetectorFunction.Arn
+          Id: !Ref DisconnectionDetectorFunction
+
+  DisconnectionDetectorPermissionInvokeLambdaRule:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref DisconnectionDetectorFunction
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt DisconnectionDetectorTimer.Arn
+
+  # Base values pipeline
+
+  SensorBaseValueRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: !Sub "${Environment}_sensor_base_value"
+      TopicRulePayload:
+        Actions:
+          - Sqs:
+              QueueUrl: !Ref SensorBaseValueSqs
+              RoleArn: !GetAtt IotRuleRole.Arn
+        AwsIotSqlVersion: "2016-03-23"
+        Description: Handles all sensors base value updates.
+        Sql: !Sub "SELECT topic(3) as controller_id, topic(5) as sensor, timestamp, base_value FROM '${Environment}/device/+/sensor/+/base_value'"
+        RuleDisabled: false
+
+  SensorBaseValueSqs:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 120
+      QueueName: !Sub "${Environment}-sensor-base-value-queue"
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt SensorBaseValueDeadLetterQueue.Arn
+        maxReceiveCount: 3
+
+  SensorBaseValueDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Environment}-sensor-base-value-dead-letter-queue"
+
+  SensorBaseValueEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 1
+      Enabled: true
+      EventSourceArn: !GetAtt SensorBaseValueSqs.Arn
+      FunctionName: !GetAtt SensorBaseValueUpdaterFunction.Arn
+
+  SensorBaseValueUpdaterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Environment}_sensor_base_value_updater"
+      Description: Update sensor base value.
+      Handler: sensor_base_value_updater.lambda_handler
+      Role: !Ref LambdaRole
+      Runtime: python3.8
+      CodeUri:
+        Bucket: !Ref ArtifactsBucket
+        Key: !Sub "${LambdaPrefix}/sensor_base_value_updater.zip"
+      Layers:
+        - !Ref CommonLayer
+      Environment:
+        Variables:
+          ENV: !Ref Environment
+
+  SensorBaseValueUpdaterAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-sensor_base_value_updater-alarm"
+      AlarmDescription: Trigger an alarm if an error is recorded
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref SensorBaseValueUpdaterFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+
+  # System info pipeline
+
+  SystemInfoRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: !Sub "${Environment}_system_info"
+      TopicRulePayload:
+        Actions:
+          - Sqs:
+              QueueUrl: !Ref SystemInfoSqs
+              RoleArn: !GetAtt IotRuleRole.Arn
+        AwsIotSqlVersion: "2016-03-23"
+        Description: Handles system info reports.
+        Sql: !Sub "SELECT topic(3) as controller_id, info FROM '${Environment}/device/+/system'"
+        RuleDisabled: false
+
+  SystemInfoSqs:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 120
+      QueueName: !Sub "${Environment}-system-info-queue"
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt SystemInfoDeadLetterQueue.Arn
+        maxReceiveCount: 3
+
+  SystemInfoDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Environment}-system-info-dead-letter-queue"
+
+  SystemInfoEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 10
+      Enabled: true
+      EventSourceArn: !GetAtt SystemInfoSqs.Arn
+      FunctionName: !GetAtt SystemInfoUpdaterFunction.Arn
+
+  SystemInfoUpdaterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Environment}_system_info_updater"
+      Description: Update system info data.
+      Handler: system_info_updater.lambda_handler
+      Role: !Ref LambdaRole
+      Runtime: python3.8
+      CodeUri:
+        Bucket: !Ref ArtifactsBucket
+        Key: !Sub "${LambdaPrefix}/system_info_updater.zip"
+      Layers:
+        - !Ref CommonLayer
+      Environment:
+        Variables:
+          ENV: !Ref Environment
+
+  SystemInfoUpdaterAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-system_info_updater-alarm"
+      AlarmDescription: Trigger an alarm if an error is recorded
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref SystemInfoUpdaterFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  H2O2RefillNotificationTimer:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Periodically remind users to fill up h2o2 containers
+      Name: !Sub "${Environment}_h2o2_refill_event"
+      ScheduleExpression: "cron(0 0 ? * SUN *)"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt H2O2RefillReminderFunction.Arn
+          Id: !Ref H2O2RefillReminderFunction
+
+
+  H2O2RefillReminderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Environment}_h2o2_refill_reminder_function"
+      Description: Remind users to refill h2o2 container.
+      Handler: h2o2_refill_reminder.lambda_handler
+      Role: !Ref LambdaRole
+      Runtime: python3.8
+      CodeUri:
+        Bucket: !Ref ArtifactsBucket
+        Key: !Sub "${LambdaPrefix}/h2o2_refill_reminder.zip"
+      Layers:
+        - !Ref CommonLayer
+      Environment:
+        Variables:
+          ENV: !Ref Environment
+      Timeout: 300
+
+  H2O2RefillReminderAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-h2o2_refill_reminder-alarm"
+      AlarmDescription: Trigger an alarm if an error is recorded
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref H2O2RefillReminderFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns
+
+  # Zombie mode pipeline
+
+  ZombieModeRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: !Sub "${Environment}_zombie_mode"
+      TopicRulePayload:
+        Actions:
+          - Sqs:
+              QueueUrl: !Ref ZombieModeSqs
+              RoleArn: !GetAtt IotRuleRole.Arn
+        AwsIotSqlVersion: "2016-03-23"
+        Description: Handles all zombie mode reports.
+        Sql: !Sub "SELECT topic(3) as controller_id, sensor, timestamp, value FROM '${Environment}/device/+/zombie'"
+        RuleDisabled: false
+
+  ZombieModeSqs:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 120
+      QueueName: !Sub "${Environment}-zombie-mode-queue"
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt ZombieModeDeadLetterQueue.Arn
+        maxReceiveCount: 3
+
+  ZombieModeDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Environment}-zombie-mode-dead-letter-queue"
+
+  ZombieModeEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 1
+      Enabled: true
+      EventSourceArn: !GetAtt ZombieModeSqs.Arn
+      FunctionName: !GetAtt ZombieModeHandlerFunction.Arn
+
+  ZombieModeHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Environment}_zombie_mode_handler"
+      Description: Handle zombie mode report.
+      Handler: zombie_mode_handler.lambda_handler
+      Role: !Ref LambdaRole
+      Runtime: python3.8
+      CodeUri:
+        Bucket: !Ref ArtifactsBucket
+        Key: !Sub "${LambdaPrefix}/zombie_mode_handler.zip"
+      Layers:
+        - !Ref CommonLayer
+      Environment:
+        Variables:
+          ENV: !Ref Environment
+
+  ZombieModeHandlerAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-zombie_mode_handler-alarm"
+      AlarmDescription: Trigger an alarm if an error is recorded
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref ZombieModeHandlerFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref NotificationsSns

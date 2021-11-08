@@ -46,11 +46,17 @@ async function resolveEnvSpec(env, version) {
   const servicePromises = versionSpec.services.map((service) =>
     resolveService(env, service.name, service.version)
   );
-
-  const services = await Promise.all(...servicePromises);
+  console.log(servicePromises);
+  const services = await Promise.all(servicePromises);
 
   return { services };
 }
 
 module.exports.resolveEnvSpec = resolveEnvSpec;
 module.exports.resolveServiceSpec = resolveServiceSpec;
+
+resolveEnvSpec("ops", "8-11-21-1421")
+  .then(console.log)
+  .catch((e) => {
+    console.log(e);
+  });
