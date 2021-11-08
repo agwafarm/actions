@@ -53,20 +53,20 @@ class ConfigurationService {
     return services;
   };
 
-  createVersion = async (versionName, spec) => {
-    const versionPath = `/infra/version/${versionName}`;
-    console.log(`creating version ${versionName} with spec:`);
+  createVersion = async ({ name, spec, timestamp, author }) => {
+    const versionPath = `/infra/version/${name}`;
+    console.log(`creating version ${name} with spec:`);
     console.log(JSON.stringify(spec, null, 3));
+
     await this.client.send(
       new PutParameterCommand({
         Path: versionPath,
         Value: JSON.stringify(spec),
-        Description: `Version Specification for ${versionName}`,
+        Description: `Version Specification for ${name}`,
         Type: "String",
         Tags: [
           { Key: "author", Value: author },
           { Key: "timestamp", Value: `${timestamp}` },
-          { Key: "name", Value: versionName },
         ],
       })
     );
@@ -94,7 +94,12 @@ async function run() {
       timestamp,
       author,
     };
-    await configuration.createVersion(versionName, spec);
+    await configuration.createVersion({
+      name: versionName,
+      spec,
+      timestamp,
+      author,
+    });
   } catch (error) {
     console.log(error);
     core.setFailed(error.message);
