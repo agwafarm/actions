@@ -1,0 +1,12 @@
+name: 'sign-version'
+description: 'Creates a named version from current RC pointers'
+inputs:
+  versionName:
+    description: 'The version name'
+    required: true
+  awsRegion:
+    description: 'The AWS region from which to get SSM parameters'
+    required: true
+runs:
+  using: 'node12'
+  main: 'index.js'
