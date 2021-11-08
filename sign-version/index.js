@@ -11,7 +11,9 @@ const {
 dotenv.config({ path: ".config" });
 dotenv.config({ path: ".env" });
 
-const versionName = core.getInput("name", { required: true });
+const versionName = core.getInput("versionName", { required: true });
+const region = core.getInput("awsRegion", { required: true });
+
 const timestamp = Date.now();
 const author = github.context.actor;
 
