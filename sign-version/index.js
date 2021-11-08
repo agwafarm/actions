@@ -65,7 +65,8 @@ class ConfigurationService {
         Type: "String",
         Tags: [
           { Key: "author", Value: author },
-          { Key: "timestamp", Value: timestamp },
+          { Key: "timestamp", Value: `${timestamp}` },
+          { Key: "name", Value: versionName },
         ],
       })
     );
