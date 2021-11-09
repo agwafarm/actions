@@ -14,6 +14,12 @@ async function resolveServiceSpec(env, serviceName, version) {
       })
     );
 
+    if (!response.Parameter) {
+      throw new Error(
+        `could not resolve latest version for service: ${serviceName}`
+      );
+    }
+
     version = response.Parameter.Value;
     console.log(
       `Resolved latest version of service ${serviceName} to ${version}`
