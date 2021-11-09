@@ -1,6 +1,6 @@
 import { SSMClient, PutParameterCommand } from "@aws-sdk/client-ssm";
 
-console.log("running env-deployment script");
+console.log("running post-deployment script");
 
 const mode = process.env["APP_MODE"] || "service";
 const { env, version } = JSON.parse(process.env["APP_SPEC"] as string);
