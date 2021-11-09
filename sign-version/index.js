@@ -14,75 +14,88 @@ dotenv.config({ path: ".env" });
 
 const versionName = core.getInput("version", { required: true });
 const region = core.getInput("awsRegion", { required: true });
+let overrides = core.getInput("overrides");
+
+const ssmClient = new SSMClient({ region });
+
+if (!overrides) {
+  overrides = {};
+} else {
+  overrides = JSON.parse(overrides);
+}
 
 const timestamp = Date.now();
 const author = github.context.actor;
 
-class ConfigurationService {
-  constructor() {
-    this.client = new SSMClient({ region });
+function resolveVersion(name, version) {
+  if (name === "cloud-parent") {
+    return (
+      overrides["cloud-parent"] || overrides["cloud-components"] || version
+    );
   }
 
-  getRcServices = async () => {
-    const rcPath = "/infra/rc-version";
-    console.log(`fetching rc pointers for services`);
-    const response = await this.client.send(
-      new GetParametersByPathCommand({
-        Path: rcPath,
-      })
-    );
+  return overrides[name] || version;
+}
 
-    console.log(`get parameters by path response acquired`);
+async function getRcServices() {
+  const rcPath = "/infra/rc-version";
+  console.log(`fetching rc pointers for services`);
+  const response = await ssmClient.send(
+    new GetParametersByPathCommand({
+      Path: rcPath,
+    })
+  );
 
-    const services = [];
+  console.log(`get parameters by path response acquired`);
 
-    if (!response.Parameters) {
-      return services;
-    }
+  const services = [];
 
-    console.log(`Resolving service specifications`);
-
-    for (const parameter of response.Parameters) {
-      const version = parameter.Value;
-      const name = parameter.Name.replace(rcPath + "/", "");
-      const serviceSpec = { name, version };
-      console.log(JSON.stringify(serviceSpec, null, 3));
-      services.push(serviceSpec);
-    }
-
+  if (!response.Parameters) {
     return services;
-  };
+  }
 
-  createVersion = async ({ name, spec, timestamp, author }) => {
-    const versionPath = `/infra/version/${name}`;
+  console.log(`Resolving service specifications`);
 
-    const existingVersion = await this.client.send(
-      new GetParameterCommand({ Name: versionPath })
-    );
+  for (const parameter of response.Parameters) {
+    const name = parameter.Name.replace(rcPath + "/", "");
+    const version = resolveVersion(name, parameter.Value);
+    const serviceSpec = { name, version };
+    console.log(JSON.stringify(serviceSpec, null, 3));
+    services.push(serviceSpec);
+  }
 
-    if (existingVersion.Parameter) {
-      throw new Error(`version ${name} already exists`);
-    }
+  return services;
+}
 
-    console.log(`creating version ${name} in path: ${versionPath} with spec:`);
-    console.log(JSON.stringify(spec, null, 3));
+async function createVersion({ name, spec, timestamp, author }) {
+  const versionPath = `/infra/version/${name}`;
 
-    await this.client.send(
-      new PutParameterCommand({
-        Name: versionPath,
-        Value: JSON.stringify(spec),
-        Description: `Version Specification for ${name}`,
-        Type: "String",
-        Tags: [
-          { Key: "author", Value: `${author}` },
-          { Key: "timestamp", Value: `${timestamp}` },
-          { Key: "versionName", Value: `${name}` },
-        ],
-      })
-    );
+  const existingVersion = await ssmClient.send(
+    new GetParameterCommand({ Name: versionPath })
+  );
 
-    console.log(`version spec created`);
-  };
+  if (existingVersion.Parameter) {
+    throw new Error(`version ${name} already exists`);
+  }
+
+  console.log(`creating version ${name} in path: ${versionPath} with spec:`);
+  console.log(JSON.stringify(spec, null, 3));
+
+  await ssmClient.send(
+    new PutParameterCommand({
+      Name: versionPath,
+      Value: JSON.stringify(spec),
+      Description: `Version Specification for ${name}`,
+      Type: "String",
+      Tags: [
+        { Key: "author", Value: `${author}` },
+        { Key: "timestamp", Value: `${timestamp}` },
+        { Key: "versionName", Value: `${name}` },
+      ],
+    })
+  );
+
+  console.log(`version spec created`);
 }
 
 async function run() {
@@ -93,8 +106,7 @@ async function run() {
 
     console.log(`signing version: ${versionName}`);
 
-    const configuration = new ConfigurationService();
-    const services = await configuration.getRcServices();
+    const services = await getRcServices();
 
     if (services.length === 0) {
       throw new Error("No services detected for version");
@@ -106,7 +118,8 @@ async function run() {
       timestamp,
       author,
     };
-    await configuration.createVersion({
+
+    await createVersion({
       name: versionName,
       spec,
       timestamp,
