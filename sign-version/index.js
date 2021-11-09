@@ -16,6 +16,7 @@ const ssmClient = new SSMClient({ region });
 
 let versionName = core.getInput("version", { required: true });
 const hotfix = core.getInput("hotfix");
+
 if (hotfix) {
   versionName = `${versionName}-hotfix-${hotfix}`;
 }
@@ -30,6 +31,8 @@ if (!overrides) {
 }
 
 const timestamp = Date.now();
+const datetime = new Date().toUTCString();
+
 const author = github.context.actor;
 
 function resolveVersion(name, version) {
@@ -72,7 +75,7 @@ async function getRcServices() {
   return services;
 }
 
-async function createVersion({ name, spec, timestamp, author }) {
+async function createVersion({ name, spec, timestamp, datetime, author }) {
   const versionPath = `/infra/version/${name}`;
 
   try {
@@ -101,7 +104,9 @@ async function createVersion({ name, spec, timestamp, author }) {
       Tags: [
         { Key: "author", Value: `${author}` },
         { Key: "timestamp", Value: `${timestamp}` },
+        { Key: "datetime", Value: `${datetime}` },
         { Key: "versionName", Value: `${name}` },
+        { Key: "overrides", Value: JSON.stringify(Object.keys(overrides)) },
       ],
     })
   );
@@ -135,6 +140,7 @@ async function run() {
       name: versionName,
       spec,
       timestamp,
+      datetime,
       author,
     });
   } catch (error) {
