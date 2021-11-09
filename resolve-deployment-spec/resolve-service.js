@@ -83,7 +83,7 @@ async function downloadS3Prefixes(path, targetFolder, prefixes) {
     prefixes
   );
 
-  for (const prefix of prefixes) {
+  for (let prefix of prefixes) {
     const objects = await downloadS3Prefix(`${prefix}/${path}`, targetFolder);
     if (objects) {
       return { objects, prefix };
