@@ -33,7 +33,7 @@ async function run() {
 
     const env = computeEnv();
     const bucketPrefix = "/" + github.context.sha;
-    const bucketName = `${env}-${companyName}-${app}-web`;
+    const bucketName = `${env}-${companyName}-${app}-webapp`;
 
     console.log(`will deploy to environment: ${env}`);
     console.log("bucket name", bucketName);
