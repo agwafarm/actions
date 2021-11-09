@@ -4,6 +4,7 @@ const github = require("@actions/github");
 
 const {
   SSMClient,
+  GetParameterCommand,
   GetParametersByPathCommand,
   PutParameterCommand,
 } = require("@aws-sdk/client-ssm");
@@ -54,6 +55,15 @@ class ConfigurationService {
 
   createVersion = async ({ name, spec, timestamp, author }) => {
     const versionPath = `/infra/version/${name}`;
+
+    const existingVersion = await this.client.send(
+      new GetParameterCommand({ Name: versionPath })
+    );
+
+    if (existingVersion.Parameter) {
+      throw new Error(`version ${name} already exists`);
+    }
+
     console.log(`creating version ${name} in path: ${versionPath} with spec:`);
     console.log(JSON.stringify(spec, null, 3));
 
