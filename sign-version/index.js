@@ -106,7 +106,7 @@ async function createVersion({ name, spec, timestamp, datetime, author }) {
         { Key: "timestamp", Value: `${timestamp}` },
         { Key: "datetime", Value: `${datetime.toISOString()}` },
         { Key: "versionName", Value: `${name}` },
-        { Key: "overrides", Value: Object.keys(overrides).join(":") },
+        { Key: "overrides", Value: Object.keys(overrides).join(":") || "none" },
       ],
     })
   );
