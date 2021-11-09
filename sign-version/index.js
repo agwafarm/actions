@@ -12,11 +12,16 @@ const {
 dotenv.config({ path: ".config" });
 dotenv.config({ path: ".env" });
 
-const versionName = core.getInput("version", { required: true });
+const ssmClient = new SSMClient({ region });
+
+let versionName = core.getInput("version", { required: true });
+const hotfix = core.getInput("hotfix");
+if (hotfix) {
+  versionName = `${versionName}-hotfix-${hotfix}`;
+}
+
 const region = core.getInput("awsRegion", { required: true });
 let overrides = core.getInput("overrides");
-
-const ssmClient = new SSMClient({ region });
 
 if (!overrides) {
   overrides = {};

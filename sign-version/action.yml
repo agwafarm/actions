@@ -10,6 +10,9 @@ inputs:
   overrides:
     description: 'A map from service name to version'
     required: false
+  hotfix:
+    description: 'Version hotfix number'
+    required: false
 runs:
   using: 'node12'
   main: 'index.js'
