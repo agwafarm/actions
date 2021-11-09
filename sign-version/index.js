@@ -31,7 +31,7 @@ if (!overrides) {
 }
 
 const timestamp = Date.now();
-const datetime = new Date().toUTCString();
+const datetime = new Date();
 
 const author = github.context.actor;
 
@@ -104,7 +104,7 @@ async function createVersion({ name, spec, timestamp, datetime, author }) {
       Tags: [
         { Key: "author", Value: `${author}` },
         { Key: "timestamp", Value: `${timestamp}` },
-        { Key: "datetime", Value: `${datetime}` },
+        { Key: "datetime", Value: `${datetime.toISOString()}` },
         { Key: "versionName", Value: `${name}` },
         { Key: "overrides", Value: JSON.stringify(Object.keys(overrides)) },
       ],
