@@ -70,12 +70,18 @@ async function getRcServices() {
 async function createVersion({ name, spec, timestamp, author }) {
   const versionPath = `/infra/version/${name}`;
 
-  const existingVersion = await ssmClient.send(
-    new GetParameterCommand({ Name: versionPath })
-  );
-
-  if (existingVersion.Parameter) {
-    throw new Error(`version ${name} already exists`);
+  try {
+    const existingVersion = await ssmClient.send(
+      new GetParameterCommand({ Name: versionPath })
+    );
+    if (existingVersion.Parameter) {
+      throw new Error(`version ${name} already exists`);
+    }
+  } catch (e) {
+    // ParameterNotFound thrown -> version does not exist yet -> continue
+    if (e.name !== "ParameterNotFound") {
+      throw e;
+    }
   }
 
   console.log(`creating version ${name} in path: ${versionPath} with spec:`);
@@ -105,6 +111,7 @@ async function run() {
     }
 
     console.log(`signing version: ${versionName}`);
+    console.log(`overrides: ${overrides}`);
 
     const services = await getRcServices();
 
