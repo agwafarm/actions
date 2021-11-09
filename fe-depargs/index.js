@@ -24,7 +24,7 @@ function computeEnv() {
     return "ci";
   }
 
-  return "dev" + github.context.actor.replace(/\W/g, "");
+  return "dev" + github.context.actor.replace(/\W/g, "").toLowerCase();
 }
 
 async function run() {
