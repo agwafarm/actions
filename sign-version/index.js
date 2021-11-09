@@ -54,8 +54,6 @@ async function getRcServices() {
     })
   );
 
-  console.log(`get parameters by path response acquired`);
-
   const services = [];
 
   if (!response.Parameters) {
