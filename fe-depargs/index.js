@@ -32,7 +32,7 @@ async function run() {
     console.log(`handling github event: ${github.context.eventName}`);
 
     const env = computeEnv();
-    const bucketPrefix = github.context.sha;
+    const bucketPrefix = "/" + github.context.sha;
     const bucketName = `${env}-${companyName}-${app}-web`;
 
     console.log(`will deploy to environment: ${env}`);
