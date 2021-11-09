@@ -12,7 +12,12 @@ const environment = core
   .replace("-", "")
   .toLowerCase();
 
-const serviceName = core.getInput("service");
+let serviceName = core.getInput("service");
+
+if (serviceName === "cloud-components") {
+  serviceName = "cloud-parent";
+}
+
 const version = core.getInput("version");
 
 console.log(
