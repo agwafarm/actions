@@ -16,6 +16,7 @@
   "dependencies": {
     "@aws-cdk/cloudformation-include": "1.94.1",
     "@aws-cdk/core": "1.94.1",
+    "@aws-sdk/client-ssm": "3.8.1",
     "source-map-support": "0.5.16"
   }
 }

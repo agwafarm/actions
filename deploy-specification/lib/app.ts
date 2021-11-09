@@ -6,6 +6,8 @@ import { Service, ServiceDefinition } from "./Service";
 
 export interface DeploymentSpec {
   services: ServiceDefinition[];
+  env: string;
+  version: string;
 }
 
 const spec: DeploymentSpec = JSON.parse(process.env["APP_SPEC"] as string);
