@@ -16,64 +16,34 @@ if (!companyName) {
   throw new Error(`missing companyName input`);
 }
 
-function decideForWorkflowDispatch() {
-  const shouldDeploy = github.context.payload.inputs.deploy === "true";
-  if (!shouldDeploy) {
-    console.log("dry run, skipping deployment");
-  }
-  const env = github.context.payload.inputs.env;
-  if (!env) {
-    throw new Error("target env not specified in workflow_dispatch");
-  }
-  deploy = shouldDeploy && !!env;
-  return { env, deploy };
-}
-
-function decideForPush() {
+function computeEnv() {
   const branchName = github.context.ref;
   console.log(`branch name: ${branchName}`);
+
   if (branchName == "refs/heads/master" || branchName == "refs/heads/main") {
-    env = "test";
-  } else {
-    env = "dev";
+    return "ci";
   }
 
-  return { env, deploy: true };
+  return "dev" + github.context.actor.replace(/\W/g, "");
 }
-
-const eventNameToDecision = {
-  workflow_dispatch: decideForWorkflowDispatch,
-  push: decideForPush,
-};
 
 async function run() {
   try {
     console.log(`handling github event: ${github.context.eventName}`);
-    const decisionFunction = eventNameToDecision[github.context.eventName];
 
-    if (!decisionFunction) {
-      throw new Error(
-        `unsupported github event type: ${github.context.eventName} fix your YAML or add a decision function in depargs action`
-      );
-    }
-
-    const decision = decisionFunction();
-    const env = decision.env;
-    const isLocal = !!process.env.ACT;
-    const deploy = !isLocal && decision.deploy;
-    if (deploy) {
-      console.log(`will deploy to environment: ${env}`);
-    } else {
-      console.log("will not deploy");
-    }
+    const env = computeEnv();
+    const bucketPrefix = github.context.sha;
+    console.log(`will deploy to environment: ${env}`);
+    console.log("bucket name", bucketName);
+    console.log("bucket prefix", bucketPrefix);
 
     const bucketName = `${env}-${companyName}-${app}-web`;
-    console.log("bucket name", bucketName);
+
+    core.setOutput("bucketName", bucketName);
 
     core.setOutput("env", env);
     core.setOutput("stacks", `${env}-${app}-web`);
-    core.setOutput("deploy", deploy);
-    core.setOutput("bucketName", bucketName);
+    core.setOutput("bucketPrefix", bucketPrefix);
   } catch (error) {
     console.log(error);
     core.setFailed(error.message);

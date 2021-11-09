@@ -9,10 +9,10 @@ outputs:
     description: 'The environment to deploy to'
   stacks:
     description: 'A string determining the CDK stacks to deploy'
-  deploy:
-    description: 'Denotes whether deployment should occur'
   bucketName:
     description: 'name of the bucket to deploy to'
+  bucketPrefix:
+    description: 'bucket prefix into which the static assets should be placed'
 runs:
   using: 'node12'
   main: 'index.js'

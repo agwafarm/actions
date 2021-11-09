@@ -33,11 +33,11 @@ class ConfigurationService {
     this.client = new SSMClient({ region });
   }
 
-  getParameter = async (key) => {
-    console.log(`fetching parameter: ${key} for environment: ${env}`);
+  getParameter = async (key, parameterEnv = env) => {
+    console.log(`fetching parameter: ${key} for environment: ${parameterEnv}`);
     const response = await this.client.send(
       new GetParameterCommand({
-        Name: `/infra/${env}/${key}`,
+        Name: `/infra/${parameterEnv}/${key}`,
       })
     );
     console.log("parameter response acquired");
@@ -79,9 +79,12 @@ async function run() {
     const frontendUrl = await configuration.getParameter(`frontend/url/${app}`);
     console.log("frontend url", frontendUrl);
 
+    const analyticsDashboardEnv = env.startsWith("dev") ? "dev" : env;
     const analyticsDashboardId = await configuration.getParameter(
-      "frontend/url/analytics-dashboard/id"
+      "frontend/url/analytics-dashboard/id",
+      analyticsDashboardEnv
     );
+
     console.log("analytics dashboard id", analyticsDashboardId);
 
     core.setOutput("userPoolId", userPoolId);
