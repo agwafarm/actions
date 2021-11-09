@@ -111,7 +111,7 @@ async function run() {
     }
 
     console.log(`signing version: ${versionName}`);
-    console.log(`overrides: ${overrides}`);
+    console.log(`overrides: ${JSON.stringify(overrides, null, 3)}`);
 
     const services = await getRcServices();
 
