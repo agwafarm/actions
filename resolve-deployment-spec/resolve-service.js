@@ -24,7 +24,7 @@ function streamToString(stream) {
   });
 }
 
-async function downloadArtifactObject(key, folderName, fileName) {
+async function downloadArtifactObject(key, targetFolder, fileName) {
   const result = await s3Client.send(
     new GetObjectCommand({
       Bucket: artifactsBucket,
@@ -33,14 +33,14 @@ async function downloadArtifactObject(key, folderName, fileName) {
   );
 
   const template = await streamToString(result.Body);
-  const templatePath = `${folderName}/${fileName}`;
+  const templatePath = `${targetFolder}/${fileName}`;
   await ensureFile(templatePath);
   await writeFile(templatePath, template, "utf-8");
   // map to docker mounted volume where deploy-specification action will run
   return `/github/workspace/${templatePath}`;
 }
 
-async function downloadS3Prefix(prefix, folderName) {
+async function downloadS3Prefix(prefix, targetFolder) {
   const result = await s3Client.send(
     new ListObjectsV2Command({
       Bucket: artifactsBucket,
@@ -48,47 +48,76 @@ async function downloadS3Prefix(prefix, folderName) {
     })
   );
 
-  console.log("mapping prefix: ", prefix);
   if (!result.Contents || result.Contents.length === 0) {
-    throw new Error("prefix does not contain objects");
+    console.log("no objects in s3 prefix: ", prefix);
+    return null;
   }
 
-  const stacks = result.Contents.map(async (o) => {
+  console.log("downloading s3 prefix: ", prefix);
+
+  const objects = result.Contents.map(async (o) => {
     const parts = o.Key.split("/");
     const fileName = parts[parts.length - 1];
     const fileNameWithoutExtension = fileName.split(".")[0];
-    const localPath = await downloadArtifactObject(o.Key, folderName, fileName);
+    const localPath = await downloadArtifactObject(
+      o.Key,
+      targetFolder,
+      fileName
+    );
     console.log(
       `downloaded object: ${fileNameWithoutExtension} from key ${o.Key} to file ${localPath}`
     );
     return { fileNameWithoutExtension, localPath };
   });
 
-  return await Promise.all(stacks);
+  return await Promise.all(objects);
+}
+
+async function downloadS3Prefixes(path, targetFolder, prefixes) {
+  console.log(
+    "downloading s3 objects for path: ",
+    path,
+    "target folder: ",
+    targetFolder,
+    "prefixes: ",
+    prefixes
+  );
+
+  for (const prefix in prefixes) {
+    const objects = await downloadS3Prefix(`${prefix}/${path}`, targetFolder);
+    if (objects) {
+      return { objects, prefix };
+    }
+  }
+
+  throw new Error(
+    `could not download any s3 objects for: ${path} for any of the prefixes: ${prefixes}`
+  );
 }
 
 async function resolveService(env, serviceName, version) {
-  const retainmentPrefix = env.startsWith("dev") ? "low" : "standard";
-  const serviceS3Prefix = `${retainmentPrefix}/${serviceName}/${version}`;
-  const templateUrlPrefix = `${serviceS3Prefix}/cloudformation`;
+  // ordered specifically to favor standard storage retainment during deployment (if exists)
+  // ensures temp versions are not deployed to non dev environments by some weird chance
+  // low storage retainment is only used for dev environments
+  const storagePrefixes = ["standard", "low"];
+  let serviceS3Prefix = `${serviceName}/${version}`;
+  let templateUrlPrefix = `${serviceS3Prefix}/cloudformation`;
 
-  console.log(
-    "resolving spec for service: ",
-    serviceName,
-    "template prefix: ",
-    templateUrlPrefix
-  );
+  const { objects: cfnTemplates, prefix: cfnTemplatePrefix } =
+    await downloadS3Prefixes(
+      templateUrlPrefix,
+      `specs/${serviceName}`,
+      storagePrefixes
+    );
 
-  const cfnTemplates = await downloadS3Prefix(
-    templateUrlPrefix,
-    `specs/${serviceName}`
-  );
+  serviceS3Prefix = `${cfnTemplatePrefix}/${serviceS3Prefix}`;
+  templateUrlPrefix = `${cfnTemplatePrefix}/${templateUrlPrefix}`;
 
   const loadNestedStacks = cfnTemplates
     .filter((o) => o.fileNameWithoutExtension !== "main")
-    .reduce((sum, item) => {
-      sum[item.fileNameWithoutExtension] = { templateFile: item.localPath };
-      return sum;
+    .reduce((result, item) => {
+      result[item.fileNameWithoutExtension] = { templateFile: item.localPath };
+      return result;
     }, {});
 
   const serviceSpec = {
