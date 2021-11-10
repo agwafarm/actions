@@ -1,5 +1,7 @@
 const core = require("@actions/core");
+const github = require("@actions/github");
 const dotenv = require("dotenv");
+const urlJoin = require("url-join");
 const { SSMClient, GetParameterCommand } = require("@aws-sdk/client-ssm");
 
 dotenv.config({ path: ".config" });
@@ -79,6 +81,9 @@ async function run() {
     const frontendUrl = await configuration.getParameter(`frontend/url/${app}`);
     console.log("frontend url", frontendUrl);
 
+    const assetBaseUrl = urlJoin(frontendUrl, github.context.sha);
+    console.log("asset base url", assetBaseUrl);
+
     const analyticsDashboardEnv = env.startsWith("dev") ? "dev" : env;
     const analyticsDashboardId = await configuration.getParameter(
       "frontend/url/analytics-dashboard/id",
@@ -92,6 +97,7 @@ async function run() {
     core.setOutput("identityPoolId", identityPoolId);
     core.setOutput("restApiUrl", httpApiUrl);
     core.setOutput("frontendUrl", frontendUrl);
+    core.setOutput("assetBaseUrl", assetBaseUrl);
     core.setOutput("analyticsDashboardId", analyticsDashboardId);
   } catch (error) {
     console.log(error);

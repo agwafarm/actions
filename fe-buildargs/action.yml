@@ -21,6 +21,8 @@ outputs:
     description: 'The rest api url to inject into the application runtime'
   frontendUrl:
     description: 'The url on which the frontend application will be served'
+  assetBaseUrl:
+    description: 'The url base url for the index.html'
 runs:
   using: 'node12'
   main: 'index.js'
