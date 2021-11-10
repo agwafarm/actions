@@ -1,9 +1,14 @@
 name: 'update-rc-version'
 description: 'Updates the Service RC version to the current git SHA'
+inputs:
+  type:
+    description: "Application type (frontend / backend)"
+    default: "backend"
 runs:
   using: "composite"
   steps:
     - run: |
+        app_type = ${{ inputs.type }}
         service_name=$GITHUB_REPOSITORY
         service_name=$(echo $service_name | sed -e 's/^agwafarm\///')
         service_name=$(echo $service_name | sed -e 's/^agwa\-//')
@@ -18,5 +23,5 @@ runs:
         echo ssm param name $param_name
         echo ssm param value $param_value
         
-        aws ssm put-parameter --type String --overwrite --name $param_name --value $param_value
+        aws ssm put-parameter --type String --overwrite --name $param_name --value $param_value --tags Key=appType,Value=$app_type
       shell: bash
