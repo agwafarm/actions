@@ -95,7 +95,7 @@ async function downloadS3Prefixes(path, targetFolder, prefixes) {
   );
 }
 
-async function resolveService(env, serviceName, version) {
+async function resolveBackendService(env, serviceName, version) {
   // ordered specifically to favor standard storage retainment during deployment (if exists)
   // ensures temp versions are not deployed to non dev environments by some weird chance
   // low storage retainment is only used for dev environments
@@ -139,4 +139,8 @@ async function resolveService(env, serviceName, version) {
   return serviceSpec;
 }
 
-module.exports = resolveService;
+async function resolveFrontend(env, serviceName, version) {
+  throw new Error("not implemented");
+}
+
+module.exports = { resolveBackendService, resolveFrontend };

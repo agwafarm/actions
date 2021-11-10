@@ -63,9 +63,10 @@ async function getRcServices() {
   console.log(`Resolving service specifications`);
 
   for (const parameter of response.Parameters) {
+    const serviceValue = JSON.parse(parameter.Value);
     const name = parameter.Name.replace(rcPath + "/", "");
-    const version = resolveVersion(name, parameter.Value);
-    const serviceSpec = { name, version };
+    const version = resolveVersion(name, serviceValue.version);
+    const serviceSpec = { name, version, type: serviceValue.type };
     console.log(JSON.stringify(serviceSpec, null, 3));
     services.push(serviceSpec);
   }
