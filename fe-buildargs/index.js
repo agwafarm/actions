@@ -81,7 +81,7 @@ async function run() {
     const frontendUrl = await configuration.getParameter(`frontend/url/${app}`);
     console.log("frontend url", frontendUrl);
 
-    const assetBaseUrl = urlJoin(frontendUrl, github.context.sha);
+    const assetBaseUrl = urlJoin("https://" + frontendUrl, github.context.sha);
     console.log("asset base url", assetBaseUrl);
 
     const analyticsDashboardEnv = env.startsWith("dev") ? "dev" : env;
