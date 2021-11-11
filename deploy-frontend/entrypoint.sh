@@ -28,14 +28,14 @@ echo git ref $git_ref
 branch_name=$(echo $git_ref | sed -e 's/^refs\/heads\///')
 echo branch name $branch_name
 
+user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
+user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
+
 if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
    s3_retainment=standard
    target_env=ci
 else
    s3_retainment=low
-
-   user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
-   user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
    target_env=dev$user_name
 fi
 
@@ -66,6 +66,7 @@ npm run build
 
 # copy build to bucket for ci / dev environment
 aws s3 sync --delete build s3://$APP_BUCKET
+aws s3 sync --delete build s3_path_base/web/$build_env
 
 # on merge
 # persist cloudformation output as deployable frontend
@@ -78,7 +79,11 @@ if [ "$s3_retainment" = "standard" ]; then
    cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACKS >src/cloudformation/main.yaml
    aws s3 sync --delete src/cloudformation $s3_path_base/cloudformation
 
-   declare -a arr=("test" "prod")
+   # build for all envs so that deploy to env workflow succeeds.
+   # TODO discuss dilemma - deploying prod / test to dev$user of all developers will no longer work, since they will not have this specific version
+   # The below is a patch for now
+   # TODO add isaac
+   declare -a arr=("test" "prod" "dev" "deveyalperry" "devnivsto")
 
    for build_env in "${arr[@]}"; do
       export APP_ENV=$build_env
