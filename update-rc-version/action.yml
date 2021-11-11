@@ -3,7 +3,7 @@ description: 'Updates the Service RC version to the current git SHA'
 inputs:
   type:
     description: "Application type (frontend / backend)"
-    default: "backend"
+    required: true
 runs:
   using: "composite"
   steps:
