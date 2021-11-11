@@ -42,6 +42,8 @@ fi
 # prepare CDK variables
 export APP_BUCKET=$target_env-agwa-$service_name
 echo app bucket $APP_BUCKET
+
+export APP_SERVICE=$service_name
 export APP_ENV=$target_env
 export APP_BUCKET_PREFIX=$rc_version
 export APP_COMPANY_NAME=agwa
