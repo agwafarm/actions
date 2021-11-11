@@ -1,13 +1,9 @@
 import { SSMClient, PutParameterCommand } from "@aws-sdk/client-ssm";
-import {
-  S3Client,
-  CopyObjectCommand,
-  ListObjectsV2Command,
-} from "@aws-sdk/client-s3";
+
+import { spawn } from "child_process";
 
 console.log("running post-deployment script");
 
-const s3Client = new S3Client({});
 const ssmClient = new SSMClient({ region: "us-west-2" });
 const mode = process.env["APP_MODE"] || "service";
 const { env, version, frontends } = JSON.parse(
@@ -30,47 +26,36 @@ async function updateEnvPointer() {
   );
 }
 
-async function syncBuckets(
-  sourcePrefix: string,
-  targetPrefix: string,
-  targetBucket: string
-) {
-  const objectsInPrefix = await s3Client.send(
-    new ListObjectsV2Command({ Bucket: "agwa-ci-assets", Prefix: sourcePrefix })
-  );
+function syncBuckets(sourcePrefix: string, targetBucket: string) {
+  return new Promise((resolve, reject) => {
+    const syncArgs = [
+      "s3",
+      "sync",
+      "--delete",
+      `s3://agwa-ci-assets/${sourcePrefix}`,
+      `s3://${targetBucket}`,
+    ];
 
-  if (!objectsInPrefix.Contents || objectsInPrefix.Contents.length === 0) {
-    console.log("no objects in s3 prefix in agwa-ci-bucket: ", sourcePrefix);
-    throw new Error(
-      "no objects in s3 prefix in agwa-ci-bucket: " + sourcePrefix
-    );
-  }
-
-  const objects = objectsInPrefix.Contents.map((o) => {
-    return s3Client.send(
-      new CopyObjectCommand({
-        Bucket: targetBucket,
-        Key: targetPrefix + (o.Key as string).replace(sourcePrefix, ""),
-        CopySource: `s3://agwa-ci-assets/${o.Key}`,
-      })
-    );
+    const child = spawn("aws", syncArgs, { env: process.env });
+    child.on("exit", function (code, signal) {
+      if (code || signal) {
+        console.log(
+          `failed to sync source: ${sourcePrefix} with target bucket ${targetBucket}`
+        );
+        reject(code || signal);
+      } else {
+        resolve("");
+      }
+    });
   });
-
-  return await Promise.all(objects);
 }
 
 async function updateS3Artifacts() {
   const promises: Promise<any>[] = [];
   for (const frontend of frontends) {
-    const frontendBucket = frontend.parameters.Bucket;
-    const frontendPrefix = frontend.parameters.BucketPrefix;
-    const sourcePrefix = `${frontend.name}/${frontendPrefix}/web/${env}`;
-
-    const syncBucketsPromise = syncBuckets(
-      sourcePrefix,
-      frontendPrefix,
-      frontendBucket
-    );
+    const frontendBucket = frontend.parameters.BucketName;
+    const sourcePrefix = `${frontend.name}/${frontend.version}/web/${env}`;
+    const syncBucketsPromise = syncBuckets(sourcePrefix, frontendBucket);
 
     promises.push(syncBucketsPromise);
   }
