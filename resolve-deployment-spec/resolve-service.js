@@ -140,7 +140,7 @@ async function resolveSpec(env, serviceName, version) {
 }
 
 async function resolveBackendService(env, serviceName, version) {
-  const { spec, serviceS3Prefix, templateUrlPrefix } = resolveSpec(
+  const { spec, serviceS3Prefix, templateUrlPrefix } = await resolveSpec(
     env,
     serviceName,
     version
@@ -159,7 +159,7 @@ async function resolveBackendService(env, serviceName, version) {
 }
 
 async function resolveFrontend(env, serviceName, version) {
-  const { spec } = resolveSpec(env, serviceName, version);
+  const { spec } = await resolveSpec(env, serviceName, version);
   const parameters = {
     Bucket: `${env}-${companyName}-${serviceName}`,
     BucketPrefix: version,
