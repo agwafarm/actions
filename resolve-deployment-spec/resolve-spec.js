@@ -1,6 +1,6 @@
 const { SSMClient, GetParameterCommand } = require("@aws-sdk/client-ssm");
 
-const { resolveBackendService } = require("./resolve-service");
+const { resolveBackendService, resolveFrontend } = require("./resolve-service");
 
 const ssmClient = new SSMClient({ region: "us-west-2" });
 const ssmPrefix = `/infra/rc-version/`;
@@ -54,7 +54,7 @@ async function resolveEnvSpec(env, version) {
   );
 
   const frontendPromises = versionSpec.frontends.map((frontend) =>
-    resolveFrontends(env, frontend.name, frontend.version)
+    resolveFrontend(env, frontend.name, frontend.version)
   );
 
   const services = await Promise.all(servicePromises);
