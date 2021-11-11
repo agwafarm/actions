@@ -54,6 +54,7 @@ export class FrontendDeployment extends BaseStack {
     new ssm.StringParameter(this, "AppUrlParameter", {
       parameterName: this.resolveSSMParameterName("frontend/url"),
       stringValue: distribution.distributionDomainName,
+      simpleName: true,
     });
   }
 }
