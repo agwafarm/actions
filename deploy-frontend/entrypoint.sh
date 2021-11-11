@@ -1,5 +1,7 @@
 #!/bin/bash
 set -e
+set -u
+set -o pipefail
 
 cd /action
 
@@ -38,7 +40,7 @@ else
 fi
 
 # prepare CDK variables
-export APP_BUCKET=$(${target_env}-agwa-$service_name)
+export APP_BUCKET=$target_env-agwa-$service_name
 export APP_ENV=$target_env
 export APP_BUCKET_PREFIX=$rc_version
 export APP_COMPANY_NAME=agwa
