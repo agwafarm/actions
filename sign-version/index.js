@@ -83,7 +83,7 @@ async function getRcServices() {
 
   // deploying this version would result in deletion of all existing frontends, probably a bug
   if (frontends.length === 0) {
-    throw new Error("No services detected for version");
+    throw new Error("No frontends detected for version");
   }
 
   return { services, frontends };
