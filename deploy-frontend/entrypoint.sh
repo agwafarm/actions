@@ -50,7 +50,7 @@ echo app stack $APP_STACK
 
 # deploy to the ci / dev environment
 export APP_STACKS=$(cdk list)
-cdk deploy --require-approval never $APP_STACKS --parameters Environment=$APP_ENV --parameters Bucket=$APP_BUCKET --parameters BucketPrefix=$APP_BUCKET_PREFIX
+cdk deploy --require-approval never $APP_STACKS --parameters Environment=$APP_ENV --parameters BucketName=$APP_BUCKET --parameters BucketPrefix=$APP_BUCKET_PREFIX
 
 # compute build arguments
 npx ts-node --prefer-ts-exts ./compute-build-args.ts
