@@ -41,9 +41,10 @@ export class FrontendDeployment extends BaseStack {
             },
             behaviors: [
               {
-                defaultTtl: cdk.Duration.days(60),
-                maxTtl: cdk.Duration.days(60),
-                minTtl: cdk.Duration.days(60),
+                // index.html should not be cached based on name
+                defaultTtl: cdk.Duration.seconds(0),
+                maxTtl: cdk.Duration.days(0),
+                minTtl: cdk.Duration.days(0),
                 isDefaultBehavior: true,
               },
             ],
