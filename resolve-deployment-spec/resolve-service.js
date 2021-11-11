@@ -159,6 +159,11 @@ async function resolveBackendService(env, serviceName, version) {
 }
 
 async function resolveFrontend(env, serviceName, version) {
+  // TODO remove once we introduce lambda @ edge
+  if (env.startsWith("dev")) {
+    env = "dev";
+  }
+
   const { spec } = await resolveSpec(env, serviceName, version);
   const parameters = {
     BucketName: `${env}-${companyName}-${serviceName}`,

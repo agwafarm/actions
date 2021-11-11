@@ -80,8 +80,8 @@ if [ "$s3_retainment" = "standard" ]; then
    # build for all envs so that deploy to env workflow succeeds.
    # TODO remove this loop once we can resolve env variables at runtime using lambda @ edge
    # The below is a patch for now
-
-   declare -a arr=("test" "prod")
+   # dev must also be here since merge sha is different than PR sha.
+   declare -a arr=("dev" "test" "prod")
 
    for build_env in "${arr[@]}"; do
       export APP_ENV=$build_env
