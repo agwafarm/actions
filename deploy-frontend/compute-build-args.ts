@@ -8,12 +8,7 @@ import { EOL } from "os";
 
 dotenv.config({ path: ".config" });
 
-const appBackend = process.env["APP_BACKEND"];
-const app = process.env["APP_NAME"];
-
-if (!appBackend) {
-  throw new Error("Could not acquire app backend name");
-}
+const app = process.env["APP_SERVICE"];
 
 if (!app) {
   throw new Error("Could not acquire app name");
@@ -38,11 +33,11 @@ class ConfigurationService {
     this.client = new SSMClient({ region });
   }
 
-  getParameter = async (key: string, parameterEnv: string = env) => {
-    console.log(`fetching parameter: ${key} for environment: ${parameterEnv}`);
+  getParameter = async (key: string, prefix: string = `${env}/`) => {
+    console.log(`fetching parameter: ${key} for environment: ${prefix}`);
     const response = await this.client.send(
       new GetParameterCommand({
-        Name: `/infra/${parameterEnv}/${key}`,
+        Name: `/infra/${prefix}${key}`,
       })
     );
     console.log("parameter response acquired");
@@ -75,6 +70,12 @@ class ConfigurationService {
 async function run() {
   try {
     const configuration = new ConfigurationService();
+
+    const appBackend = await configuration.getParameter(
+      `frontend/${app}/backend/id`,
+      ""
+    );
+
     const userPoolId = await configuration.getParameter(
       `auth/cognito/user-pool/id/${appBackend}`
     );
