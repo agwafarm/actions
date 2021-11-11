@@ -1,12 +1,8 @@
 import core from "@actions/core";
-import github from "@actions/github";
-import dotenv from "dotenv";
-import urlJoin from "url-join";
+
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 import * as fs from "fs";
 import { EOL } from "os";
-
-dotenv.config({ path: ".config" });
 
 const app = process.env["APP_SERVICE"];
 
@@ -14,7 +10,7 @@ if (!app) {
   throw new Error("Could not acquire app name");
 }
 
-const env = core.getInput("env");
+const env = process.env["APP_ENV"] as string;
 
 if (!env) {
   throw new Error("Could not acquire env name");
@@ -94,12 +90,11 @@ async function run() {
 
     const frontendUrl = await configuration.getParameter(`frontend/url/${app}`);
 
-    const assetBaseUrl = urlJoin("https://" + frontendUrl, github.context.sha);
-
     const analyticsDashboardEnv = env.startsWith("dev") ? "dev" : env;
     const analyticsDashboardId = await configuration.getParameter(
       "frontend/url/analytics-dashboard/id",
-      analyticsDashboardEnv
+      analyticsDashboardEnv,
+      false
     );
 
     const firebaseApiKey = await configuration.getSecret(
@@ -127,7 +122,6 @@ async function run() {
       REACT_APP_AWS_REGION: "us-west-2",
       REACT_APP_COOKIE_DOMAIN: frontendUrl,
       REACT_APP_ANALYTICS_DASHBOARD_ID: analyticsDashboardId,
-      PUBLIC_URL: assetBaseUrl,
       REACT_APP_FIREBASE_API_KEY: firebaseApiKey,
       REACT_APP_FIREBASE_AUTH_DOMAIN: firebaseAuthDomain,
       REACT_APP_FIREBASE_PROJECT_ID: firebaseProjectId,
@@ -138,7 +132,7 @@ async function run() {
       .map(([name, value]) => `${name}=${value}`)
       .join(EOL);
 
-    fs.writeFileSync("buildargs.env", fileContent);
+    fs.writeFileSync(`buildargs.${env}`, fileContent);
   } catch (error) {
     console.log(error);
     process.exit(1);

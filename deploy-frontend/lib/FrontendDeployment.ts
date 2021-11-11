@@ -19,7 +19,8 @@ export class FrontendDeployment extends BaseStack {
       lifecycleRules = [{ expiration: cdk.Duration.days(14) }];
     }
 
-    const indexPath = this.getEnvVariable("APP_BUCKET_PREFIX") + ".html";
+    const indexPath = this.getEnvVariable("INDEX_PATH");
+
     const websiteBucketName = this.getEnvVariable("APP_BUCKET");
     const websiteBucket = new s3.Bucket(this, "Bucket", {
       websiteIndexDocument: indexPath,

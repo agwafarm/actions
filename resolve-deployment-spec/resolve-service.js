@@ -163,6 +163,7 @@ async function resolveFrontend(env, serviceName, version) {
   const parameters = {
     BucketName: `${env}-${companyName}-${serviceName}`,
     BucketPrefix: version,
+    IndexPath: "index.html",
   };
 
   spec.parameters = { ...spec.parameters, ...parameters };

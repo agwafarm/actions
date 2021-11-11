@@ -64,21 +64,14 @@ async function updateS3Artifacts() {
   for (const frontend of frontends) {
     const frontendBucket = frontend.parameters.Bucket;
     const frontendPrefix = frontend.parameters.BucketPrefix;
-    const sourcePrefix = `${frontend.name}/${frontendPrefix}/web`;
-    const copyIndexPromise = s3Client.send(
-      new CopyObjectCommand({
-        Bucket: frontendBucket,
-        Key: `${frontendPrefix}.html`,
-        CopySource: `s3://agwa-ci-assets/${sourcePrefix}/index.html`,
-      })
-    );
-    promises.push(copyIndexPromise);
+    const sourcePrefix = `${frontend.name}/${frontendPrefix}/web/${env}`;
 
     const syncBucketsPromise = syncBuckets(
       sourcePrefix,
       frontendPrefix,
       frontendBucket
     );
+
     promises.push(syncBucketsPromise);
   }
 

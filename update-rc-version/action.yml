@@ -1,14 +1,10 @@
 name: 'update-rc-version'
 description: 'Updates the Service RC version to the current git SHA'
-inputs:
-  type:
-    description: "Application type (frontend / backend)"
-    required: true
 runs:
   using: "composite"
   steps:
     - run: |
-        app_type = ${{ inputs.type }}
+        app_type=backend
         service_name=$GITHUB_REPOSITORY
         service_name=$(echo $service_name | sed -e 's/^agwafarm\///')
         service_name=$(echo $service_name | sed -e 's/^agwa\-//')

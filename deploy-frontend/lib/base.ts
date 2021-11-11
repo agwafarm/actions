@@ -17,8 +17,8 @@ export class BaseStack extends cdk.Stack {
       return this.parameters.bucket;
     }
 
-    if (name === "APP_BUCKET_PREFIX") {
-      return this.parameters.bucketPrefix;
+    if (name === "INDEX_PATH") {
+      return this.parameters.indexPath;
     }
 
     const value = process.env[name];
@@ -62,6 +62,7 @@ export class BaseStack extends cdk.Stack {
       environment: this.parametrize("Environment"),
       bucket: this.parametrize("BucketName"),
       bucketPrefix: this.parametrize("BucketPrefix"),
+      indexPath: this.parametrize("IndexPath"),
     };
   }
 }
