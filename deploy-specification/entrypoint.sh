@@ -1,5 +1,5 @@
 #!/bin/sh -l
-
+set -e
 export APP_SPEC=$1
 export APP_MODE=$2
 
