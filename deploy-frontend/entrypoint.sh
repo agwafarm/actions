@@ -71,7 +71,6 @@ npm run build
 
 # copy build to bucket for ci / dev environment
 aws s3 sync --no-progress --delete build s3://$APP_BUCKET
-aws s3 sync --no-progress --delete build s3_path_base/web/$target_env
 
 # on merge
 # persist cloudformation output as deployable frontend
