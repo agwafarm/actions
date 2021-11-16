@@ -21,8 +21,25 @@ class ConfigurationService {
     this.client = new SSMClient({ region: "us-west-2" });
   }
 
-  getParameter = async (key: string, prefix?: string) => {
-    const name = `/infra/${prefix || env}/${key}`;
+  getEnvParameter = async (key: string, paramEnvironment?: string) => {
+    const name = `/infra/${paramEnvironment || env}/${key}`;
+    console.log(`fetching parameter: ${name}`);
+    const response = await this.client.send(
+      new GetParameterCommand({
+        Name: name,
+      })
+    );
+    console.log("parameter response acquired");
+    const value = response.Parameter && response.Parameter.Value;
+    if (!value) {
+      throw new Error(`could not obtain parameter: ${name}`);
+    }
+    console.log("returning parameter");
+    return value;
+  };
+
+  getParameter = async (key: string) => {
+    const name = `/infra/${key}`;
     console.log(`fetching parameter: ${name}`);
     const response = await this.client.send(
       new GetParameterCommand({
@@ -61,30 +78,31 @@ async function run() {
     const configuration = new ConfigurationService();
 
     const appBackend = await configuration.getParameter(
-      `frontend/${app}/backend/id`,
-      ""
+      `frontend/${app}/backend/id`
     );
 
-    const userPoolId = await configuration.getParameter(
+    const userPoolId = await configuration.getEnvParameter(
       `auth/cognito/user-pool/id/${appBackend}`
     );
 
-    const clientAppId = await configuration.getParameter(
+    const clientAppId = await configuration.getEnvParameter(
       `auth/cognito/user-pool/client/id/${appBackend}`
     );
 
-    const identityPoolId = await configuration.getParameter(
+    const identityPoolId = await configuration.getEnvParameter(
       `auth/cognito/identity-pool/id/${appBackend}`
     );
 
-    const httpApiUrl = await configuration.getParameter(
+    const httpApiUrl = await configuration.getEnvParameter(
       `backend/rest/url/${appBackend}`
     );
 
-    const frontendUrl = await configuration.getParameter(`frontend/url/${app}`);
+    const frontendUrl = await configuration.getEnvParameter(
+      `frontend/url/${app}`
+    );
 
     const analyticsDashboardEnv = env.startsWith("dev") ? "dev" : env;
-    const analyticsDashboardId = await configuration.getParameter(
+    const analyticsDashboardId = await configuration.getEnvParameter(
       "frontend/url/analytics-dashboard/id",
       analyticsDashboardEnv
     );
