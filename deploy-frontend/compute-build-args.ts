@@ -29,11 +29,11 @@ class ConfigurationService {
     this.client = new SSMClient({ region });
   }
 
-  getParameter = async (key: string, prefix: string = `${env}/`) => {
+  getParameter = async (key: string, prefix: string = `${env}`) => {
     console.log(`fetching parameter: ${key} for environment: ${prefix}`);
     const response = await this.client.send(
       new GetParameterCommand({
-        Name: `/infra/${prefix}${key}`,
+        Name: `/infra/${prefix}/${key}`,
       })
     );
     console.log("parameter response acquired");
@@ -93,8 +93,7 @@ async function run() {
     const analyticsDashboardEnv = env.startsWith("dev") ? "dev" : env;
     const analyticsDashboardId = await configuration.getParameter(
       "frontend/url/analytics-dashboard/id",
-      analyticsDashboardEnv,
-      false
+      analyticsDashboardEnv
     );
 
     const firebaseApiKey = await configuration.getSecret(
