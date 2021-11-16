@@ -108,5 +108,5 @@ if [ "$s3_retainment" = "standard" ]; then
    echo ssm param name $param_name
    echo ssm param value $param_value
 
-   aws ssm put-parameter --type String --overwrite --name $param_name --value $param_value --tags Key=type,Value=$app_type
+   aws ssm put-parameter --type String --overwrite --name $param_name --value $param_value
 fi
