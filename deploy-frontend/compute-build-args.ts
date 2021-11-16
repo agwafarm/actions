@@ -1,5 +1,3 @@
-import core from "@actions/core";
-
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 import * as fs from "fs";
 import { EOL } from "os";
@@ -16,17 +14,11 @@ if (!env) {
   throw new Error("Could not acquire env name");
 }
 
-const region = core.getInput("awsRegion");
-
-if (!region) {
-  throw new Error("Could not acquire aws region");
-}
-
 class ConfigurationService {
   private client: SSMClient;
 
   constructor() {
-    this.client = new SSMClient({ region });
+    this.client = new SSMClient({ region: "us-west-2" });
   }
 
   getParameter = async (key: string, prefix: string = `${env}`) => {
