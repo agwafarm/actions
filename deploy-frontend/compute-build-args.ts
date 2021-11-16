@@ -142,7 +142,7 @@ async function run() {
       .map(([name, value]) => `${name}=${value}`)
       .join(EOL);
 
-    fs.writeFileSync(`buildargs.${env}`, fileContent);
+    fs.writeFileSync(`/github/workspace/buildargs.${env}`, fileContent);
   } catch (error) {
     console.log(error);
     process.exit(1);
