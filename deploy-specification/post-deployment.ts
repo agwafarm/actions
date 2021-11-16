@@ -32,6 +32,7 @@ function syncBuckets(sourcePrefix: string, targetBucket: string) {
       "s3",
       "sync",
       "--delete",
+      "--no-progress",
       `s3://agwa-ci-assets/${sourcePrefix}`,
       `s3://${targetBucket}`,
     ];

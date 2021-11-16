@@ -70,8 +70,8 @@ export DISABLE_ESLINT_PLUGIN=true
 npm run build
 
 # copy build to bucket for ci / dev environment
-aws s3 sync --delete build s3://$APP_BUCKET
-aws s3 sync --delete build s3_path_base/web/$target_env
+aws s3 sync --no-progress --delete build s3://$APP_BUCKET
+aws s3 sync --no-progress --delete build s3_path_base/web/$target_env
 
 # on merge
 # persist cloudformation output as deployable frontend
@@ -82,7 +82,7 @@ if [ "$s3_retainment" = "standard" ]; then
    # copy cloudformation output
    mkdir src/cloudformation
    cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACKS >src/cloudformation/main.yaml
-   aws s3 sync --delete src/cloudformation $s3_path_base/cloudformation
+   aws s3 sync --no-progress --delete src/cloudformation $s3_path_base/cloudformation
 
    # build for all envs so that deploy to env workflow succeeds.
    # TODO remove this loop once we can resolve env variables at runtime using lambda @ edge
@@ -105,7 +105,7 @@ if [ "$s3_retainment" = "standard" ]; then
       rm -rf build
       npm run build
 
-      aws s3 sync --delete build s3_path_base/web/$build_env
+      aws s3 sync --no-progress --delete build s3_path_base/web/$build_env
    done
 
    # update RC pointer
