@@ -1,4 +1,4 @@
-FROM node:14-slim
+FROM node:14
 
 WORKDIR /action
 
@@ -12,8 +12,9 @@ COPY . .
 RUN npm i -g aws-cdk@1.94.1
 
 # Install AWS CLI
-RUN curl "awscliv2.sig https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.1.30.zip.sig" -o "awscliv2.zip" && \
-   unzip awscliv2.zip && sudo ./aws/install
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.1.30.zip.sig" -o "awscliv2.zip" && \
+   unzip awscliv2.zip && \
+   sudo ./aws/install
 
 WORKDIR /
 
