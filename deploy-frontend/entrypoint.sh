@@ -64,7 +64,7 @@ set +o allexport
 cd /github/workspace
 
 # build
-npm i -D eslint-config-react-app
+export DISABLE_ESLINT_PLUGIN=true
 npm run build
 
 # copy build to bucket for ci / dev environment
