@@ -42,9 +42,10 @@ export APP_BUCKET=$target_env-agwa-$service_name
 echo app bucket $APP_BUCKET
 
 export APP_ENV=$target_env
+echo app env $APP_ENV
 export APP_SERVICE=$service_name
+echo app service $APP_SERVICE
 
-export APP_BUCKET_PREFIX=$rc_version
 export APP_COMPANY_NAME=agwa
 export APP_STACK=$target_env-$service_name
 echo app stack $APP_STACK

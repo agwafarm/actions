@@ -21,17 +21,18 @@ class ConfigurationService {
     this.client = new SSMClient({ region: "us-west-2" });
   }
 
-  getParameter = async (key: string, prefix: string = `${env}`) => {
-    console.log(`fetching parameter: ${key} for environment: ${prefix}`);
+  getParameter = async (key: string, prefix?: string) => {
+    const name = `/infra/${prefix || env}/${key}`;
+    console.log(`fetching parameter: ${name}`);
     const response = await this.client.send(
       new GetParameterCommand({
-        Name: `/infra/${prefix}/${key}`,
+        Name: name,
       })
     );
     console.log("parameter response acquired");
     const value = response.Parameter && response.Parameter.Value;
     if (!value) {
-      throw new Error(`could not obtain parameter: ${key}`);
+      throw new Error(`could not obtain parameter: ${name}`);
     }
     console.log("returning parameter");
     return value;
