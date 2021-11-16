@@ -14,8 +14,6 @@ RUN npm ci
 
 COPY . .
 
-RUN npm i -g aws-cdk@1.94.1
-
 WORKDIR /
 
 ENTRYPOINT ["/action/entrypoint.sh"]
