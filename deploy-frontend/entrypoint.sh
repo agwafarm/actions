@@ -57,7 +57,7 @@ cdk deploy --require-approval never $APP_STACKS --parameters Environment=$target
 # compute build arguments
 npx ts-node --prefer-ts-exts /action/compute-build-args.ts
 set -o allexport
-source /action/buildargs.$target_env
+source /github/workspace/buildargs.$target_env
 set +o allexport
 
 # switch to repo folder
@@ -93,10 +93,10 @@ if [ "$s3_retainment" = "standard" ]; then
       # apply build arguments to environment
       npx ts-node --prefer-ts-exts /action/compute-build-args.ts
       echo "build arguments for env $build_env"
-      cat ./buildargs.$build_env
+      cat /github/workspace/buildargs.$build_env
 
       set -o allexport
-      source ./buildargs.$build_env
+      source /github/workspace/buildargs.$build_env
       set +o allexport
 
       rm -rf build
