@@ -12,8 +12,8 @@ COPY . .
 RUN npm i -g aws-cdk@1.94.1
 
 # Install AWS CLI
-RUN curl awscliv2.sig "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.1.30.zip.sig"
-RUN unzip awscliv2.zip
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.1.30.zip" -o "awscliv2.sig"
+RUN unzip "awscliv2.zip"
 RUN sudo ./aws/install
 
 WORKDIR /
