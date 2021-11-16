@@ -14,11 +14,6 @@ export class FrontendDeployment extends BaseStack {
   constructor(scope: cdk.Construct, id: string) {
     super(scope, id, {});
 
-    let lifecycleRules: s3.LifecycleRule[] | undefined;
-    if (this.getEnvVariable("APP_ENV").startsWith("dev")) {
-      lifecycleRules = [{ expiration: cdk.Duration.days(14) }];
-    }
-
     const indexPath = this.getEnvVariable("INDEX_PATH");
 
     const websiteBucketName = this.getEnvVariable("APP_BUCKET");
@@ -26,7 +21,6 @@ export class FrontendDeployment extends BaseStack {
       websiteIndexDocument: indexPath,
       publicReadAccess: true,
       bucketName: websiteBucketName,
-      lifecycleRules,
     });
 
     const distribution = new cloudfront.CloudFrontWebDistribution(
