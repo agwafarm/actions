@@ -3,8 +3,6 @@ set -e
 set -u
 set -o pipefail
 
-# Install AWS CLI
-
 cd /action
 
 service_name=$GITHUB_REPOSITORY
