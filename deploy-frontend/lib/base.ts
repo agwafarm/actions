@@ -61,7 +61,6 @@ export class BaseStack extends cdk.Stack {
     this.parameters = {
       environment: this.parametrize("Environment"),
       bucket: this.parametrize("BucketName"),
-      bucketPrefix: this.parametrize("BucketPrefix"),
       indexPath: this.parametrize("IndexPath"),
     };
   }
