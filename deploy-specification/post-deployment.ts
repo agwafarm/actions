@@ -54,7 +54,7 @@ async function updateS3Artifacts() {
   const promises: Promise<any>[] = [];
   for (const frontend of frontends) {
     const frontendBucket = frontend.parameters.BucketName;
-    const sourcePrefix = `${frontend.name}/${frontend.version}/web/${env}`;
+    const sourcePrefix = `standard/${frontend.name}/${frontend.version}/web/${env}`;
     const syncBucketsPromise = syncBuckets(sourcePrefix, frontendBucket);
 
     promises.push(syncBucketsPromise);
