@@ -3,6 +3,8 @@ set -e
 set -u
 set -o pipefail
 
+# Install AWS CLI
+
 cd /action
 
 service_name=$GITHUB_REPOSITORY
@@ -64,6 +66,8 @@ set +o allexport
 cd /github/workspace
 
 # build
+# Disable linting during builds - this is done in workflows
+# We need to save time on our four builds during merge
 export DISABLE_ESLINT_PLUGIN=true
 npm run build
 
