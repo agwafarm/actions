@@ -56,19 +56,18 @@ class ConfigurationService {
   };
 
   getSecret = async (key: string) => {
-    console.log(`fetching parameter: ${key}`);
     const response = await this.client.send(
       new GetParameterCommand({
         Name: `/secret/${key}`,
         WithDecryption: true,
       })
     );
-    console.log("parameter response acquired");
+
     const value = response.Parameter && response.Parameter.Value;
     if (!value) {
       throw new Error(`could not obtain parameter: ${key}`);
     }
-    console.log("returning parameter");
+
     return value;
   };
 }
