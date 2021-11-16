@@ -64,7 +64,8 @@ set +o allexport
 cd /github/workspace
 
 # build
-rm -rf node_modules && npm ci && npm run build
+npm i -D eslint-config-react-app
+npm run build
 
 # copy build to bucket for ci / dev environment
 aws s3 sync --delete build s3://$APP_BUCKET
