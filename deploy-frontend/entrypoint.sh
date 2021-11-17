@@ -55,9 +55,11 @@ export APP_STACKS=$(cdk list)
 cdk deploy --require-approval never $APP_STACKS --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html'
 
 # compute build arguments
-npx ts-node --prefer-ts-exts /action/compute-build-args.ts
+cd /action
+npx ts-node --prefer-ts-exts ./compute-build-args.ts
+echo "resolved build arguments for env $target_env"
 set -o allexport
-source /github/workspace/buildargs.$target_env
+source ./buildargs.$target_env
 set +o allexport
 
 # switch to repo folder
@@ -71,7 +73,7 @@ npm run build
 
 # copy build to bucket for ci / dev environment
 aws s3 sync --no-progress --delete build s3://$APP_BUCKET
-
+rm -rf ./build
 # on merge
 # persist cloudformation output as deployable frontend
 # build and persist web assets for all environments (used later in deployment and post deployment stage)
@@ -84,8 +86,6 @@ if [ "$s3_retainment" = "standard" ]; then
    cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACKS >src/cloudformation/main.yaml
    aws s3 sync --no-progress --delete src/cloudformation $s3_path_base/cloudformation
 
-   cd /github/workspace
-
    # build for all envs so that deploy to env workflow succeeds.
    # TODO remove this loop once we can resolve env variables at runtime using lambda @ edge
    # The below is a patch for now
@@ -95,19 +95,20 @@ if [ "$s3_retainment" = "standard" ]; then
    for build_env in "${arr[@]}"; do
       export APP_ENV=$build_env
 
+      cd /action
       # apply build arguments to environment
-      npx ts-node --prefer-ts-exts /action/compute-build-args.ts
-      echo "build arguments for env $build_env"
-      cat /github/workspace/buildargs.$build_env
+      npx ts-node --prefer-ts-exts ./compute-build-args.ts
+      echo "resolved build arguments for env $build_env"
 
       set -o allexport
-      source /github/workspace/buildargs.$build_env
+      source ./buildargs.$build_env
       set +o allexport
 
-      rm -rf build
-      npm run build
+      cd /github/workspace
 
+      npm run build
       aws s3 sync --no-progress --delete build s3_path_base/web/$build_env
+      rm -rf ./build
    done
 
    # update RC pointer
