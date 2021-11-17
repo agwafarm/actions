@@ -109,11 +109,15 @@ if [ "$s3_retainment" = "standard" ]; then
 
    # update RC pointer
    param_name=/infra/rc-version/$service_name
-   param_value="{\"version\":\"$rc_version\", \"type\":\"frontend\"}"
+   param_value=$(jq -n \
+      --arg t "frontend" \
+      --arg v "$rc_version" \
+      '{version: $v, type: $t}')
 
    echo "Updating RC pointer"
    echo "RC pointer name" $param_name
    echo "RC pointer value" $param_value
 
-   aws ssm put-parameter --type String --overwrite --name $param_name --value $param_value
+   aws ssm put-parameter --overwrite --type String --name $param_name --value "$param_value"
+
 fi

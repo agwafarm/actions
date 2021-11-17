@@ -5,3 +5,4 @@ specs/
 node_modules
 !resolve-deployment-spec/**
 !sign-version/**
+playground.sh
