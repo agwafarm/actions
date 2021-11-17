@@ -43,9 +43,11 @@ function syncBuckets(sourcePrefix: string, targetBucket: string) {
     const child = spawnSync("aws", syncArgs, {
       env: process.env,
       cwd: process.cwd(),
+      stdio: "pipe",
+      encoding: "utf-8",
     });
 
-    console.log(child.stdout.toString("utf-8"));
+    console.log(child.stdout);
 
     const failure = child.status || child.signal;
     if (failure) {
