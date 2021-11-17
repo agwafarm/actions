@@ -22,6 +22,7 @@ async function updateEnvPointer() {
       Value: version,
       Description: `Deployed version for the ${env} environment`,
       Type: "String",
+      Overwrite: true,
     })
   );
 }
