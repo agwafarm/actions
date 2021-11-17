@@ -83,7 +83,6 @@ async function updateS3Artifacts() {
     promises.push(syncBucketsPromise);
   }
 
-  console.log(`waiting for all sync commands to finish`);
   await Promise.all(promises);
 }
 
