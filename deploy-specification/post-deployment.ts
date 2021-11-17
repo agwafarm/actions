@@ -55,7 +55,7 @@ function syncBuckets(sourcePrefix: string, targetBucket: string) {
       reject(failure);
     } else {
       console.log(
-        `successfully synced prefix: ${sourcePrefix} with target bucket: ${targetBucket}`
+        `successfully synced source: ${sourcePrefix} with target bucket: ${targetBucket}`
       );
       resolve(undefined);
     }
@@ -73,7 +73,7 @@ async function updateS3Artifacts() {
 
   for (const frontend of frontends) {
     const frontendBucket = frontend.parameters.BucketName;
-    const sourcePrefix = `standard/${frontend.name}/${frontend.version}/web/${env}`;
+    const sourcePrefix = `standard/${frontend.serviceName}/${frontend.version}/web/${env}`;
     const syncBucketsPromise = syncBuckets(sourcePrefix, frontendBucket);
 
     promises.push(syncBucketsPromise);

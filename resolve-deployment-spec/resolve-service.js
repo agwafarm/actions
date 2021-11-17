@@ -121,6 +121,8 @@ async function resolveSpec(env, serviceName, version) {
     }, {});
 
   const spec = {
+    serviceName,
+    version,
     stackName: `${env}-${serviceName}`,
     templatePath: cfnTemplates.find((o) => o.fileNameWithoutExtension == "main")
       .localPath,
