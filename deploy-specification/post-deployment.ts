@@ -45,7 +45,7 @@ function syncBuckets(sourcePrefix: string, targetBucket: string) {
       env: process.env,
       cwd: process.cwd(),
       stdio: "pipe",
-      encoding: "utf-8",
+      encoding: "ascii",
     });
 
     console.log(`sync ${targetBucket} output:${EOL}${child.stdout}${EOL}`);
