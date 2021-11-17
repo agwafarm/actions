@@ -80,9 +80,9 @@ if [ "$s3_retainment" = "standard" ]; then
 
    # copy cloudformation output
    cd /action
-   mkdir src/cloudformation
-   cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACKS >src/cloudformation/main.yaml
-   aws s3 sync --no-progress --delete src/cloudformation $s3_path_base/cloudformation
+   mkdir cloudformation
+   cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACKS >cloudformation/main.yaml
+   aws s3 sync --no-progress --delete cloudformation $s3_path_base/cloudformation
 
    cd /github/workspace
 
