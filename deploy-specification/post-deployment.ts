@@ -1,6 +1,7 @@
 import { SSMClient, PutParameterCommand } from "@aws-sdk/client-ssm";
 
 import { spawnSync } from "child_process";
+import { EOL } from "os";
 
 const ssmClient = new SSMClient({ region: "us-west-2" });
 const mode = process.env["APP_MODE"] || "service";
@@ -47,7 +48,7 @@ function syncBuckets(sourcePrefix: string, targetBucket: string) {
       encoding: "utf-8",
     });
 
-    console.log(child.stdout);
+    console.log(`sync ${targetBucket} output:${EOL}${child.stdout}${EOL}`);
 
     const failure = child.status || child.signal;
     if (failure) {
