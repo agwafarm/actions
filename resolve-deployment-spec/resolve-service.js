@@ -167,7 +167,6 @@ async function resolveFrontend(env, serviceName, version) {
   const { spec } = await resolveSpec(env, serviceName, version);
   const parameters = {
     BucketName: `${env}-${companyName}-${serviceName}`,
-    BucketPrefix: version,
     IndexPath: "index.html",
   };
 
