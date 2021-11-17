@@ -79,9 +79,13 @@ if [ "$s3_retainment" = "standard" ]; then
    s3_path_base=s3://agwa-ci-assets/$s3_retainment/$service_name/$rc_version
 
    # copy cloudformation output
+   cd /action
+   rm -rf src/cloudformation
    mkdir src/cloudformation
    cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACKS >src/cloudformation/main.yaml
    aws s3 sync --no-progress --delete src/cloudformation $s3_path_base/cloudformation
+
+   cd /github/workspace
 
    # build for all envs so that deploy to env workflow succeeds.
    # TODO remove this loop once we can resolve env variables at runtime using lambda @ edge
