@@ -109,7 +109,7 @@ if [ "$s3_retainment" = "standard" ]; then
       rm -rf build
       npm run build
 
-      aws s3 sync --no-progress --delete build s3_path_base/web/$build_env
+      aws s3 sync --no-progress --delete build $s3_path_base/web/$build_env
    done
 
    # update RC pointer
