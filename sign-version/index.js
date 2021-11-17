@@ -55,6 +55,7 @@ async function getRcServices() {
   );
 
   const services = [];
+  const frontends = [];
 
   if (!response.Parameters) {
     return services;
@@ -63,14 +64,29 @@ async function getRcServices() {
   console.log(`Resolving service specifications`);
 
   for (const parameter of response.Parameters) {
+    const serviceValue = JSON.parse(parameter.Value);
     const name = parameter.Name.replace(rcPath + "/", "");
-    const version = resolveVersion(name, parameter.Value);
-    const serviceSpec = { name, version };
-    console.log(JSON.stringify(serviceSpec, null, 3));
-    services.push(serviceSpec);
+    const version = resolveVersion(name, serviceValue.version);
+    const spec = { name, version };
+
+    if (serviceValue.type === "backend") {
+      services.push(spec);
+    } else {
+      frontends.push(spec);
+    }
   }
 
-  return services;
+  // deploying this version would result in deletion of all existing services, probably a bug
+  if (services.length === 0) {
+    throw new Error("No services detected for version");
+  }
+
+  // deploying this version would result in deletion of all existing frontends, probably a bug
+  if (frontends.length === 0) {
+    throw new Error("No frontends detected for version");
+  }
+
+  return { services, frontends };
 }
 
 async function createVersion({ name, spec, timestamp, datetime, author }) {
@@ -123,13 +139,9 @@ async function run() {
 
     const services = await getRcServices();
 
-    if (services.length === 0) {
-      throw new Error("No services detected for version");
-    }
-
     const spec = {
+      ...services,
       name: versionName,
-      services,
       timestamp,
       author,
     };

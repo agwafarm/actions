@@ -13,7 +13,7 @@ runs:
         fi
 
         param_name=/infra/rc-version/$service_name
-        param_value=$GITHUB_SHA
+        param_value="{\"version\":\"$GITHUB_SHA\", \"type\":\"backend\"}"
 
         echo ssm param name $param_name
         echo ssm param value $param_value

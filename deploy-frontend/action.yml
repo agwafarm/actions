@@ -1,0 +1,5 @@
+name: 'deploy-frontend'
+description: 'Deploys a frontend application into the dev/ci environment and enables deployment to other environments'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

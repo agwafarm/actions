@@ -1,0 +1,18 @@
+{
+  "name": "deploy-frontend",
+  "version": "0.1.0",
+  "dependencies": {
+    "@aws-cdk/aws-cloudfront": "1.94.1",
+    "@aws-cdk/aws-s3": "1.94.1",
+    "@aws-cdk/aws-ssm": "1.94.1",
+    "@aws-cdk/core": "1.94.1",
+    "@aws-sdk/client-ssm": "3.8.1",
+    "source-map-support": "0.5.16",
+    "@types/node": "16.4.2",
+    "ts-node": "^9.0.0",
+    "typescript": "~3.9.7",
+    "dotenv": "8.2.0",
+    "url-join": "4.0.1",
+    "@types/url-join": "4.0.1"
+  }
+}

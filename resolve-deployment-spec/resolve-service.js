@@ -95,7 +95,7 @@ async function downloadS3Prefixes(path, targetFolder, prefixes) {
   );
 }
 
-async function resolveService(env, serviceName, version) {
+async function resolveSpec(env, serviceName, version) {
   // ordered specifically to favor standard storage retainment during deployment (if exists)
   // ensures temp versions are not deployed to non dev environments by some weird chance
   // low storage retainment is only used for dev environments
@@ -120,23 +120,58 @@ async function resolveService(env, serviceName, version) {
       return result;
     }, {});
 
-  const serviceSpec = {
+  const spec = {
     stackName: `${env}-${serviceName}`,
     templatePath: cfnTemplates.find((o) => o.fileNameWithoutExtension == "main")
       .localPath,
     loadNestedStacks,
     parameters: {
       Environment: env,
-      LambdaPrefix: `${serviceS3Prefix}/functions`,
-      LayerPrefix: `${serviceS3Prefix}/layers`,
-      TemplateUrlPrefix: `https://${artifactsBucket}.s3.amazonaws.com/${templateUrlPrefix}`,
-      ArtifactsBucket: artifactsBucket,
-      CompanyName: companyName,
-      ServiceName: serviceName,
     },
   };
 
-  return serviceSpec;
+  return {
+    spec,
+    templateUrlPrefix,
+    serviceS3Prefix,
+    cfnTemplates,
+    cfnTemplatePrefix,
+  };
 }
 
-module.exports = resolveService;
+async function resolveBackendService(env, serviceName, version) {
+  const { spec, serviceS3Prefix, templateUrlPrefix } = await resolveSpec(
+    env,
+    serviceName,
+    version
+  );
+  const parameters = {
+    LambdaPrefix: `${serviceS3Prefix}/functions`,
+    LayerPrefix: `${serviceS3Prefix}/layers`,
+    TemplateUrlPrefix: `https://${artifactsBucket}.s3.amazonaws.com/${templateUrlPrefix}`,
+    ArtifactsBucket: artifactsBucket,
+    CompanyName: companyName,
+    ServiceName: serviceName,
+  };
+
+  spec.parameters = { ...spec.parameters, ...parameters };
+  return spec;
+}
+
+async function resolveFrontend(env, serviceName, version) {
+  // TODO remove once we introduce lambda @ edge
+  if (env.startsWith("dev")) {
+    env = "dev";
+  }
+
+  const { spec } = await resolveSpec(env, serviceName, version);
+  const parameters = {
+    BucketName: `${env}-${companyName}-${serviceName}`,
+    IndexPath: "index.html",
+  };
+
+  spec.parameters = { ...spec.parameters, ...parameters };
+  return spec;
+}
+
+module.exports = { resolveBackendService, resolveFrontend };
