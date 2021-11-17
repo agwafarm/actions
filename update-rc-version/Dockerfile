@@ -8,7 +8,7 @@ RUN unzip -q "awscliv2.zip"
 RUN sh ./aws/install
 
 
-RUN apt install jq
+RUN apt install -y jq
 
 WORKDIR /action
 
