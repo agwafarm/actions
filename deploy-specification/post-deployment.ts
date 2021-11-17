@@ -1,6 +1,6 @@
 import { SSMClient, PutParameterCommand } from "@aws-sdk/client-ssm";
 
-import { spawn } from "child_process";
+import { spawnSync } from "child_process";
 
 const ssmClient = new SSMClient({ region: "us-west-2" });
 const mode = process.env["APP_MODE"] || "service";
@@ -37,23 +37,28 @@ function syncBuckets(sourcePrefix: string, targetBucket: string) {
       `s3://${targetBucket}`,
     ];
 
-    const child = spawn("aws", syncArgs, {
+    console.log(`syncing: ${sourcePrefix} with target bucket ${targetBucket}.`);
+
+    const child = spawnSync("aws", syncArgs, {
       env: process.env,
       cwd: process.cwd(),
     });
-    child.on("exit", function (code: any, signal: any) {
-      if (code || signal) {
-        console.log(
-          `failed to sync source: ${sourcePrefix} with target bucket ${targetBucket}`
-        );
-        reject(code || signal);
-      } else {
-        console.log(
-          `successfully synced prefix: ${sourcePrefix} with target bucket: ${targetBucket}`
-        );
-        resolve("");
-      }
-    });
+
+    console.log(child.stdout);
+
+    const failure = child.status || child.signal;
+    if (failure) {
+      console.log(
+        `failed to sync source: ${sourcePrefix} with target bucket ${targetBucket}. reason: ${failure}`
+      );
+
+      reject(failure);
+    } else {
+      console.log(
+        `successfully synced prefix: ${sourcePrefix} with target bucket: ${targetBucket}`
+      );
+      resolve(undefined);
+    }
   });
 }
 
