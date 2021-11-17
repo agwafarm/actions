@@ -45,7 +45,7 @@ function syncBuckets(sourcePrefix: string, targetBucket: string) {
       cwd: process.cwd(),
     });
 
-    console.log(child.stdout);
+    console.log(child.stdout.toString("utf-8"));
 
     const failure = child.status || child.signal;
     if (failure) {
