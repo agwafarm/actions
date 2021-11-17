@@ -5,6 +5,9 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.1.30.zip" -o "a
 RUN unzip -q "awscliv2.zip"
 RUN sh ./aws/install
 
+RUN apt update -y
+RUN apt install -y jq
+
 RUN npm i -g aws-cdk@1.94.1
 
 WORKDIR /action

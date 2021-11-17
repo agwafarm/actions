@@ -1,14 +1,15 @@
 import { SSMClient, PutParameterCommand } from "@aws-sdk/client-ssm";
 
-import { spawn } from "child_process";
-
-console.log("running post-deployment script");
+import { spawnSync } from "child_process";
+import { EOL } from "os";
 
 const ssmClient = new SSMClient({ region: "us-west-2" });
 const mode = process.env["APP_MODE"] || "service";
 const { env, version, frontends } = JSON.parse(
   process.env["APP_SPEC"] as string
 );
+
+console.log(`running post-deployment script for version: ${version}`);
 
 async function updateEnvPointer() {
   if (mode !== "env") {
@@ -22,6 +23,7 @@ async function updateEnvPointer() {
       Value: version,
       Description: `Deployed version for the ${env} environment`,
       Type: "String",
+      Overwrite: true,
     })
   );
 }
@@ -37,25 +39,45 @@ function syncBuckets(sourcePrefix: string, targetBucket: string) {
       `s3://${targetBucket}`,
     ];
 
-    const child = spawn("aws", syncArgs, { env: process.env });
-    child.on("exit", function (code, signal) {
-      if (code || signal) {
-        console.log(
-          `failed to sync source: ${sourcePrefix} with target bucket ${targetBucket}`
-        );
-        reject(code || signal);
-      } else {
-        resolve("");
-      }
+    console.log(`syncing: ${sourcePrefix} with target bucket ${targetBucket}.`);
+
+    const child = spawnSync("aws", syncArgs, {
+      env: process.env,
+      cwd: process.cwd(),
+      stdio: "pipe",
+      encoding: "ascii",
     });
+
+    console.log(`sync ${targetBucket} output:${EOL}${child.stdout}${EOL}`);
+
+    const failure = child.status || child.signal;
+    if (failure) {
+      console.log(
+        `failed to sync source: ${sourcePrefix} with target bucket ${targetBucket}. reason: ${failure}`
+      );
+
+      reject(failure);
+    } else {
+      console.log(
+        `successfully synced source: ${sourcePrefix} with target bucket: ${targetBucket}`
+      );
+      resolve(undefined);
+    }
   });
 }
 
 async function updateS3Artifacts() {
+  if (mode !== "env") {
+    return;
+  }
+
+  console.log(`syncing s3 buckets for environment ${env}`);
+
   const promises: Promise<any>[] = [];
+
   for (const frontend of frontends) {
     const frontendBucket = frontend.parameters.BucketName;
-    const sourcePrefix = `standard/${frontend.name}/${frontend.version}/web/${env}`;
+    const sourcePrefix = `standard/${frontend.serviceName}/${frontend.version}/web/${env}`;
     const syncBucketsPromise = syncBuckets(sourcePrefix, frontendBucket);
 
     promises.push(syncBucketsPromise);

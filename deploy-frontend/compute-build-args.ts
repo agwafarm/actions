@@ -29,12 +29,10 @@ class ConfigurationService {
         Name: name,
       })
     );
-    console.log("parameter response acquired");
     const value = response.Parameter && response.Parameter.Value;
     if (!value) {
       throw new Error(`could not obtain parameter: ${name}`);
     }
-    console.log("returning parameter");
     return value;
   };
 
@@ -46,12 +44,10 @@ class ConfigurationService {
         Name: name,
       })
     );
-    console.log("parameter response acquired");
     const value = response.Parameter && response.Parameter.Value;
     if (!value) {
       throw new Error(`could not obtain parameter: ${name}`);
     }
-    console.log("returning parameter");
     return value;
   };
 

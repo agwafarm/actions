@@ -79,9 +79,12 @@ if [ "$s3_retainment" = "standard" ]; then
    s3_path_base=s3://agwa-ci-assets/$s3_retainment/$service_name/$rc_version
 
    # copy cloudformation output
-   mkdir src/cloudformation
-   cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACKS >src/cloudformation/main.yaml
-   aws s3 sync --no-progress --delete src/cloudformation $s3_path_base/cloudformation
+   cd /action
+   mkdir cloudformation
+   cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACKS >cloudformation/main.yaml
+   aws s3 sync --no-progress --delete cloudformation $s3_path_base/cloudformation
+
+   cd /github/workspace
 
    # build for all envs so that deploy to env workflow succeeds.
    # TODO remove this loop once we can resolve env variables at runtime using lambda @ edge
@@ -92,28 +95,34 @@ if [ "$s3_retainment" = "standard" ]; then
    for build_env in "${arr[@]}"; do
       export APP_ENV=$build_env
 
+      cd /action
       # apply build arguments to environment
       npx ts-node --prefer-ts-exts /action/compute-build-args.ts
       echo "build arguments for env $build_env"
-      cat /github/workspace/buildargs.$build_env
 
       set -o allexport
       source /github/workspace/buildargs.$build_env
       set +o allexport
 
+      cd /github/workspace
+
       rm -rf build
       npm run build
 
-      aws s3 sync --no-progress --delete build s3_path_base/web/$build_env
+      aws s3 sync --no-progress --delete build $s3_path_base/web/$build_env
    done
 
    # update RC pointer
    param_name=/infra/rc-version/$service_name
-   param_value="{\"version\":\"$rc_version\", \"type\":\"frontend\"}"
+   param_value=$(jq -n \
+      --arg t "frontend" \
+      --arg v "$rc_version" \
+      '{version: $v, type: $t}')
 
    echo "Updating RC pointer"
    echo "RC pointer name" $param_name
    echo "RC pointer value" $param_value
 
-   aws ssm put-parameter --type String --overwrite --name $param_name --value $param_value
+   aws ssm put-parameter --overwrite --type String --name $param_name --value "$param_value"
+
 fi
