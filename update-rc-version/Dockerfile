@@ -10,15 +10,8 @@ RUN sh ./aws/install
 
 RUN apt install jq
 
-RUN npm i -g aws-cdk@1.94.1
-
 WORKDIR /action
 
-COPY package-lock.json package.json ./
-RUN npm ci
-
 COPY . .
-
-WORKDIR /
 
 ENTRYPOINT ["/action/entrypoint.sh"]

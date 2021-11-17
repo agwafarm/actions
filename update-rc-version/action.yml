@@ -1,27 +1,5 @@
 name: 'update-rc-version'
 description: 'Updates the Service RC version to the current git SHA'
 runs:
-  using: "composite"
-  steps:
-    - run: |
-        service_name=$GITHUB_REPOSITORY
-        service_name=$(echo $service_name | sed -e 's/^agwafarm\///')
-        service_name=$(echo $service_name | sed -e 's/^agwa\-//')
-
-        if [ "$service_name" = "cloud-components" ]; then
-             service_name=cloud-parent
-        fi
-
-        param_name=/infra/rc-version/$service_name
-        param_value=$(jq -n \
-           --arg t "frontend" \
-           --arg v "$rc_version" \
-           '{version: $v, type: $t}')
-
-        echo "Updating RC pointer"
-        echo "RC pointer name" $param_name
-        echo "RC pointer value" $param_value
-
-        aws ssm put-parameter --overwrite --type String --name $param_name --value "$param_value"
-
-      shell: bash
+  using: 'docker'
+  image: 'Dockerfile'
