@@ -6,29 +6,44 @@ dotenv.config({ path: ".env" });
 
 const { resolveEnvSpec, resolveServiceSpec } = require("./resolve-spec");
 
-const env = core
+const environment = core
   .getInput("environment")
   .replace("_", "")
   .replace("-", "")
   .toLowerCase();
-const serviceName = core.getInput("service");
-const version = core.getInput("version");
-const stackName = core.getInput("stack") || serviceName;
 
-if (!env) {
-  throw new Error("Could not acquire env name");
+let serviceName = core.getInput("service");
+
+if (serviceName === "cloud-components") {
+  serviceName = "cloud-parent";
 }
 
-console.log("inputs: ", env, serviceName, version, stackName);
+const version = core.getInput("version");
 
-console.log("env: ", env);
+console.log(
+  `inputs: ${JSON.stringify(
+    { env: environment, serviceName, version },
+    null,
+    3
+  )}`
+);
 
 async function run() {
   try {
-    const spec = await (serviceName
-      ? resolveServiceSpec(env, serviceName, version, stackName)
-      : resolveEnvSpec(env));
+    if (!serviceName && !version) {
+      throw new Error("either service or version must be specified");
+    }
 
+    if (!environment) {
+      throw new Error("Could not acquire env name");
+    }
+
+    const spec = await (serviceName
+      ? resolveServiceSpec(environment, serviceName, version)
+      : resolveEnvSpec(environment, version));
+
+    spec.env = environment;
+    spec.version = version;
     core.setOutput("spec", JSON.stringify(spec));
     console.log(JSON.stringify(spec, null, 3));
   } catch (error) {

@@ -1,15 +1,12 @@
-const {
-  SSMClient,
-  GetParametersByPathCommand,
-  GetParameterCommand,
-} = require("@aws-sdk/client-ssm");
+const { SSMClient, GetParameterCommand } = require("@aws-sdk/client-ssm");
 
-const resolveService = require("./resolve-service");
+const { resolveBackendService, resolveFrontend } = require("./resolve-service");
 
 const ssmClient = new SSMClient({ region: "us-west-2" });
 const ssmPrefix = `/infra/rc-version/`;
 
-async function resolveServiceSpec(env, serviceName, version, stackName) {
+async function resolveServiceSpec(env, serviceName, version) {
+  console.log("Resolving service spec");
   if (!version || version === "latest") {
     const response = await ssmClient.send(
       new GetParameterCommand({
@@ -17,42 +14,53 @@ async function resolveServiceSpec(env, serviceName, version, stackName) {
       })
     );
 
+    if (!response.Parameter) {
+      throw new Error(
+        `could not resolve latest version for service: ${serviceName}`
+      );
+    }
+
     version = response.Parameter.Value;
     console.log(
       `Resolved latest version of service ${serviceName} to ${version}`
     );
   }
 
-  const serviceSpec = await resolveService(
-    env,
-    serviceName,
-    version,
-    stackName
-  );
+  const serviceSpec = await resolveBackendService(env, serviceName, version);
 
-  return { services: [serviceSpec] };
+  return { services: [serviceSpec], frontends: [] };
 }
 
-async function resolveEnvSpec(env) {
-  const ssmPrefix = `/infra/rc-version/`;
+async function resolveEnvSpec(env, version) {
+  console.log("Resolving version spec");
+
+  const paramName = `/infra/version/${version}`;
   const response = await ssmClient.send(
-    new GetParametersByPathCommand({
-      Path: ssmPrefix,
+    new GetParameterCommand({
+      Name: paramName,
     })
   );
 
-  console.log("parameters response acquired");
-  console.log(response.Parameters);
+  if (!response.Parameter) {
+    throw new Error(`no such parameter: ${paramName}`);
+  }
 
-  const services = await Promise.all(
-    response.Parameters.map((ssmParameter) => {
-      const serviceName = ssmParameter.Name.replace(ssmPrefix, "");
-      const version = ssmParameter.Value;
-      return resolveService({ env, serviceName, version });
-    })
+  const versionSpec = JSON.parse(response.Parameter.Value);
+  console.log("Resolved version spec:");
+  console.log(JSON.stringify(versionSpec, null, 3));
+
+  const servicePromises = versionSpec.services.map((service) =>
+    resolveBackendService(env, service.name, service.version)
   );
-  return { services };
+
+  const frontendPromises = versionSpec.frontends.map((frontend) =>
+    resolveFrontend(env, frontend.name, frontend.version)
+  );
+
+  const services = await Promise.all(servicePromises);
+  const frontends = await Promise.all(frontendPromises);
+
+  return { services, frontends };
 }
 
-module.exports.resolveEnvSpec = resolveEnvSpec;
-module.exports.resolveServiceSpec = resolveServiceSpec;
+module.exports = { resolveEnvSpec, resolveServiceSpec };

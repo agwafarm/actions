@@ -1,2 +1,7 @@
 .vscode
 cdk.out
+specs/
+
+node_modules
+!resolve-deployment-spec/**
+!sign-version/**

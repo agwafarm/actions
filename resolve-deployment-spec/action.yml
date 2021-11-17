@@ -7,13 +7,8 @@ inputs:
   service:
     description: 'Service to resolve (if applicable). If not specified, resolves all services'
     required: false
-    default: 'all'
   version:
-    description: 'Service version to resolve. Defaults to latest. Applies only if service input is specified'
-    required: false
-    default: 'latest'
-  stack:
-    description: 'provides an override for the stack name suffix. defaults to $service'
+    description: 'If service specified, shall be considered version to resolve (defaults to latest). Otherwise - becomes required. shall be considered the signed version to deploy.'
     required: false
 outputs:
   spec:

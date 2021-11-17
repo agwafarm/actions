@@ -4,8 +4,13 @@ inputs:
   spec:
     description: "Deployment specification"
     required: true
+  mode:
+    description: "Deployment mode (service / env)"
+    required: false
+    default: 'service'
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
     - ${{ inputs.spec }}
+    - ${{ inputs.mode }}
