@@ -95,14 +95,16 @@ if [ "$s3_retainment" = "standard" ]; then
    for build_env in "${arr[@]}"; do
       export APP_ENV=$build_env
 
+      cd /action
       # apply build arguments to environment
       npx ts-node --prefer-ts-exts /action/compute-build-args.ts
       echo "build arguments for env $build_env"
-      cat /github/workspace/buildargs.$build_env
 
       set -o allexport
       source /github/workspace/buildargs.$build_env
       set +o allexport
+
+      cd /github/workspace
 
       rm -rf build
       npm run build
