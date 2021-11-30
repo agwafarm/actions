@@ -114,7 +114,7 @@ runs:
 
           # Copy local common files to layer before zipping
           if [ -d "src/common" ] ; then
-            cp -r src/common/* $common_layer_target_path
+            cp -r src/common $common_layer_target_path
           fi
 
           # Cloud Common Dependencies Lambda Layer
