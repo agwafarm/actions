@@ -112,12 +112,17 @@ runs:
           python3 -m pip install -q -r requirements.txt
           python3 -m pip install -q -r requirements-dev.txt
 
-          # Common Lambda Layer
+          # Copy local common files to layer before zipping
+          if [ -d "src/common" ] ; then
+            cp -r src/common $common_layer_target_path
+          fi
+
+          # Cloud Common Dependencies Lambda Layer
           cd $common_layer_path
           zip -q -r $asset_name .
           aws s3 cp $asset_name $s3_path_base/layers/cloud-common.zip
-          cd $current_folder
-
+          cd $current_folder 
+          
           for d in src/lambdas/*/ ; do
             func_name=$(basename "$"$d"")
             func_path=src/lambdas/${func_name}
