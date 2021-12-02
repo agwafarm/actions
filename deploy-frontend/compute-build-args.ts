@@ -118,6 +118,10 @@ async function run() {
       `firebase/${app}/appId`
     );
 
+    const mqttEndpoint = await configuration.getParameter(
+      `/infra/mqtt/endpoint`
+    );
+
     const variables = {
       NODE_ENV: "production",
       REACT_APP_USER_POOL_ID: userPoolId,
@@ -131,6 +135,8 @@ async function run() {
       REACT_APP_FIREBASE_AUTH_DOMAIN: firebaseAuthDomain,
       REACT_APP_FIREBASE_PROJECT_ID: firebaseProjectId,
       REACT_APP_FIREBASE_APP_ID: firebaseAppId,
+      REACT_APP_MQTT_ENDPOINT: mqttEndpoint,
+      REACT_APP_AGWA_ENV: env,
     };
 
     const fileContent = Object.entries(variables)
