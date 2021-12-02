@@ -118,9 +118,7 @@ async function run() {
       `firebase/${app}/appId`
     );
 
-    const mqttEndpoint = await configuration.getParameter(
-      `/infra/mqtt/endpoint`
-    );
+    const mqttEndpoint = await configuration.getParameter(`mqtt/endpoint`);
 
     const variables = {
       NODE_ENV: "production",
