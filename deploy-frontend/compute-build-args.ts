@@ -137,6 +137,8 @@ async function run() {
       REACT_APP_AGWA_ENV: env,
     };
 
+    console.log('variables: ', JSON.stringify(variables, null, 3));
+
     const fileContent = Object.entries(variables)
       .map(([name, value]) => `${name}=${value}`)
       .join(EOL);
