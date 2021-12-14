@@ -67,6 +67,7 @@ cd /github/workspace
 # Disable linting during builds - this is done in workflows
 # We need to save time on our four builds during merge
 export DISABLE_ESLINT_PLUGIN=true
+export NODE_OPTIONS="--max-old-space-size=8192"
 npm run build
 
 # copy build to bucket for ci / dev environment
