@@ -128,6 +128,21 @@ async function createVersion({ name, spec, timestamp, datetime, author }) {
   console.log(`version spec created`);
 }
 
+async function updateCiVersion(version) {
+  console.log(`updating ci version pointer to ${version}`);
+
+  await ssmClient.send(
+    new PutParameterCommand({
+      Name: `/infra/ci/variables/deployed-version`,
+      Value: version,
+      Description: `Version Specification for ci`,
+      Type: "String",
+    })
+  );
+
+  console.log(`updated ci version pointer to ${version}`);
+}
+
 async function run() {
   try {
     if (versionName.length === 0) {
@@ -153,6 +168,7 @@ async function run() {
       datetime,
       author,
     });
+    await updateCiVersion(versionName);
   } catch (error) {
     console.log(error);
     core.setFailed(error.message);
