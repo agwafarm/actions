@@ -37,15 +37,14 @@ async function resolveEnvSpec(env, version) {
   version = resolveEnvVersion(version);
 
   const paramName = `/infra/version/${version}`;
+  console.log(`resolving version ${version}. param name: ${paramName}`);
   const response = await ssmClient.send(
     new GetParameterCommand({
       Name: paramName,
     })
   );
 
-  if (!response.Parameter) {
-    throw new Error(`no such parameter: ${paramName}`);
-  }
+  console.log(`resolved spec for version ${version}.`);
 
   const versionSpec = JSON.parse(response.Parameter.Value);
   console.log("Resolved version spec:");
