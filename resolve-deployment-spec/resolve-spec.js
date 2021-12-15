@@ -34,7 +34,7 @@ async function resolveServiceSpec(env, serviceName, version) {
 
 async function resolveEnvSpec(env, version) {
   console.log("Resolving version spec");
-  version = resolveEnvVersion(version);
+  version = await resolveEnvVersion(version);
 
   const paramName = `/infra/version/${version}`;
   console.log(`resolving version ${version}. param name: ${paramName}`);
