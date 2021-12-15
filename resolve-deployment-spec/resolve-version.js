@@ -7,10 +7,13 @@ const resolveEnvVersion = async (version) => {
     return version;
   }
   const env = version.replace("$", "");
-  console.log(`resolving the version deployed to ${env}`);
+  const paramName = `/infra/${env}/variables/deployed-version`;
+  console.log(
+    `resolving the version deployed to ${env}. param name: ${paramName}`
+  );
   const response = await ssmClient.send(
     new GetParameterCommand({
-      Name: `/infra/${env}/variables/deployed-version`,
+      Name: paramName,
     })
   );
 
