@@ -2,7 +2,7 @@ const { SSMClient, GetParameterCommand } = require("@aws-sdk/client-ssm");
 
 const ssmClient = new SSMClient({ region: "us-west-2" });
 
-export const resolveEnvVersion = async (version) => {
+const resolveEnvVersion = async (version) => {
   if (!version.startsWith("$")) {
     return version;
   }
@@ -22,3 +22,5 @@ export const resolveEnvVersion = async (version) => {
   console.log(`Resolved version of env ${env} to ${version}`);
   return version;
 };
+
+module.exports = { resolveEnvVersion };
