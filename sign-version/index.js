@@ -137,6 +137,7 @@ async function updateCiVersion(version) {
       Value: version,
       Description: `Version Specification for ci`,
       Type: "String",
+      Overwrite: true,
     })
   );
 
