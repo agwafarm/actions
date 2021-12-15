@@ -1,7 +1,7 @@
 const { SSMClient, GetParameterCommand } = require("@aws-sdk/client-ssm");
 
 const { resolveBackendService, resolveFrontend } = require("./resolve-service");
-const { resolveVersion } = require("./resolve-version");
+const { resolveEnvVersion } = require("./resolve-version");
 
 const ssmClient = new SSMClient({ region: "us-west-2" });
 const ssmPrefix = `/infra/rc-version/`;
@@ -34,7 +34,7 @@ async function resolveServiceSpec(env, serviceName, version) {
 
 async function resolveEnvSpec(env, version) {
   console.log("Resolving version spec");
-  version = resolveVersion(version);
+  version = resolveEnvVersion(version);
 
   const paramName = `/infra/version/${version}`;
   const response = await ssmClient.send(
