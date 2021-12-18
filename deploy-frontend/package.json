@@ -14,5 +14,11 @@
     "dotenv": "8.2.0",
     "url-join": "4.0.1",
     "@types/url-join": "4.0.1"
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "tabWidth": 3,
+    "semi": true,
+    "singleQuote": false
   }
 }

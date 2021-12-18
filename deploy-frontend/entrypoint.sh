@@ -10,7 +10,7 @@ service_name=$GITHUB_REPOSITORY
 service_name=$(echo $service_name | sed -e 's/^agwafarm\///')
 service_name=$(echo $service_name | sed -e 's/^agwa\-//')
 
-echo deploying frontend $service_name
+echo deploying $service_name
 
 rc_version=$GITHUB_SHA
 echo RC version $rc_version

@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "commonjs",
+    "lib": ["ESNext"],
+    "declaration": false,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "experimentalDecorators": false,
+    "strictPropertyInitialization": true,
+    "typeRoots": ["./node_modules/@types"],
+    "allowJs": true,
+    "checkJs": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/infra":["./infra"],
+      "@/test":["./test"],
+      "@/*": ["./src/*"]
+    },
+    "outDir": "dist"
+  },
+  "exclude": ["cdk.out"]
+}
