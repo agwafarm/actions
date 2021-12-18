@@ -1,5 +1,0 @@
-name: 'deploy-backend'
-description: 'Deploys a frontend backend into an environment according to specs'
-runs:
-  using: 'docker'
-  image: 'Dockerfile'

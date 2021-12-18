@@ -1,0 +1,9 @@
+name: 'pack-backend'
+description: 'Packs a backend service for deployment'
+service-name:
+    description: "Service Name"
+version:
+    description: "RC version"
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

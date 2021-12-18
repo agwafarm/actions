@@ -24,11 +24,11 @@ if [ "$service_name" = "cloud-components" ]; then
 fi
 
 echo packing service $service_name
-echo "::set-output name=service_name::$service_name"
+echo "::set-output name=service-name::$service_name"
 
 rc_version=$GITHUB_SHA
 echo RC version $rc_version
-echo ::set-output name=rc_version::$rc_version
+echo "::set-output name=version::$rc_version"
 
 event_name=$GITHUB_EVENT_NAME
 echo github event name $event_name
