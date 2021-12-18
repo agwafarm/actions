@@ -3,13 +3,21 @@ FROM ubuntu:20.04
 # Install apt packages
 RUN apt update -y
 RUN apt install -y software-properties-common
-RUN add-apt-repository ppa:deadsnakes/ppa
-RUN apt install -y python3.8
-RUN apt install -y jq
 RUN apt install -y sudo
+
+# Install Utils
+RUN apt install -y jq
 RUN apt install -y curl
 RUN apt install -y unzip
 RUN apt install -y zip
+
+
+# Install Python
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt install -y python3.8
+RUN sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.8 10
+RUN sudo apt install -y python3-pip
+RUN python -m pip install pip
 
 # Install Node
 RUN curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash -
@@ -31,4 +39,4 @@ COPY . .
 
 WORKDIR /
 
-ENTRYPOINT ["/action/entrypoint.sh"]
+# ENTRYPOINT ["/action/entrypoint.sh"]
