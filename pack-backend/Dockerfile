@@ -1,5 +1,9 @@
 FROM node:14
 
+# Install python
+RUN sudo apt-get update -y
+RUN sudo apt-get install -y python3.8
+
 # Install AWS CLI
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.1.30.zip" -o "awscliv2.zip"
 RUN unzip -q "awscliv2.zip"
