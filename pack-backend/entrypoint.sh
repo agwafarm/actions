@@ -3,8 +3,6 @@ set -e
 set -u
 set -o pipefail
 
-cd /action
-
 # Configure pip to use CodeArtifact as additional pypi
 ca_domain=agwafarm-private
 ca_repo=agwafarm-private

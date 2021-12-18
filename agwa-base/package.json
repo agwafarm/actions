@@ -18,6 +18,8 @@
     "@types/dotenv": "8.2.0",
     "@types/lodash": "4.14.168",
     "@types/node": "10.17.27",
+    "@aws-cdk/cloudformation-include": "1.94.1",
+    "@aws-sdk/client-s3": "3.8.1",
     "dotenv": "8.2.0",
     "lodash": "4.17.21",
     "source-map-support": "0.5.16",

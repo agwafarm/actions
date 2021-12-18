@@ -5,6 +5,7 @@ set -o pipefail
 
 current_folder=/github/workspace
 cd $current_folder
+
 common_layer_path=artifacts/layers/common
 asset_name=asset.zip
 
