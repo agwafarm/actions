@@ -1,0 +1,35 @@
+name: "publish-image"
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "Image"
+        required: true
+      version:
+        description: "Version"
+        required: true
+      folder:
+        description: "Source Folder"
+        required: false
+        default: "agwa-base"
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    steps:
+      
+      - name: "Checkout Repository"
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.ref }}
+      
+      - name: "Login to Docker Hub"
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: "Build Image"
+        run: \
+          cd ${{ github.event.inputs.folder }}
+          docker build . -t "agwafarm/${{ github.event.inputs.image }}:${{ github.event.inputs.version }}"
+          docker image push "agwafarm/${{ github.event.inputs.image }}" -a
