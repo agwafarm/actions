@@ -3,8 +3,6 @@ set -e
 set -u
 set -o pipefail
 
-cd /action
-
 service_name=$GITHUB_REPOSITORY
 
 service_name=$(echo $service_name | sed -e 's/^agwafarm\///')
