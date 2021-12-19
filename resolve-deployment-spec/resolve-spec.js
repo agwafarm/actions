@@ -29,7 +29,7 @@ async function resolveServiceSpec(env, serviceName, version) {
 
   const serviceSpec = await resolveBackendService(env, serviceName, version);
 
-  return { services: [serviceSpec], frontends: [] };
+  return { services: [serviceSpec], frontends: [], version, env };
 }
 
 async function resolveEnvSpec(env, version) {
@@ -61,7 +61,7 @@ async function resolveEnvSpec(env, version) {
   const services = await Promise.all(servicePromises);
   const frontends = await Promise.all(frontendPromises);
 
-  return { services, frontends };
+  return { services, frontends, version, env };
 }
 
 module.exports = { resolveEnvSpec, resolveServiceSpec };
