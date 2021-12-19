@@ -42,8 +42,6 @@ async function run() {
       ? resolveServiceSpec(environment, serviceName, version)
       : resolveEnvSpec(environment, version));
 
-    spec.env = environment;
-    spec.version = version;
     core.setOutput("spec", JSON.stringify(spec));
     console.log(JSON.stringify(spec, null, 3));
   } catch (error) {
