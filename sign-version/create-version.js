@@ -6,7 +6,14 @@ const {
 
 const ssmClient = new SSMClient({ region: "us-west-2" });
 
-async function createVersion({ name, spec, timestamp, datetime, author }) {
+async function createVersion({
+  name,
+  spec,
+  timestamp,
+  datetime,
+  author,
+  overrides,
+}) {
   const versionPath = `/infra/version/${name}`;
 
   try {
