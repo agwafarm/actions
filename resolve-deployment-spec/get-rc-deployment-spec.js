@@ -1,4 +1,4 @@
-// this file is duplicated in resolve-deployment-spec
+// this file is duplicated from sign-version
 const core = require("@actions/core");
 const {
   SSMClient,
