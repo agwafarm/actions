@@ -12,9 +12,10 @@ const { env, version, frontends } = JSON.parse(
 console.log(`running post-deployment script for version: ${version}`);
 
 async function updateEnvPointer() {
-  if (mode !== "env") {
+  if (mode !== "env" || version === "$ci") {
     return;
   }
+
   console.log(`updating environment ${env} version pointer to ${version}`);
 
   await ssmClient.send(
