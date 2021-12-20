@@ -70,6 +70,7 @@ async function getRcServices() {
 
 async function getRcDeploymentSpec(versionName) {
   const services = await getRcServices();
+  const timestamp = Date.now();
 
   return {
     ...services,
