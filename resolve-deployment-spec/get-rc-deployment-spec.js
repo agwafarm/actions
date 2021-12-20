@@ -14,6 +14,9 @@ if (!overrides) {
   overrides = JSON.parse(overrides);
 }
 
+const github = require("@actions/github");
+const author = github.context.actor;
+
 function resolveVersion(name, version) {
   if (name === "cloud-parent") {
     return (
