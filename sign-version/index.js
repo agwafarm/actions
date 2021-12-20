@@ -30,7 +30,7 @@ async function run() {
     console.log(`signing version: ${versionName}`);
     console.log(`overrides: ${JSON.stringify(overrides, null, 3)}`);
 
-    const spec = await getRcDeploymentSpec();
+    const spec = await getRcDeploymentSpec(versionName);
 
     await createVersion({
       name: versionName,

@@ -68,7 +68,7 @@ async function getRcServices() {
   return { services, frontends };
 }
 
-async function getRcDeploymentSpec() {
+async function getRcDeploymentSpec(versionName) {
   const services = await getRcServices();
 
   return {

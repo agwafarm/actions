@@ -70,8 +70,9 @@ async function resolveSignedVersion(env, version) {
 }
 
 async function resolveCiVersion(env) {
-  const versionSpec = await getRcDeploymentSpec();
-  return resolveDeploymentSpec(env, "$ci", versionSpec);
+  const versionName = "$ci";
+  const versionSpec = await getRcDeploymentSpec(versionName);
+  return resolveDeploymentSpec(env, versionName, versionSpec);
 }
 
 async function resolveEnvSpec(env, version) {
