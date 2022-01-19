@@ -38,6 +38,9 @@ runs:
           if [ "$service_name" = "cloud-components" ]; then
              service_name=cloud-parent
           fi
+          if [ "$service_name" = "greengrass-service" ]; then
+             service_name=greengrass-parent
+          fi
 
           echo packing service $service_name
           echo "::set-output name=service_name::$service_name"
@@ -105,53 +108,95 @@ runs:
           #Upload CloudFormation Assets, delete files in target folder if they no longer exist.
           aws s3 sync --delete src/cloudformation $s3_path_base/cloudformation
           
-          # Create and Upload Lambda & Layer Assets
           mkdir -p $common_layer_path
-          common_layer_target_path=$common_layer_path/python
-          python3 -m pip install -q -r requirements.txt --target $common_layer_target_path
-          python3 -m pip install -q -r requirements.txt
-          python3 -m pip install -q -r requirements-dev.txt
-
+          
+          if [ -f "requirements.txt" ]; then
+            # Create and Upload Lambda & Layer Assets 
+            common_layer_target_path=$common_layer_path/python
+            python3 -m pip install -q -r requirements.txt --target $common_layer_target_path
+            python3 -m pip install -q -r requirements.txt
+            python3 -m pip install -q -r requirements-dev.txt
+          fi
+          
           # Copy local common files to layer before zipping
           if [ -d "src/common" ] ; then
             cp -r src/common $common_layer_target_path
           fi
 
-          # Cloud Common Dependencies Lambda Layer
-          cd $common_layer_path
-          zip -q -r $asset_name .
-          aws s3 cp $asset_name $s3_path_base/layers/cloud-common.zip
-          cd $current_folder 
-          
-          for d in src/lambdas/*/ ; do
-            func_name=$(basename "$"$d"")
-            func_path=src/lambdas/${func_name}
-            func_artifact_folder=artifacts/lambdas/${func_name}
-            func_s3_key=$s3_path_base/functions/${func_name}.zip
-            req_path=src/lambdas/${func_name}/requirements.txt
-            layer_path=artifacts/layers/lambdas/${func_name}
-            layer_s3_key=$s3_path_base/layers/${func_name}.zip
-            
-            cd $current_folder
-            mkdir -p $func_artifact_folder
-            
-            #Lambda has specific dependencies
-            if [ -f $req_path ]; then
-              mkdir -p $layer_path
-              target_path=$layer_path/python
-              python3 -m pip install -q -r $req_path --target $target_path
-              python3 -m pip install -q -r $req_path
-              cd $layer_path
+          # upload cloud-common folder if not empty
+          if [ "$(ls -A $common_layer_path)" ]; then
+              cd $common_layer_path
               zip -q -r $asset_name .
-              aws s3 cp $asset_name $layer_s3_key
-              cd $current_folder
-            fi
+              aws s3 cp $asset_name $s3_path_base/layers/cloud-common.zip
+              cd $current_folder 
+          fi
+
+          if [ "$service_name" = "greengrass-parent" ]; then
+            echo "Uploading Greengrass Service"
+            mkdir artifacts
             
-            cd $func_path
-            zip -q -r $asset_name .
-            aws s3 cp $asset_name $func_s3_key
-            cd $current_folder
-          done
+            echo "Uploading General Lambdas"
+            for d in src/lambdas/general/*/ ; do
+              func_name=$(basename "$"$d"")
+              func_s3_key=$s3_path_base/functions/${func_name}.zip
+              pushd src/lambdas/general/${func_name}
+              zip -r ../../../../artifacts/${func_name}.zip *.py **/*.py
+              popd
+              aws s3 cp artifacts/${func_name}.zip $func_s3_key
+            done
+            
+            echo "Uploading Sensor Lambdas"
+            for d in src/lambdas/sensors/functions/*/ ; do
+              func_name=$(basename "$"$d"")
+              func_s3_key=$s3_path_base/functions/${func_name}.zip
+              zip -j artifacts/${func_name}.zip src/lambdas/sensors/functions/${func_name}/*.py
+              pushd src/lambdas/sensors
+              zip -ur ../../../artifacts/${func_name}.zip common/*.py
+              popd
+              aws s3 cp artifacts/${func_name}.zip $func_s3_key
+            done
+            
+            echo "Uploading Actuator Lambdas"
+            for d in src/lambdas/actuators/functions/*/ ; do
+              func_name=$(basename "$"$d"")
+              func_s3_key=$s3_path_base/functions/${func_name}.zip
+              zip -j artifacts/${func_name}.zip src/lambdas/actuators/functions/${func_name}/*.py
+              pushd src/lambdas/actuators
+              zip -ur ../../../artifacts/${func_name}.zip common/*.py
+              popd
+              aws s3 cp artifacts/${func_name}.zip $func_s3_key
+            done
+          else
+            for d in src/lambdas/*/ ; do
+              func_name=$(basename "$"$d"")
+              func_path=src/lambdas/${func_name}
+              func_artifact_folder=artifacts/lambdas/${func_name}
+              func_s3_key=$s3_path_base/functions/${func_name}.zip
+              req_path=src/lambdas/${func_name}/requirements.txt
+              layer_path=artifacts/layers/lambdas/${func_name}
+              layer_s3_key=$s3_path_base/layers/${func_name}.zip
+              
+              cd $current_folder
+              mkdir -p $func_artifact_folder
+              
+              #Lambda has specific dependencies
+              if [ -f $req_path ]; then
+                mkdir -p $layer_path
+                target_path=$layer_path/python
+                python3 -m pip install -q -r $req_path --target $target_path
+                python3 -m pip install -q -r $req_path
+                cd $layer_path
+                zip -q -r $asset_name .
+                aws s3 cp $asset_name $layer_s3_key
+                cd $current_folder
+              fi
+              
+              cd $func_path
+              zip -q -r $asset_name .
+              aws s3 cp $asset_name $func_s3_key
+              cd $current_folder
+            done
+          fi
 
       shell: bash
       id: packer

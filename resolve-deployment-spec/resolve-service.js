@@ -154,6 +154,7 @@ async function resolveBackendService(env, serviceName, version) {
     ArtifactsBucket: artifactsBucket,
     CompanyName: companyName,
     ServiceName: serviceName,
+    Version: spec.version,
   };
 
   spec.parameters = { ...spec.parameters, ...parameters };
