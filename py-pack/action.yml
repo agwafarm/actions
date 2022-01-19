@@ -133,7 +133,6 @@ runs:
 
           if [ "$service_name" = "greengrass-parent" ]; then
             echo "Uploading Greengrass Service"
-            mkdir artifacts
             
             echo "Uploading General Lambdas"
             for d in src/lambdas/general/*/ ; do
