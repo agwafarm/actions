@@ -7,7 +7,8 @@ on:
         required: true
       version:
         description: "Version"
-        required: true
+         required: false
+        default: "latest"
       folder:
         description: "Build context"
         required: false
