@@ -1,5 +1,4 @@
 FROM python:3.8-slim-bullseye
-USER root
 
 # Install packages
 RUN apt-get update \
@@ -22,9 +21,6 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.1.30.zip" -o "a
    && unzip -q "awscliv2.zip" \
    && sh ./aws/install
 
-# Install Global NPM Dependencies
-RUN npm i -g aws-cdk@1.94.1
-
 # Install Global PIP Dependencies
 RUN pip install boto3==1.20.39
 
@@ -38,5 +34,3 @@ RUN apt-get clean && rm -rf \
    /var/cache/apt/*
 
 WORKDIR /action
-
-ENTRYPOINT ["/action/entrypoint.sh"]
