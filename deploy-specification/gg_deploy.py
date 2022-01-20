@@ -19,7 +19,7 @@ parser.add_argument("-e", "--env", action="store", dest="env", help="Environment
 args = parser.parse_args()
 
 os.environ["ENV"] = args.env  # CHANGE According to the relevant env
-TIMEOUT_IN_MINUTES = 10
+TIMEOUT_IN_MINUTES = 2
 
 
 def upgrade_controller(controller_id: str) -> str:
@@ -50,6 +50,8 @@ def upgrade_devices() -> List[Tuple[str, Optional[str]]]:
     logger.info(f"Found {len(list(devices_to_upgrade))} devices to upgrade.")
     for user_device in devices_to_upgrade:
         controller_id = user_device["controllerId"]
+        if not controller_id:
+            continue
         try:
             deployment_id = upgrade_controller(controller_id)
             device_deployments.append((controller_id, deployment_id))
@@ -85,7 +87,6 @@ def track_deployments(device_deployments):
         waiting_deployments = temp_waiting_deployments
         counter -= 1
 
-    logger.info(f"{len(device_deployments)} devices found.")
     logger.info(f"{len(success_deployments)} devices were upgraded successfully. devices: {[device_deployment[0] for device_deployment in success_deployments]}")
     logger.info(f"{len(failed_deployments)} devices were failed to upgrade. devices: {[device_deployment[0] for device_deployment in failed_deployments]}")
     logger.info(f"{len(waiting_deployments)} devices are still in progress. devices: {[device_deployment[0] for device_deployment in waiting_deployments]}")
@@ -94,8 +95,9 @@ def track_deployments(device_deployments):
 def main():
     logger.info(f"Upgrading active controllers in {os.environ['ENV']} env.")
     devices = upgrade_devices()
-    # track_deployments(devices)
     logger.info(f"{len(devices)} device upgrades were requested.")
+    track_deployments(devices)
+    
 
 
 if __name__ == '__main__':
