@@ -43,5 +43,5 @@ jobs:
       - name: "Build Image"
         run: |
           cd ${{ github.event.inputs.folder }} && 
-          docker build -f "${{ github.event.inputs.file }}" . -t "agwafarm/${{ github.event.inputs.image }}:${{ github.event.inputs.version }}" && 
+          docker build -f "${{ github.event.inputs.file }}" -t "agwafarm/${{ github.event.inputs.image }}:${{ github.event.inputs.version }}" . && 
           docker image push "agwafarm/${{ github.event.inputs.image }}" -a
