@@ -96,7 +96,8 @@ def main():
     logger.info(f"Upgrading active controllers in {os.environ['ENV']} env.")
     devices = upgrade_devices()
     logger.info(f"{len(devices)} device upgrades were requested.")
-    track_deployments(devices)
+    if devices:
+        track_deployments(devices)
     
 
 
