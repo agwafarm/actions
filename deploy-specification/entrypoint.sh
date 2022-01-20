@@ -4,6 +4,8 @@ set -e
 set -u
 set -o pipefail
 
+cd /action
+
 export APP_SPEC=$1
 export APP_MODE=$2
 
