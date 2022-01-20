@@ -5,14 +5,13 @@ on:
       image:
         description: "Image"
         required: true
+      folder:
+        description: "Build context"
+        required: true
       version:
         description: "Version"
         required: false
         default: "latest"
-      folder:
-        description: "Build context"
-        required: false
-        default: "agwa-base"
       file:
         description: "Dockerfile"
         required: false
