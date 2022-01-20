@@ -9,6 +9,9 @@ RUN npm i -g aws-cdk@1.94.1
 
 WORKDIR /action
 
+COPY py-prepare.sh ./
+RUN ./py-prepare.sh
+
 COPY package-lock.json package.json ./
 RUN npm ci
 
