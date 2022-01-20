@@ -35,7 +35,6 @@ RUN curl -sL https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub -o /etc/apk/keys/
    /usr/local/aws-cli/v2/current/dist/awscli/data/ac.index \
    /usr/local/aws-cli/v2/current/dist/awscli/examples \
    glibc-*.apk \
-   && find /usr/local/aws-cli/v2/current/dist/awscli/botocore/data -name examples-1.json -delete \
    && apk --no-cache del \
    binutils \
    curl \
@@ -45,10 +44,5 @@ RUN curl -sL https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub -o /etc/apk/keys/
 RUN npm i -g aws-cdk@1.94.1
 
 WORKDIR /action
-
-COPY package-lock.json package.json ./
-RUN npm ci
-
-COPY . .
 
 ENTRYPOINT ["/action/entrypoint.sh"]
