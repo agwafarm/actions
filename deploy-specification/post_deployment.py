@@ -9,4 +9,6 @@ service_names = [service['serviceName'] for service in services]
 
 if mode == 'env' or 'greengrass-parent' in service_names:
     print(f'deploying greengrass definitions to devices in environment: {env}')
+    os.environ['AGWA_SERVICE_LIBRARY_TAG'] = 'latest'
+    os.system(f'py-prepare.sh')
     os.system(f'python3 gg_deploy.py -e {env}')
