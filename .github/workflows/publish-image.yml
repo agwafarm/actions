@@ -9,9 +9,13 @@ on:
         description: "Version"
         required: true
       folder:
-        description: "Source Folder"
+        description: "Build context"
         required: false
         default: "agwa-base"
+      file:
+        description: "Dockerfile"
+        required: false
+        default: "Dockerfile"
 jobs:
   deploy:
     runs-on: ubuntu-20.04
@@ -38,5 +42,5 @@ jobs:
       - name: "Build Image"
         run: |
           cd ${{ github.event.inputs.folder }} && 
-          docker build . -t "agwafarm/${{ github.event.inputs.image }}:${{ github.event.inputs.version }}" && 
+          docker build -f "agwafarm/${{ github.event.inputs.image }}" . -t "agwafarm/${{ github.event.inputs.image }}:${{ github.event.inputs.version }}" && 
           docker image push "agwafarm/${{ github.event.inputs.image }}" -a

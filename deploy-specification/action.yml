@@ -10,7 +10,7 @@ inputs:
     default: 'service'
 runs:
   using: 'docker'
-  image: 'Dockerfile.action'
+  image: 'Dockerfile'
   args:
     - ${{ inputs.spec }}
     - ${{ inputs.mode }}
