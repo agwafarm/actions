@@ -12,7 +12,8 @@ RUN apk update \
    zip \
    nodejs \
    npm \
-   binutils
+   binutils \
+   build-base
 
 # Install glibc + AWS CLI
 ENV GLIBC_VER=2.31-r0
@@ -43,7 +44,7 @@ RUN curl -sL https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub -o /etc/apk/keys/
 # Install cdk
 RUN npm i -g aws-cdk@1.94.1
 
-# install boto3 globally
+# install boto3
 RUN pip install boto3==1.20.39
 
 WORKDIR /action
