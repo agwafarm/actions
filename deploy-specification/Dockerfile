@@ -9,11 +9,12 @@ RUN npm i -g aws-cdk@1.94.1
 
 WORKDIR /action
 
-COPY py-prepare.sh ./
-RUN ./py-prepare.sh
 
 COPY package-lock.json package.json ./
 RUN npm ci
+
+COPY py-prepate.sh ./
+RUN ./py-prepare.sh
 
 COPY requirements.txt ./
 RUN python3 -m pip install -q -r requirements.txt
