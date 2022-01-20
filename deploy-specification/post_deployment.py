@@ -1,4 +1,3 @@
-from ensurepip import version
 import os
 import json
 
