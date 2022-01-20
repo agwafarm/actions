@@ -3,7 +3,6 @@ import json
 import logging
 import os
 import sys
-from time import sleep
 from typing import List, Tuple, Optional
 import boto3
 from agwa_data_layer import device
@@ -58,38 +57,6 @@ def upgrade_devices() -> List[Tuple[str, Optional[str]]]:
             device_deployments.append((controller_id, None))
     logger.info("Finished requesting upgrade for all devices.")
     return device_deployments
-
-
-def track_deployments(device_deployments):
-    success_deployments = []
-    failed_deployments = [device_deployment for device_deployment in device_deployments if device_deployment[1] is None]
-    waiting_deployments = [device_deployment for device_deployment in device_deployments if device_deployment[1] is not None]
-    counter = TIMEOUT_IN_MINUTES
-    client = boto3.client('greengrass')
-    while len(waiting_deployments) > 0 and counter > 0:
-        sleep(60)
-        temp_waiting_deployments = []
-        for device_deployment in waiting_deployments:
-            response = client.get_deployment_status(
-                DeploymentId=device_deployment[1],
-                GroupId=f"{device_deployment[0]}_group"
-            )
-            if response.get("DeploymentStatus") == "Success":
-                logger.info(f"Successfully deployed conroller {device_deployment[0]}.")
-                success_deployments.append(device_deployment)
-            elif response.get("DeploymentStatus") == "Failure":
-                logger.info(f"Deployment of {device_deployment[0]} has failed.")
-                failed_deployments.append(device_deployment)
-            else:
-                temp_waiting_deployments.append(device_deployment)
-        waiting_deployments = temp_waiting_deployments
-        counter -= 1
-
-    logger.info(f"{len(device_deployments)} devices found.")
-    logger.info(f"{len(success_deployments)} devices were upgraded successfully. devices: {[device_deployment[0] for device_deployment in success_deployments]}")
-    logger.info(f"{len(failed_deployments)} devices were failed to upgrade. devices: {[device_deployment[0] for device_deployment in failed_deployments]}")
-    logger.info(f"{len(waiting_deployments)} devices are still in progress. devices: {[device_deployment[0] for device_deployment in waiting_deployments]}")
-
 
 def main():
     logger.info(f"Upgrading active controllers in {os.environ['ENV']} env.")
