@@ -111,10 +111,13 @@ runs:
           mkdir -p $common_layer_path
           
           if [ -f "requirements.txt" ]; then
+            python3 -m pip install -q -r requirements.txt
             # Create and Upload Lambda & Layer Assets 
             common_layer_target_path=$common_layer_path/python
             python3 -m pip install -q -r requirements.txt --target $common_layer_target_path
-            python3 -m pip install -q -r requirements.txt
+          fi
+
+          if [ -f "requirements-dev.txt" ]; then
             python3 -m pip install -q -r requirements-dev.txt
           fi
           
