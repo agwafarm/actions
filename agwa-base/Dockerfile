@@ -43,6 +43,9 @@ RUN curl -sL https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub -o /etc/apk/keys/
 # Install cdk
 RUN npm i -g aws-cdk@1.94.1
 
+# install boto3 globally
+RUN pip install boto3==1.20.39
+
 WORKDIR /action
 
 ENTRYPOINT ["/action/entrypoint.sh"]
