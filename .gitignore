@@ -3,6 +3,8 @@ cdk.out
 specs/
 
 node_modules
+.pyenv
+.venv
 !resolve-deployment-spec/**
 !sign-version/**
 playground.sh

@@ -12,6 +12,9 @@ WORKDIR /action
 COPY package-lock.json package.json ./
 RUN npm ci
 
+COPY requirements.txt ./
+RUN python3 -m pip install -q -r requirements.txt
+
 COPY . .
 
 WORKDIR /
