@@ -9,8 +9,6 @@ const { env, version, frontends } = JSON.parse(
   process.env["APP_SPEC"] as string
 );
 
-console.log(`running post-deployment script for version: ${version}`);
-
 async function updateEnvPointer() {
   if (mode !== "env" || version === "$ci") {
     return;

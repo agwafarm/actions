@@ -8,7 +8,7 @@ spec = json.loads(os.environ['APP_SPEC'])
 env = spec.get('env')
 
 # we do not deploy to dev branches automatically since mysql lists all dev devices in one database.
-# this means automatically deploying breaks when all devices are deployed to a specific env
+# this means automatically deploying breaks when all devices are deployed to a specific dev env
 if mode == 'env' or env == 'ci':
     print(f'deploying greengrass definitions to devices in environment: {env}')
     os.environ['AGWA_SERVICE_LIBRARY_TAG'] = 'latest'
