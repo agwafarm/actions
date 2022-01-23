@@ -6,10 +6,10 @@ from subprocess import Popen
 mode = os.environ.get("APP_MODE", "service");
 spec = json.loads(os.environ['APP_SPEC'])
 env = spec.get('env')
+services = spec.get('services')
+service_names = [service['serviceName'] for service in services]
 
-# we do not deploy to dev branches automatically since mysql lists all dev devices in one database.
-# this means automatically deploying breaks when all devices are deployed to a specific dev env
-if mode == 'env' or env == 'ci':
+if mode == 'env' or ('greengrass-parent' in service_names and env == 'ci'):
     print(f'deploying greengrass definitions to devices in environment: {env}')
     os.environ['AGWA_SERVICE_LIBRARY_TAG'] = 'latest'
     prepare = Popen(["./py-prepare.sh"])
