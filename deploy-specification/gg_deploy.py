@@ -19,7 +19,7 @@ parser.add_argument("-e", "--env", action="store", dest="env", help="Environment
 args = parser.parse_args()
 
 os.environ["ENV"] = args.env  # CHANGE According to the relevant env
-TIMEOUT_IN_MINUTES = 5
+TIMEOUT_IN_MINUTES = 10 if args.env == 'prod' else 5
 
 
 def upgrade_controller(controller_id: str) -> str:
