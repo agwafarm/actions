@@ -24,6 +24,14 @@ function resolveVersion(name, version) {
     );
   }
 
+  if (name === "greengrass-parent") {
+    return (
+      overrides["greengrass-parent"] ||
+      overrides["greengrass-service"] ||
+      version
+    );
+  }
+
   return overrides[name] || version;
 }
 

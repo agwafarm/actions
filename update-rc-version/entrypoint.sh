@@ -12,6 +12,9 @@ service_name=$(echo $service_name | sed -e 's/^agwa\-//')
 if [ "$service_name" = "cloud-components" ]; then
    service_name=cloud-parent
 fi
+if [ "$service_name" = "greengrass-service" ]; then
+   service_name=greengrass-parent
+fi
 
 param_name=/infra/rc-version/$service_name
 param_value=$(jq -n \

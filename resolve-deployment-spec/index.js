@@ -18,6 +18,10 @@ if (serviceName === "cloud-components") {
   serviceName = "cloud-parent";
 }
 
+if (serviceName === "greengrass-service") {
+  serviceName = "greengrass-parent";
+}
+
 const version = core.getInput("version");
 
 console.log(

@@ -2,6 +2,7 @@
   "name": "deploy-specification",
   "version": "0.1.0",
   "dependencies": {
+    "aws-cdk": "1.94.1",
     "@aws-cdk/cloudformation-include": "1.94.1",
     "@aws-cdk/core": "1.94.1",
     "@aws-sdk/client-ssm": "3.8.1",
