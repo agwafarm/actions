@@ -27,6 +27,10 @@ runs:
              export AGWA_SERVICE_LIBRARY_TAG=edge-$user_name
           fi
 
+          if [ -f "requirements-dev.txt" ]; then
+            python3 -m pip install -q -r requirements-dev.txt
+          fi
+
           # Install Dependencies
           IFS=$'\n'
           set -f
