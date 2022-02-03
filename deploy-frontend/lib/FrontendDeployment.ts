@@ -28,6 +28,15 @@ export class FrontendDeployment extends BaseStack {
       "CloudfrontWebDistribution",
       {
         defaultRootObject: indexPath,
+        errorConfigurations: [
+          // Give SPA control over navigation- reroute all 404 to index.html
+          {
+            errorCachingMinTtl: cdk.Duration.days(365).toSeconds(),
+            errorCode: 404,
+            responseCode: 200,
+            responsePagePath: indexPath,
+          },
+        ],
         originConfigs: [
           {
             s3OriginSource: {
