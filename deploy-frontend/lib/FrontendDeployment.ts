@@ -36,6 +36,12 @@ export class FrontendDeployment extends BaseStack {
             responseCode: 200,
             responsePagePath: this.getEnvVariable("NOT_FOUND_PATH"),
           },
+          {
+            errorCachingMinTtl: cdk.Duration.days(365).toSeconds(),
+            errorCode: 403,
+            responseCode: 200,
+            responsePagePath: this.getEnvVariable("NOT_FOUND_PATH"),
+          },
         ],
         originConfigs: [
           {
