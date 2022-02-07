@@ -1,0 +1,8 @@
+name: 'get-lambda-image-version'
+description: 'Gets the Lambda Base Image Version'
+outputs:
+  tag:
+    description: "tag name"
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

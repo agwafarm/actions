@@ -1,0 +1,5 @@
+name: 'update-lambda-image-version'
+description: 'Updates the Lambda Base Image Version'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
