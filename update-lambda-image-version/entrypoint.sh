@@ -3,7 +3,7 @@ set -e
 set -u
 set -o pipefail
 
-param_value=$GITHUB_SHA
+param_value=953022346399.dkr.ecr.us-west-2.amazonaws.com/python-lambda:$GITHUB_SHA
 
 event_name=$GITHUB_EVENT_NAME
 echo github event name $event_name
