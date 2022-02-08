@@ -180,8 +180,8 @@ runs:
                   param_name=/infra/python/lambda-image/$docker_tag
                   base_image=$(aws ssm get-parameter --name $param_name | jq '.Parameter.Value')
                   docker build -t $func_name:${{ github.sha }} -f Dockerfile.lambda --build-arg base_image=$base_image $func_path
-                  docker tag $func_name:${{ github.sha }} 953022346399.dkr.ecr.us-west-2.amazonaws.com/python-lambda/$func_name:${{ github.sha }}
-                  docker push 953022346399.dkr.ecr.us-west-2.amazonaws.com/python-lambda/$func_name:${{ github.sha }}
+                  docker tag $func_name:${{ github.sha }} 953022346399.dkr.ecr.us-west-2.amazonaws.com/python-lambda:$func_name-${{ github.sha }}
+                  docker push 953022346399.dkr.ecr.us-west-2.amazonaws.com/python-lambda:$func_name-${{ github.sha }}
               else  
                 func_artifact_folder=artifacts/lambdas/${func_name}
                 func_s3_key=$s3_path_base/functions/${func_name}.zip

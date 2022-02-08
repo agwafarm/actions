@@ -25,7 +25,7 @@ fi
 
 echo "Updating python lambda base image pointer for $tag"
 param_name=/infra/python/lambda-image/$tag
-param_value=953022346399.dkr.ecr.us-west-2.amazonaws.com/python-lambda/base:$GITHUB_SHA
+param_value=953022346399.dkr.ecr.us-west-2.amazonaws.com/python-lambda:base-$GITHUB_SHA
 
 echo "param name" $param_name
 echo "param value" $param_value
