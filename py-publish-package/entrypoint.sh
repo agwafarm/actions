@@ -18,7 +18,7 @@ if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
 else
    user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
    user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
-   package_version=0.0.1-alpha-$user_name
+   package_version=0.0.1$user_name
 fi
 
 export APP_CA_DOMAIN=agwafarm-private
