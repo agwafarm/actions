@@ -1,7 +1,4 @@
 #!/bin/bash
-set -e
-set -u
-set -o pipefail
 
 event_name=$GITHUB_EVENT_NAME
 echo github event name $event_name
@@ -34,6 +31,11 @@ export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --doma
 export CODEARTIFACT_USER=aws
 
 aws codeartifact delete-package-versions --domain $APP_CA_DOMAIN --domain-owner $APP_CA_DOMAIN_OWNER_ACCOUNT --repository $APP_CA_REPOSITORY --format pypi --package $agwa-lib --versions $package_version
+
+# do not fail if delete package version fails - set fail flags only after that.
+set -e
+set -u
+set -o pipefail
 
 poetry config repositories.private $CODEARTIFACT_REPOSITORY_URL
 poetry config http-basic.private $CODEARTIFACT_USER $CODEARTIFACT_AUTH_TOKEN
