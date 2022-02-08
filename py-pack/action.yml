@@ -29,7 +29,8 @@ runs:
           ca_region=us-west-2
           aws codeartifact login --tool twine --repository $ca_repo --domain $ca_domain --domain-owner $ca_account
           pip config set global.extra-index-url https://aws:$ca_token@$ca_domain-$ca_account.d.codeartifact.$ca_region.amazonaws.com/pypi/$ca_repo/simple/
-          
+          aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 953022346399.dkr.ecr.us-west-2.amazonaws.com
+
           # Compute useful variables
           service_name=$GITHUB_REPOSITORY
           service_name=$(echo $service_name | sed -e 's/^agwafarm\///')
@@ -65,12 +66,14 @@ runs:
           if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
              export AGWA_SERVICE_LIBRARY_TAG=latest
              s3_retainment=standard
+             docker_tag=latest
           else
              user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
              user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
              echo user name $user_name
              export AGWA_SERVICE_LIBRARY_TAG=edge-$user_name
              s3_retainment=low
+             docker_tag=dev$user_name
           fi
 
           echo using library tag $AGWA_SERVICE_LIBRARY_TAG
@@ -172,31 +175,40 @@ runs:
             for d in src/lambdas/*/ ; do
               func_name=$(basename "$"$d"")
               func_path=src/lambdas/${func_name}
-              func_artifact_folder=artifacts/lambdas/${func_name}
-              func_s3_key=$s3_path_base/functions/${func_name}.zip
-              req_path=src/lambdas/${func_name}/requirements.txt
-              layer_path=artifacts/layers/lambdas/${func_name}
-              layer_s3_key=$s3_path_base/layers/${func_name}.zip
               
-              cd $current_folder
-              mkdir -p $func_artifact_folder
-              
-              #Lambda has specific dependencies
-              if [ -f $req_path ]; then
-                mkdir -p $layer_path
-                target_path=$layer_path/python
-                python3 -m pip install -q -r $req_path --target $target_path
-                python3 -m pip install -q -r $req_path
-                cd $layer_path
+              if [ -f "Dockerfile.lambda" ]; then
+                  param_name=/infra/python/lambda-image/$docker_tag
+                  base_image=$(aws ssm get-parameter --name $param_name | jq '.Parameter.Value')
+                  docker build -t $func_name:${{ github.sha }} -f Dockerfile.lambda --build-arg base_image=$base_image $func_path
+                  docker tag $func_name:${{ github.sha }} 953022346399.dkr.ecr.us-west-2.amazonaws.com/python-lambda/$func_name:${{ github.sha }}
+                  docker push 953022346399.dkr.ecr.us-west-2.amazonaws.com/python-lambda/$func_name:${{ github.sha }}
+              else  
+                func_artifact_folder=artifacts/lambdas/${func_name}
+                func_s3_key=$s3_path_base/functions/${func_name}.zip
+                req_path=src/lambdas/${func_name}/requirements.txt
+                layer_path=artifacts/layers/lambdas/${func_name}
+                layer_s3_key=$s3_path_base/layers/${func_name}.zip
+                
+                cd $current_folder
+                mkdir -p $func_artifact_folder
+                
+                #Lambda has specific dependencies
+                if [ -f $req_path ]; then
+                  mkdir -p $layer_path
+                  target_path=$layer_path/python
+                  python3 -m pip install -q -r $req_path --target $target_path
+                  python3 -m pip install -q -r $req_path
+                  cd $layer_path
+                  zip -q -r $asset_name .
+                  aws s3 cp $asset_name $layer_s3_key
+                  cd $current_folder
+                fi
+                
+                cd $func_path
                 zip -q -r $asset_name .
-                aws s3 cp $asset_name $layer_s3_key
+                aws s3 cp $asset_name $func_s3_key
                 cd $current_folder
               fi
-              
-              cd $func_path
-              zip -q -r $asset_name .
-              aws s3 cp $asset_name $func_s3_key
-              cd $current_folder
             done
           fi
 
