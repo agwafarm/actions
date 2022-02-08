@@ -28,7 +28,7 @@ runs:
           else
             user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
             user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
-            package_version=dev$user_name
+            package_version=0.0.1-alpha-$user_name
             echo "::set-output name=package_version::$package_version"
           fi
       
