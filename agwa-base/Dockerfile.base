@@ -24,6 +24,12 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.1.30.zip" -o "a
 # Install Global PIP Dependencies
 RUN pip install boto3==1.20.39
 
+# Install poetry
+RUN pip install -U \
+   poetry==1.1.12 \
+   && poetry config virtualenvs.create false \
+   && poetry config virtualenvs.in-project false
+
 # Clean up space
 RUN apt-get clean && rm -rf \
    awscliv2.zip \
