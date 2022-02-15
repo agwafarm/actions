@@ -77,7 +77,7 @@ def track_deployments(device_deployments):
                 GroupId=f"{device_deployment[0]}_group"
             )
             if response.get("DeploymentStatus") == "Success":
-                logger.info(f"Successfully deployed conroller {device_deployment[0]}.")
+                logger.info(f"Successfully deployed controller {device_deployment[0]}.")
                 success_deployments.append(device_deployment)
             elif response.get("DeploymentStatus") == "Failure":
                 logger.info(f"Deployment of {device_deployment[0]} has failed.")
