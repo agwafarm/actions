@@ -171,6 +171,7 @@ async function resolveFrontend(env, serviceName, version) {
   const parameters = {
     BucketName: `${env}-${companyName}-${serviceName}`,
     IndexPath: "index.html",
+    NotFoundPath: "/index.html",
   };
 
   spec.parameters = { ...spec.parameters, ...parameters };
