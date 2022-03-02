@@ -102,11 +102,10 @@ async function run() {
 
     let httpApiUrl = "";
     try {
-    } catch (e) {
       httpApiUrl = await configuration.getEnvParameter(
         `backend/rest/url/${appBackend}`
       );
-    }
+    } catch (e) {}
 
     let frontendUrl = "";
     try {
