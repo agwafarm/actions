@@ -84,9 +84,14 @@ async function run() {
       `auth/cognito/user-pool/client/id/${appBackend}`
     );
 
-    const identityPoolId = await configuration.getEnvParameter(
-      `auth/cognito/identity-pool/id/${appBackend}`
-    );
+    let identityPoolId = "";
+    try {
+      identityPoolId = await configuration.getEnvParameter(
+        `auth/cognito/identity-pool/id/${appBackend}`
+      );
+    } catch (e) {
+      console.log("could not retrieve identity pool id", e);
+    }
 
     const httpApiUrl = await configuration.getEnvParameter(
       `backend/rest/url/${appBackend}`
@@ -137,7 +142,7 @@ async function run() {
       REACT_APP_AGWA_ENV: env,
     };
 
-    console.log('variables: ', JSON.stringify(variables, null, 3));
+    console.log("variables: ", JSON.stringify(variables, null, 3));
 
     const fileContent = Object.entries(variables)
       .map(([name, value]) => `${name}=${value}`)
