@@ -101,11 +101,16 @@ async function run() {
       `frontend/url/${app}`
     );
 
-    const analyticsDashboardEnv = env.startsWith("dev") ? "dev" : env;
-    const analyticsDashboardId = await configuration.getEnvParameter(
-      "frontend/url/analytics-dashboard/id",
-      analyticsDashboardEnv
-    );
+    let analyticsDashboardId = "";
+    try {
+      const analyticsDashboardEnv = env.startsWith("dev") ? "dev" : env;
+      analyticsDashboardId = await configuration.getEnvParameter(
+        "frontend/url/analytics-dashboard/id",
+        analyticsDashboardEnv
+      );
+    } catch (e) {
+      console.log("could not retrieve analytics dashboard url", e);
+    }
 
     const firebaseApiKey = await configuration.getSecret(
       `firebase/${app}/apiKey`
