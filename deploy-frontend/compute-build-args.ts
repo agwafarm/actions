@@ -108,21 +108,29 @@ async function run() {
       );
     } catch (e) {}
 
-    const firebaseApiKey = await configuration.getSecret(
-      `firebase/${app}/apiKey`
-    );
+    let firebaseApiKey = "";
+    try {
+      firebaseApiKey = await configuration.getSecret(`firebase/${app}/apiKey`);
+    } catch (e) {}
 
-    const firebaseAuthDomain = await configuration.getSecret(
-      `firebase/${app}/authDomain`
-    );
+    let firebaseAuthDomain = "";
+    try {
+      firebaseAuthDomain = await configuration.getSecret(
+        `firebase/${app}/authDomain`
+      );
+    } catch (e) {}
 
-    const firebaseProjectId = await configuration.getSecret(
-      `firebase/${app}/projectId`
-    );
+    let firebaseProjectId = "";
+    try {
+      firebaseProjectId = await configuration.getSecret(
+        `firebase/${app}/projectId`
+      );
+    } catch (e) {}
 
-    const firebaseAppId = await configuration.getSecret(
-      `firebase/${app}/appId`
-    );
+    let firebaseAppId = "";
+    try {
+      firebaseAppId = await configuration.getSecret(`firebase/${app}/appId`);
+    } catch (e) {}
 
     const mqttEndpoint = await configuration.getParameter(`mqtt/endpoint`);
 
