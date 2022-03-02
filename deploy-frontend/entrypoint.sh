@@ -37,16 +37,17 @@ else
    target_env=dev
 fi
 
-# prepare CDK variables
+export APP_COMPANY_NAME=agwa
+
+export APP_SERVICE=$service_name
+echo app service $APP_SERVICE
+
 export APP_BUCKET=$target_env-agwa-$service_name
 echo app bucket $APP_BUCKET
 
 export APP_ENV=$target_env
 echo app env $APP_ENV
-export APP_SERVICE=$service_name
-echo app service $APP_SERVICE
 
-export APP_COMPANY_NAME=agwa
 export APP_STACK=$target_env-$service_name
 echo app stack $APP_STACK
 
@@ -95,6 +96,15 @@ if [ "$s3_retainment" = "standard" ]; then
 
    for build_env in "${arr[@]}"; do
       export APP_ENV=$build_env
+
+      export APP_BUCKET=$APP_ENV-agwa-$service_name
+      echo app bucket $APP_BUCKET
+
+      export APP_STACK=$APP_ENV-$service_name
+      echo app stack $APP_STACK
+
+      export APP_STACKS=$(cdk list)
+      cdk deploy --require-approval never $APP_STACKS --parameters Environment=$APP_ENV --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html'
 
       cd /action
       # apply build arguments to environment
