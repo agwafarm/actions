@@ -95,6 +95,8 @@ if [ "$s3_retainment" = "standard" ]; then
    declare -a arr=("dev" "test" "prod")
 
    for build_env in "${arr[@]}"; do
+      cd /action
+
       export APP_ENV=$build_env
 
       export APP_BUCKET=$APP_ENV-agwa-$service_name
@@ -106,7 +108,6 @@ if [ "$s3_retainment" = "standard" ]; then
       export APP_STACKS=$(cdk list)
       cdk deploy --require-approval never $APP_STACKS --parameters Environment=$APP_ENV --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html'
 
-      cd /action
       # apply build arguments to environment
       npx ts-node --prefer-ts-exts /action/compute-build-args.ts
       echo "build arguments for env $build_env"
