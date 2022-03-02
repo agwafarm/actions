@@ -89,9 +89,7 @@ async function run() {
       identityPoolId = await configuration.getEnvParameter(
         `auth/cognito/identity-pool/id/${appBackend}`
       );
-    } catch (e) {
-      console.log("could not retrieve identity pool id", e);
-    }
+    } catch (e) {}
 
     const httpApiUrl = await configuration.getEnvParameter(
       `backend/rest/url/${appBackend}`
@@ -108,9 +106,7 @@ async function run() {
         "frontend/url/analytics-dashboard/id",
         analyticsDashboardEnv
       );
-    } catch (e) {
-      console.log("could not retrieve analytics dashboard url", e);
-    }
+    } catch (e) {}
 
     const firebaseApiKey = await configuration.getSecret(
       `firebase/${app}/apiKey`
