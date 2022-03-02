@@ -72,17 +72,26 @@ async function run() {
   try {
     const configuration = new ConfigurationService();
 
-    const appBackend = await configuration.getParameter(
-      `frontend/${app}/backend/id`
-    );
+    let appBackend = "";
+    try {
+      appBackend = await configuration.getParameter(
+        `frontend/${app}/backend/id`
+      );
+    } catch (e) {}
 
-    const userPoolId = await configuration.getEnvParameter(
-      `auth/cognito/user-pool/id/${appBackend}`
-    );
+    let userPoolId = "";
+    try {
+      userPoolId = await configuration.getEnvParameter(
+        `auth/cognito/user-pool/id/${appBackend}`
+      );
+    } catch (e) {}
 
-    const clientAppId = await configuration.getEnvParameter(
-      `auth/cognito/user-pool/client/id/${appBackend}`
-    );
+    let clientAppId = "";
+    try {
+      clientAppId = await configuration.getEnvParameter(
+        `auth/cognito/user-pool/client/id/${appBackend}`
+      );
+    } catch (e) {}
 
     let identityPoolId = "";
     try {
@@ -91,13 +100,18 @@ async function run() {
       );
     } catch (e) {}
 
-    const httpApiUrl = await configuration.getEnvParameter(
-      `backend/rest/url/${appBackend}`
-    );
+    let httpApiUrl = "";
+    try {
+    } catch (e) {
+      httpApiUrl = await configuration.getEnvParameter(
+        `backend/rest/url/${appBackend}`
+      );
+    }
 
-    const frontendUrl = await configuration.getEnvParameter(
-      `frontend/url/${app}`
-    );
+    let frontendUrl = "";
+    try {
+      frontendUrl = await configuration.getEnvParameter(`frontend/url/${app}`);
+    } catch (e) {}
 
     let analyticsDashboardId = "";
     try {
