@@ -72,18 +72,23 @@ def track_deployments(device_deployments):
         sleep(60)
         temp_waiting_deployments = []
         for device_deployment in waiting_deployments:
-            response = client.get_deployment_status(
-                DeploymentId=device_deployment[1],
-                GroupId=f"{device_deployment[0]}_group"
-            )
-            if response.get("DeploymentStatus") == "Success":
-                logger.info(f"Successfully deployed controller {device_deployment[0]}.")
-                success_deployments.append(device_deployment)
-            elif response.get("DeploymentStatus") == "Failure":
-                logger.info(f"Deployment of {device_deployment[0]} has failed.")
-                failed_deployments.append(device_deployment)
-            else:
-                temp_waiting_deployments.append(device_deployment)
+            try:
+                response = client.get_deployment_status(
+                    DeploymentId=device_deployment[1],
+                    GroupId=f"{device_deployment[0]}_group"
+                )
+                if response.get("DeploymentStatus") == "Success":
+                    logger.info(f"Successfully deployed controller {device_deployment[0]}.")
+                    success_deployments.append(device_deployment)
+                elif response.get("DeploymentStatus") == "Failure":
+                    logger.info(f"Deployment of {device_deployment[0]} has failed.")
+                    failed_deployments.append(device_deployment)
+                else:
+                    temp_waiting_deployments.append(device_deployment)
+            except Exception as e:
+                logger.error(f'failed to get deployment status for controller {device_deployment[0]} (deployment id:{device_deployment[1]})')
+                logger.exception(e)
+
         waiting_deployments = temp_waiting_deployments
         counter -= 1
 
