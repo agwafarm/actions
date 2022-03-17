@@ -133,6 +133,14 @@ async function run() {
       );
     } catch (e) {}
 
+    let plantImageBaseUrl = "";
+
+    try {
+      plantImageBaseUrl = await configuration.getEnvParameter(
+        "buckets/plant-admin-public"
+      );
+    } catch (e) {}
+
     let firebaseProjectId = "";
     try {
       firebaseProjectId = await configuration.getSecret(
@@ -162,6 +170,7 @@ async function run() {
       REACT_APP_FIREBASE_APP_ID: firebaseAppId,
       REACT_APP_MQTT_ENDPOINT: mqttEndpoint,
       REACT_APP_AGWA_ENV: env,
+      REACT_APP_PLANT_IMAGE_BASE_URL: plantImageBaseUrl,
     };
 
     console.log("variables: ", JSON.stringify(variables, null, 3));
