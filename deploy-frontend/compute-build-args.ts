@@ -137,7 +137,7 @@ async function run() {
 
     try {
       plantImageBaseUrl = await configuration.getEnvParameter(
-        "cloudfront/url/plant-admin-public"
+        "https://cloudfront/url/plant-admin-public"
       );
       plantImageBaseUrl = `${plantImageBaseUrl}/images/vegetables`
     } catch (e) {}
