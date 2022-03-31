@@ -139,6 +139,7 @@ async function run() {
       plantImageBaseUrl = await configuration.getEnvParameter(
         "cloudfront/url/plant-admin-public"
       );
+      plantImageBaseUrl = `${plantImageBaseUrl}/images/vegetables`
     } catch (e) {}
 
     let firebaseProjectId = "";
