@@ -50,22 +50,23 @@ def upgrade_devices() -> List[Tuple[str, Optional[str]]]:
     logger.info(f"Found {len(list(devices_to_upgrade))} devices to upgrade.")
     for user_device in devices_to_upgrade:
         controller_id = user_device["controllerId"]
+        group_id = user_device["groupId"]
         if not controller_id:
             continue
         try:
             deployment_id = upgrade_controller(controller_id)
-            device_deployments.append((controller_id, deployment_id))
+            device_deployments.append((controller_id, group_id, deployment_id))
         except Exception as e:
             logger.error(f"{e}")
-            device_deployments.append((controller_id, None))
+            device_deployments.append((controller_id, group_id, None))
     logger.info("Finished requesting upgrade for all devices.")
     return device_deployments
 
 
 def track_deployments(device_deployments):
     success_deployments = []
-    failed_deployments = [device_deployment for device_deployment in device_deployments if device_deployment[1] is None]
-    waiting_deployments = [device_deployment for device_deployment in device_deployments if device_deployment[1] is not None]
+    failed_deployments = [device_deployment for device_deployment in device_deployments if device_deployment[2] is None]
+    waiting_deployments = [device_deployment for device_deployment in device_deployments if device_deployment[2] is not None]
     counter = TIMEOUT_IN_MINUTES
     client = boto3.client('greengrass')
     while len(waiting_deployments) > 0 and counter > 0:
@@ -74,8 +75,8 @@ def track_deployments(device_deployments):
         for device_deployment in waiting_deployments:
             try:
                 response = client.get_deployment_status(
-                    DeploymentId=device_deployment[1],
-                    GroupId=f"{device_deployment[0]}_group"
+                    DeploymentId=device_deployment[2],
+                    GroupId=device_deployment[1]
                 )
                 if response.get("DeploymentStatus") == "Success":
                     logger.info(f"Successfully deployed controller {device_deployment[0]}.")
@@ -86,7 +87,7 @@ def track_deployments(device_deployments):
                 else:
                     temp_waiting_deployments.append(device_deployment)
             except Exception as e:
-                logger.error(f'failed to get deployment status for controller {device_deployment[0]} (deployment id:{device_deployment[1]})')
+                logger.error(f'failed to get deployment status for controller {device_deployment[0]} (deployment id:{device_deployment[2]})')
                 logger.exception(e)
 
         waiting_deployments = temp_waiting_deployments
