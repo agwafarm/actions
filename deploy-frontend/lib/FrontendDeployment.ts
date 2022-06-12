@@ -23,6 +23,13 @@ export class FrontendDeployment extends BaseStack {
       bucketName: websiteBucketName,
     });
 
+    let routingDomain = null
+    if (websiteBucketName.includes("get-web")) {
+      routingDomain = 'purchase.agwafarm.com'
+    } else {
+      routingDomain = 'something.agwafarm.com'
+    }
+    
     const distribution = new cloudfront.CloudFrontWebDistribution(
       this,
       "CloudfrontWebDistribution",
@@ -59,6 +66,12 @@ export class FrontendDeployment extends BaseStack {
             ],
           },
         ],
+        viewerCertificate: {
+          aliases: [routingDomain],
+          props: {
+            acmCertificateArn: "arn:aws:acm:us-east-1:953022346399:certificate/336fae0d-6f3d-4c1c-95eb-9f083c03b57c", // optional
+          }
+        }
       }
     );
 
