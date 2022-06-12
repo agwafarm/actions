@@ -70,8 +70,8 @@ export class FrontendDeployment extends BaseStack {
           aliases: [routingDomain],
           props: {
             acmCertificateArn: "arn:aws:acm:us-east-1:953022346399:certificate/336fae0d-6f3d-4c1c-95eb-9f083c03b57c", // optional
-            sslMethod: cloudfront.SSLMethod.SNI,
-          }
+          },
+          sslMethod: cloudfront.SSLMethod.SNI
         }
       }
     );
