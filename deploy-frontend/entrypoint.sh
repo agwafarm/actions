@@ -45,6 +45,9 @@ echo app service $APP_SERVICE
 export APP_BUCKET=$target_env-agwa-$service_name
 echo app bucket $APP_BUCKET
 
+export ROUTING_DOMAIN = $target_env-purchase.agwafarm.com
+echo routing domain $ROUTING_DOMAIN
+
 export APP_ENV=$target_env
 echo app env $APP_ENV
 
@@ -53,7 +56,7 @@ echo app stack $APP_STACK
 
 # deploy the ci / dev environment resources
 export APP_STACKS=$(cdk list)
-cdk deploy --require-approval never $APP_STACKS --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html'
+cdk deploy --require-approval never $APP_STACKS --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
 
 # compute build arguments
 npx ts-node --prefer-ts-exts /action/compute-build-args.ts
@@ -102,11 +105,19 @@ if [ "$s3_retainment" = "standard" ]; then
       export APP_BUCKET=$APP_ENV-agwa-$service_name
       echo app bucket $APP_BUCKET
 
+      if [$APP_ENV = "prod"]; then
+         export ROUTING_DOMAIN = purchase.agwafarm.com
+         echo routing domain $ROUTING_DOMAIN
+      else
+         export ROUTING_DOMAIN = $APP_ENV-purchase.agwafarm.com
+         echo routing domain $ROUTING_DOMAIN
+      fi
+
       export APP_STACK=$APP_ENV-$service_name
       echo app stack $APP_STACK
 
       export APP_STACKS=$(cdk list)
-      cdk deploy --require-approval never $APP_STACKS --parameters Environment=$APP_ENV --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html'
+      cdk deploy --require-approval never $APP_STACKS --parameters Environment=$APP_ENV --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
 
       # apply build arguments to environment
       npx ts-node --prefer-ts-exts /action/compute-build-args.ts

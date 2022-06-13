@@ -15,6 +15,7 @@ export class FrontendDeployment extends BaseStack {
     super(scope, id, {});
 
     const indexPath = this.getEnvVariable("INDEX_PATH");
+    const routingDomain = this.getEnvVariable("ROUTING_DOMAIN");
 
     const websiteBucketName = this.getEnvVariable("APP_BUCKET");
     const websiteBucket = new s3.Bucket(this, "Bucket", {
@@ -22,14 +23,7 @@ export class FrontendDeployment extends BaseStack {
       publicReadAccess: true,
       bucketName: websiteBucketName,
     });
-
-    let routingDomain = null
-    if (websiteBucketName.includes("get-web")) {
-      routingDomain = 'purchase.agwafarm.com'
-    } else {
-      routingDomain = 'something.agwafarm.com'
-    }
-    
+   
     const distribution = new cloudfront.CloudFrontWebDistribution(
       this,
       "CloudfrontWebDistribution",
