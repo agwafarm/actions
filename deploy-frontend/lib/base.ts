@@ -21,6 +21,10 @@ export class BaseStack extends cdk.Stack {
       return this.parameters.indexPath;
     }
 
+    if (name === "ROUTING_DOMAIN") {
+      return this.parameters.routingDomain;
+    }
+
     if (name === "NOT_FOUND_PATH") {
       return this.parameters.spaNotFoundPath;
     }
@@ -66,6 +70,7 @@ export class BaseStack extends cdk.Stack {
       environment: this.parametrize("Environment"),
       bucket: this.parametrize("BucketName"),
       indexPath: this.parametrize("IndexPath"),
+      routingDomain: this.parametrize("RoutingDomain"),
       spaNotFoundPath: this.parametrize("NotFoundPath"),
     };
   }
