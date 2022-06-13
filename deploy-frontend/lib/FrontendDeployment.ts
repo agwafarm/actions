@@ -8,6 +8,7 @@ import { BaseStack } from "./base";
 export interface FrontendDeploymentProps extends cdk.StackProps {
   bucketName: string;
   indexDocument: string;
+  routingDomain: string;
 }
 
 export class FrontendDeployment extends BaseStack {
