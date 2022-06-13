@@ -172,6 +172,7 @@ async function resolveFrontend(env, serviceName, version) {
     BucketName: `${env}-${companyName}-${serviceName}`,
     IndexPath: "index.html",
     NotFoundPath: "/index.html",
+    RoutingDomain: `${env}-${serviceName}.agwafarm.com`
   };
 
   spec.parameters = { ...spec.parameters, ...parameters };
