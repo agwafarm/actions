@@ -84,7 +84,6 @@ runs:
 
           current_folder=$(pwd)
           common_layer_path=artifacts/layers/common
-          data_layer_path=artifacts/layers/data_layer
           asset_name=asset.zip
 
           if [ -f "package-lock.json" ]; then
@@ -118,11 +117,6 @@ runs:
             python3 -m pip install -q -r requirements.txt --target $common_layer_target_path
           fi
 
-          mkdir -p $data_layer_path
-          data_layer_target_path=$data_layer_path/python
-          data_layer_version=$AGWA_SERVICE_LIBRARY_TAG
-          python3 -m pip install -q agwa-data-layer==$data_layer_version --target $data_layer_target_path
-
           if [ -f "requirements-dev.txt" ]; then
             python3 -m pip install -q -r requirements-dev.txt
           fi
@@ -140,13 +134,6 @@ runs:
               cd $current_folder 
           fi
 
-          # upload data-layer folder if not empty
-          if [ "$(ls -A $data_layer_path)" ]; then
-              cd $data_layer_path
-              zip -q -r $asset_name .
-              aws s3 cp $asset_name $s3_path_base/layers/data-layer.zip
-              cd $current_folder 
-          fi
 
           if [ "$service_name" = "greengrass-parent" ]; then
             echo "Uploading Greengrass Service"
