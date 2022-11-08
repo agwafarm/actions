@@ -1,5 +1,9 @@
 name: 'py-test'
 description: 'Test python code'
+inputs:
+  codecov_token:
+    description: 'Token to use for coverage'
+    required: true
 runs:
   using: "composite"
   steps:
@@ -19,7 +23,7 @@ runs:
     - name: Upload coverage
       uses: codecov/codecov-action@v3
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+        token: ${{ inputs.codecov_token }}
         file: ./coverage.xml
         flags: unittests
         fail_ci_if_error: false
