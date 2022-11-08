@@ -105,7 +105,7 @@ if [ "$s3_retainment" = "standard" ]; then
       export APP_BUCKET=$APP_ENV-agwa-$service_name
       echo app bucket $APP_BUCKET
 
-      if [$APP_ENV = "prod"]; then
+      if [ "$APP_ENV" = "prod" ]; then
          export ROUTING_DOMAIN=$service_name.agwafarm.com
          echo routing domain $ROUTING_DOMAIN
       else
