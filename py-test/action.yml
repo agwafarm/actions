@@ -3,7 +3,8 @@ description: 'Test python code'
 runs:
   using: "composite"
   steps:
-    - run: |
+    - name: Run tests
+      run: |
         
         if [ -d "test" ] || [ -d "tests" ] ; then
             test_dir=./test*
@@ -11,5 +12,14 @@ runs:
             test_dir=./src
         fi
         
-        pytest $test_dir
+        pip install pytest-cov
+        pytest $test_dir --cov=./ --cov-report=xml
       shell: bash
+
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.xml
+        flags: unittests
+        fail_ci_if_error: false
