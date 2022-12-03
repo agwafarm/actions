@@ -10,7 +10,7 @@ env = spec.get('env')
 services = spec.get('services')
 service_names = [service['serviceName'] for service in services]
 
-if mode == 'env' or ('greengrass-parent' in service_names and env == 'ci') and edge_deployment == 'deploy':
+if (mode == 'env' or ('greengrass-parent' in service_names and env == 'ci')) and edge_deployment == 'deploy':
     print(f'deploying greengrass definitions to devices in environment: {env}')
     os.environ['AGWA_SERVICE_LIBRARY_TAG'] = 'latest'
     prepare = Popen(["./py-prepare.sh"])
