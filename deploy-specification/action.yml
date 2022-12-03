@@ -8,9 +8,14 @@ inputs:
     description: "Deployment mode (service / env)"
     required: false
     default: 'service'
+  edge_deployment:
+    description: "Whether to deploy edge or not"
+    required: false
+    default: 'deploy'
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
     - ${{ inputs.spec }}
     - ${{ inputs.mode }}
+    - ${{ inputs.edge_deployment }}
