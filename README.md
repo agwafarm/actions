@@ -1,4 +1,4 @@
-# Actions
+git push --force # Actions
 
 ## Update current version
 
