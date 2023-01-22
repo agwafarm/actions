@@ -37,6 +37,7 @@ runs:
           libraries_list=$(find . -maxdepth 1 -type d)
           export CURRENT_DIR=$(pwd)
           for d in $libraries_list; do
+              pip install setuptools==65.7.0
               cd $CURRENT_DIR
               if [ -f "$d/setup.py" ]; then
                   cd $d
