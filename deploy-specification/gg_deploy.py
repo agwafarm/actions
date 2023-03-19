@@ -21,6 +21,9 @@ args = parser.parse_args()
 os.environ["ENV"] = args.env  # CHANGE According to the relevant env
 TIMEOUT_IN_MINUTES = 10 if args.env == 'prod' else 5
 
+# TODO: Change this list to be read from an SSM parameter
+non_upgradable_devices = [265, 266, 267]
+
 
 def upgrade_controller(controller_id: str) -> str:
     client = boto3.client('lambda')
@@ -48,9 +51,13 @@ def upgrade_devices() -> List[Tuple[str, Optional[str]]]:
     device_deployments = []
     devices_to_upgrade = device.get_all_user_devices()
     logger.info(f"Found {len(list(devices_to_upgrade))} devices to upgrade.")
+
     for user_device in devices_to_upgrade:
         controller_id = user_device["controllerId"]
         group_id = user_device["groupId"]
+        if device["deviceId"] in non_upgradable_devices:
+            logger.info(f"Skipping device {device['deviceId']} because it is not upgradable.")
+            continue
         if not controller_id:
             continue
         try:
@@ -104,7 +111,6 @@ def main():
     logger.info(f"{len(devices)} device upgrades were requested.")
     if devices:
         track_deployments(devices)
-    
 
 
 if __name__ == '__main__':
