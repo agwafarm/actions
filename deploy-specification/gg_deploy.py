@@ -55,7 +55,7 @@ def upgrade_devices() -> List[Tuple[str, Optional[str]]]:
     for user_device in devices_to_upgrade:
         controller_id = user_device["controllerId"]
         group_id = user_device["groupId"]
-        if device["deviceId"] in non_upgradable_devices:
+        if int(user_device["deviceId"]) in non_upgradable_devices:
             logger.info(f"Skipping device {device['deviceId']} because it is not upgradable.")
             continue
         if not controller_id:
