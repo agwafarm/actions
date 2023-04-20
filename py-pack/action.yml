@@ -111,7 +111,7 @@ runs:
           mkdir -p $common_layer_path
           
           if [ -f "requirements.txt" ]; then
-            pip install setuptools==65.7.0
+            pip install setuptools
             python3 -m pip install -q -r requirements.txt
             # Create and Upload Lambda & Layer Assets 
             common_layer_target_path=$common_layer_path/python
@@ -119,7 +119,7 @@ runs:
           fi
 
           if [ -f "requirements-dev.txt" ]; then
-            pip install setuptools==65.7.0
+            pip install setuptools
             python3 -m pip install -q -r requirements-dev.txt
           fi
           
