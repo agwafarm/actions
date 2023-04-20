@@ -37,11 +37,11 @@ runs:
           libraries_list=$(find . -maxdepth 1 -type d)
           export CURRENT_DIR=$(pwd)
           for d in $libraries_list; do
-              pip install setuptools==65.7.0
+              pip install --upgrade --force-reinstall setuptools==65.7.0
               cd $CURRENT_DIR
               if [ -f "$d/setup.py" ]; then
                   cd $d
-                  pip3 install -I --no-cache-dir -e '.[dev]'
+                  pip3 install -I --no-cache-dir -e '.[dev]' --verbose
               fi
           done
           cd $CURRENT_DIR
