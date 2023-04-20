@@ -111,6 +111,7 @@ runs:
           mkdir -p $common_layer_path
           
           if [ -f "requirements.txt" ]; then
+            pip install --upgrade --force-reinstall wheel==0.38.4
             pip install setuptools==65.7.0
             python3 -m pip install -q -r requirements.txt
             # Create and Upload Lambda & Layer Assets 
@@ -119,7 +120,8 @@ runs:
           fi
 
           if [ -f "requirements-dev.txt" ]; then
-            pip install setuptools==65.7.0
+            pip install --upgrade --force-reinstall wheel==0.38.4
+            pip install --upgrade --force-reinstall setuptools==65.7.0
             python3 -m pip install -q -r requirements-dev.txt
           fi
           
