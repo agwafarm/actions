@@ -111,18 +111,16 @@ runs:
           mkdir -p $common_layer_path
           
           if [ -f "requirements.txt" ]; then
-            python3 -m pip install --upgrade --force-reinstall wheel==0.38.4
             python3 -m pip install --upgrade --force-reinstall setuptools==65.7.0
-            python3 -m pip install --no-binary agwa-service-library,agwa-access-management,agwa-analytics,agwa-data-layer,agwa-device,agwa-firebase,agwa-lambda,agwa-mobile-push-client,agwa-support,agwa-test-lib -q -r requirements.txt --verbose
+            python3 -m pip install -q -r requirements.txt --verbose
             # Create and Upload Lambda & Layer Assets 
             common_layer_target_path=$common_layer_path/python
-            python3 -m pip install --no-binary agwa-service-library,agwa-access-management,agwa-analytics,agwa-data-layer,agwa-device,agwa-firebase,agwa-lambda,agwa-mobile-push-client,agwa-support,agwa-test-lib -q -r requirements.txt --target $common_layer_target_path
+            python3 -m pip install -q -r requirements.txt --target $common_layer_target_path
           fi
 
           if [ -f "requirements-dev.txt" ]; then
-            python3 -m pip install --upgrade --force-reinstall wheel==0.38.4
             python3 -m pip install --upgrade --force-reinstall setuptools==65.7.0
-            python3 -m pip install --no-binary agwa-service-library,agwa-access-management,agwa-analytics,agwa-data-layer,agwa-device,agwa-firebase,agwa-lambda,agwa-mobile-push-client,agwa-support,agwa-test-lib -q -r requirements-dev.txt
+            python3 -m pip install -q -r requirements-dev.txt
           fi
           
           # Copy local common files to layer before zipping
