@@ -111,20 +111,18 @@ runs:
           mkdir -p $common_layer_path
           
           if [ -f "requirements.txt" ]; then
-            pip install --upgrade pip
-            pip install --upgrade --force-reinstall wheel==0.38.4
-            pip install --upgrade --force-reinstall setuptools==65.7.0
-            pip install -r requirements.txt --verbose
-            echo "#############"
+            python3 -m pip install --upgrade --force-reinstall wheel==0.38.4
+            python3 -m pip install --upgrade --force-reinstall setuptools==65.7.0
+            python3 -m pip install -q -r requirements.txt --verbose
             # Create and Upload Lambda & Layer Assets 
             common_layer_target_path=$common_layer_path/python
-            pip install -r requirements.txt --target $common_layer_target_path
+            python3 -m pip install -q -r requirements.txt --target $common_layer_target_path
           fi
 
           if [ -f "requirements-dev.txt" ]; then
-            pip install --upgrade --force-reinstall wheel==0.38.4
-            pip install --upgrade --force-reinstall setuptools==65.7.0
-            pip install -r requirements-dev.txt
+            python3 -m pip install --upgrade --force-reinstall wheel==0.38.4
+            python3 -m pip install --upgrade --force-reinstall setuptools==65.7.0
+            python3 -m pip install -q -r requirements-dev.txt
           fi
           
           # Copy local common files to layer before zipping
