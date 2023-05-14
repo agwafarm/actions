@@ -5,7 +5,7 @@ import sys
 from subprocess import Popen
 mode = os.environ.get("APP_MODE", "service")
 spec = json.loads(os.environ['APP_SPEC'])
-edge_deployment = os.environ.get("APP_EDGE_DEPLOYMENT", "deploy")
+edge_deployment = os.environ.get("APP_EDGE_DEPLOYMENT", "deploy_now")
 env = spec.get('env')
 services = spec.get('services')
 service_names = [service['serviceName'] for service in services]
@@ -15,7 +15,7 @@ lambda_client = boto3.client('lambda')
 if (mode == 'env' or ('greengrass-parent' in service_names and env == 'ci')) \
         and edge_deployment in ['deploy_tonight', 'deploy_now']:
     print(f'deploying greengrass definitions to devices in environment: {env}')
-    payload = {"version_tag": version}
+    payload = {"version_tag": version, "should_deploy_now": edge_deployment == 'deploy_now'}
     response = lambda_client.invoke(
         FunctionName=f'{env}_devices_version_upgrader_lambda',
         InvocationType='RequestResponse',
