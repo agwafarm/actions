@@ -1,8 +1,9 @@
-import os
+import boto3
 import json
+import os
 import sys
-
 from subprocess import Popen
+
 mode = os.environ.get("APP_MODE", "service")
 spec = json.loads(os.environ['APP_SPEC'])
 edge_deployment = os.environ.get("APP_EDGE_DEPLOYMENT", "deploy_now")
