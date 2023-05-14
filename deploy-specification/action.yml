@@ -11,7 +11,7 @@ inputs:
   edge_deployment:
     description: "Whether to deploy edge or not"
     required: false
-    default: 'deploy'
+    default: 'deploy_now'
 runs:
   using: 'docker'
   image: 'Dockerfile'
