@@ -22,6 +22,8 @@ export class FrontendDeployment extends BaseStack {
       websiteIndexDocument: indexPath,
       publicReadAccess: true,
       bucketName: websiteBucketName,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
+      accessControl: s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL
     });
    
     const distribution = new cloudfront.CloudFrontWebDistribution(
