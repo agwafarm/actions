@@ -13,22 +13,11 @@ outputs:
   version:
     description: "RC version"
     value: ${{ steps.packer.outputs.rc_version }}
-  library-version:
-    description: "Library version"
-    value: ${{ steps.packer.outputs.library_version }}
+
 runs:
   using: "composite"
   steps:
     - run: |
-
-          # Configure pip to use code artifact as additional pypi
-          ca_domain=agwafarm-private
-          ca_repo=agwafarm-private
-          ca_account=953022346399
-          ca_token=$(aws codeartifact get-authorization-token --domain $ca_domain --domain-owner $ca_account --query authorizationToken --output text)
-          ca_region=us-west-2
-          aws codeartifact login --tool twine --repository $ca_repo --domain $ca_domain --domain-owner $ca_account
-          pip config set global.extra-index-url https://aws:$ca_token@$ca_domain-$ca_account.d.codeartifact.$ca_region.amazonaws.com/pypi/$ca_repo/simple/
           
           # Compute useful variables
           service_name=$GITHUB_REPOSITORY
@@ -63,18 +52,13 @@ runs:
           echo branch name $branch_name
 
           if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
-             export AGWA_SERVICE_LIBRARY_TAG=latest
              s3_retainment=standard
           else
              user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
              user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
              echo user name $user_name
-             export AGWA_SERVICE_LIBRARY_TAG=edge-$user_name
              s3_retainment=low
           fi
-
-          echo using library tag $AGWA_SERVICE_LIBRARY_TAG
-          echo ::set-output name=library_version::$AGWA_SERVICE_LIBRARY_TAG
           
           s3_bucket=agwa-ci-assets
           s3_prefix=$s3_retainment/$service_name/$rc_version
