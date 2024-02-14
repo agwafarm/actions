@@ -13,7 +13,11 @@ outputs:
   version:
     description: "RC version"
     value: ${{ steps.packer.outputs.rc_version }}
-
+inputs:
+  hotfix:
+    description: 'whether it is an hotfix version or not'
+    required: false
+    default: false
 runs:
   using: "composite"
   steps:
@@ -51,7 +55,7 @@ runs:
           branch_name=$(echo $git_ref | sed -e 's/^refs\/heads\///')
           echo branch name $branch_name
 
-          if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
+          if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ] || [ "${{ inputs.hotfix }}" = "true" ]; then
              s3_retainment=standard
           else
              user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
