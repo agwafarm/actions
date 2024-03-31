@@ -133,33 +133,43 @@ runs:
             echo "Uploading Greengrass Service"
             
             echo "Uploading General Lambdas"
-            for d in src/lambdas/general/*/ ; do
+            for d in src/gg1/lambdas/general/*/ ; do
               func_name=$(basename "$"$d"")
               func_s3_key=$s3_path_base/functions/${func_name}.zip
-              pushd src/lambdas/general/${func_name}
-              zip -r ../../../../artifacts/${func_name}.zip *.py **/*.py
+              pushd src/gg1/lambdas/general/${func_name}
+              mkdir -p general/${func_name}
+              cp -r ../../../../common/*.py .
+              cp -r ../../../../common/general/${func_name}/ general/${func_name}
+              zip -r ../../../../../artifacts/${func_name}.zip *.py **/*.py
               popd
               aws s3 cp artifacts/${func_name}.zip $func_s3_key
             done
             
             echo "Uploading Sensor Lambdas"
-            for d in src/lambdas/sensors/functions/*/ ; do
+            for d in src/gg1/lambdas/sensors/*/ ; do
               func_name=$(basename "$"$d"")
               func_s3_key=$s3_path_base/functions/${func_name}.zip
-              zip -j artifacts/${func_name}.zip src/lambdas/sensors/functions/${func_name}/*.py
-              pushd src/lambdas/sensors
-              zip -ur ../../../artifacts/${func_name}.zip common/*.py
+              mkdir -p sensors/${func_name}
+              mkdir -p sensors/common
+              cp -r ../../../../common/*.py .
+              cp -r ../../../../common/sensors/common sensors
+              cp -r ../../../../common/sensors/${func_name}/ sensors/${func_name}
+              zip -r ../../../artifacts/${func_name}.zip *.py **/*.py
               popd
               aws s3 cp artifacts/${func_name}.zip $func_s3_key
             done
             
             echo "Uploading Actuator Lambdas"
-            for d in src/lambdas/actuators/functions/*/ ; do
+            for d in src/gg1/lambdas/actuators/functions/*/ ; do
               func_name=$(basename "$"$d"")
               func_s3_key=$s3_path_base/functions/${func_name}.zip
-              zip -j artifacts/${func_name}.zip src/lambdas/actuators/functions/${func_name}/*.py
-              pushd src/lambdas/actuators
-              zip -ur ../../../artifacts/${func_name}.zip common/*.py
+              pushd src/gg1/lambdas/actuators/${func_name}
+              mkdir -p actuators/${func_name}
+              mkdir -p actuators/common
+              cp -r ../../../../common/*.py .
+              cp -r ../../../../common/actuators/common actuators
+              cp -r ../../../../common/actuators/${func_name}/ actuators/${func_name}
+              zip -r ${func_name}.zip *.py **/*.py
               popd
               aws s3 cp artifacts/${func_name}.zip $func_s3_key
             done
