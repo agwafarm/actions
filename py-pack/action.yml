@@ -83,18 +83,18 @@ runs:
           #Synthesize CDK apps into cloudformation templates.
           if [ -f "cdk.json" ]; then
               npm i -g aws-cdk@1.94.1
-              mkdir src/cloudformation
+              mkdir src/gg1/cloudformation
               export APP_COMPANY_NAME=agwa
               export APP_STACK=$service_name
               export APP_SERVICE=$service_name
               export APP_CORS_ORIGIN="*"
               export APP_CORS_HEADERS="Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,Accept,User-Agent,Referer"
               export APP_CORS_METHODS="OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD"
-              cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACK > src/cloudformation/main.yaml
+              cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACK > src/gg1/cloudformation/main.yaml
           fi
 
           #Upload CloudFormation Assets, delete files in target folder if they no longer exist.
-          aws s3 sync --delete src/cloudformation $s3_path_base/cloudformation
+          aws s3 sync --delete src/gg1/cloudformation $s3_path_base/cloudformation
           
           mkdir -p $common_layer_path
           
@@ -116,7 +116,7 @@ runs:
           fi
           
           # Copy local common files to layer before zipping
-          if [ -d "src/common" ] ; then
+          if [ "$service_name" != "greengrass-parent" ] && [ -d "src/common" ]; then
             cp -r src/common $common_layer_target_path
           fi
 
@@ -133,33 +133,41 @@ runs:
             echo "Uploading Greengrass Service"
             
             echo "Uploading General Lambdas"
-            for d in src/lambdas/general/*/ ; do
+            for d in src/gg1/lambdas/general/*/ ; do
               func_name=$(basename "$"$d"")
               func_s3_key=$s3_path_base/functions/${func_name}.zip
-              pushd src/lambdas/general/${func_name}
-              zip -r ../../../../artifacts/${func_name}.zip *.py **/*.py
+              pushd src/gg1/lambdas/general/${func_name}
+              mkdir -p general/${func_name}
+              cp -r ../../../../common/*.py .
+              cp -r ../../../../common/general/${func_name}/ general/${func_name}
+              zip -r ../../../../../artifacts/${func_name}.zip *.py **/*.py
               popd
               aws s3 cp artifacts/${func_name}.zip $func_s3_key
             done
             
             echo "Uploading Sensor Lambdas"
-            for d in src/lambdas/sensors/functions/*/ ; do
+            for d in src/gg1/lambdas/sensors/*/ ; do
               func_name=$(basename "$"$d"")
               func_s3_key=$s3_path_base/functions/${func_name}.zip
-              zip -j artifacts/${func_name}.zip src/lambdas/sensors/functions/${func_name}/*.py
-              pushd src/lambdas/sensors
-              zip -ur ../../../artifacts/${func_name}.zip common/*.py
+              mkdir -p sensors/${func_name}
+              cp -r ../../../../common/*.py .
+              cp -r ../../../../common/sensors/common sensors
+              cp -r ../../../../common/sensors/${func_name}/ sensors/${func_name}
+              zip -r ../../../artifacts/${func_name}.zip *.py **/*.py
               popd
               aws s3 cp artifacts/${func_name}.zip $func_s3_key
             done
             
             echo "Uploading Actuator Lambdas"
-            for d in src/lambdas/actuators/functions/*/ ; do
+            for d in src/gg1/lambdas/actuators/functions/*/ ; do
               func_name=$(basename "$"$d"")
               func_s3_key=$s3_path_base/functions/${func_name}.zip
-              zip -j artifacts/${func_name}.zip src/lambdas/actuators/functions/${func_name}/*.py
-              pushd src/lambdas/actuators
-              zip -ur ../../../artifacts/${func_name}.zip common/*.py
+              pushd src/gg1/lambdas/actuators/${func_name}
+              mkdir -p actuators/${func_name}
+              cp -r ../../../../common/*.py .
+              cp -r ../../../../common/actuators/common actuators
+              cp -r ../../../../common/actuators/${func_name}/ actuators/${func_name}
+              zip -r ${func_name}.zip *.py **/*.py
               popd
               aws s3 cp artifacts/${func_name}.zip $func_s3_key
             done
