@@ -160,7 +160,7 @@ runs:
             done
             
             echo "Uploading Actuator Lambdas"
-            for d in src/gg1/lambdas/actuators/functions/*/ ; do
+            for d in src/gg1/lambdas/actuators/*/ ; do
               func_name=$(basename "$"$d"")
               func_s3_key=$s3_path_base/functions/${func_name}.zip
               pushd "src/gg1/lambdas/actuators/${func_name}"
