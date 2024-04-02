@@ -153,7 +153,7 @@ runs:
               mkdir -p sensors/${func_name}
               cp -r ../../../../common/*.py .
               cp -r ../../../../common/sensors/common sensors
-              cp -r ../../../../common/sensors/${func_name}/ sensors
+              cp -r ../../../../common/sensors/${func_name}/* sensors/${func_name}
               zip -r ../../../../../artifacts/${func_name}.zip .
               popd
               aws s3 cp artifacts/${func_name}.zip $func_s3_key
@@ -167,7 +167,7 @@ runs:
               mkdir -p actuators/${func_name}
               cp -r ../../../../common/*.py .
               cp -r ../../../../common/actuators/common actuators
-              cp -r ../../../../common/actuators/${func_name}/ actuators
+              cp -r ../../../../common/actuators/${func_name}/* actuators/${func_name}
               zip -r ../../../../../artifacts/${func_name}.zip .
               popd
               aws s3 cp artifacts/${func_name}.zip $func_s3_key
