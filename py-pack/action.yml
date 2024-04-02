@@ -138,7 +138,7 @@ runs:
               func_s3_key=$s3_path_base/functions/${func_name}.zip
               tree -la
               pushd src/gg1/lambdas/general/${func_name}
-              ls -la
+              pwd
               mkdir -p general/${func_name}
               cp -r ../../../../common/*.py .
               cp -r ../../../../common/general/${func_name}/ general/${func_name}
