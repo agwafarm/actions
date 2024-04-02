@@ -136,7 +136,7 @@ runs:
             for d in src/gg1/lambdas/general/*/ ; do
               func_name=$(basename "$"$d"")
               func_s3_key=$s3_path_base/functions/${func_name}.zip
-              ls -la
+              tree -la
               pushd src/gg1/lambdas/general/${func_name}
               ls -la
               mkdir -p general/${func_name}
