@@ -140,9 +140,7 @@ runs:
               mkdir -p general/${func_name}
               cp -r ../../../../common/*.py .
               cp -r ../../../../common/general/${func_name}/ general/
-              echo "Zipping"
-              tree -la
-              zip -r ../../../../../artifacts/${func_name}.zip *.py **/*.py
+              zip -r ../../../../../artifacts/${func_name}.zip .
               popd
               aws s3 cp artifacts/${func_name}.zip $func_s3_key
             done
@@ -156,7 +154,7 @@ runs:
               cp -r ../../../../common/*.py .
               cp -r ../../../../common/sensors/common sensors
               cp -r ../../../../common/sensors/${func_name}/ sensors
-              zip -r ../../../artifacts/${func_name}.zip *.py **/*.py
+              zip -r ../../../artifacts/${func_name}.zip .
               popd
               aws s3 cp artifacts/${func_name}.zip $func_s3_key
             done
@@ -170,7 +168,7 @@ runs:
               cp -r ../../../../common/*.py .
               cp -r ../../../../common/actuators/common actuators
               cp -r ../../../../common/actuators/${func_name}/ actuators
-              zip -r ${func_name}.zip *.py **/*.py
+              zip -r ${func_name}.zip .
               popd
               aws s3 cp artifacts/${func_name}.zip $func_s3_key
             done
