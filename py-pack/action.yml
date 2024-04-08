@@ -67,6 +67,7 @@ runs:
           s3_bucket=agwa-ci-assets
           s3_prefix=$s3_retainment/$service_name/$rc_version
           s3_path_base=s3://$s3_bucket/$s3_prefix
+          s3_gg2_path_base=s3://gg2-agwa-component
           echo s3 bucket $s3_bucket
           echo s3 path base $s3_path_base
 
@@ -130,7 +131,7 @@ runs:
 
 
           if [ "$service_name" = "greengrass-parent" ]; then
-            echo "Uploading Greengrass Service"
+            echo "Uploading Greengrass V1 Service"
             
             echo "Uploading General Lambdas"
             for d in src/gg1/lambdas/general/*/ ; do
@@ -172,6 +173,40 @@ runs:
               popd
               aws s3 cp artifacts/${func_name}.zip $func_s3_key
             done
+            
+            echo "Uploading Greengrass V2 Service"
+            
+            echo "Uploading policy_manager component"
+            component_name="policy_manager"
+            pushd "src/gg2/components/${component_name}"
+            mkdir -p $component_name
+            cp -r ../../../common/*.py .
+            cp -r ../../../common/general/* .
+            gdk component build
+            gdk component publish -b $s3_gg2_path_base
+            popd
+            
+            echo "Uploading sensors component"
+            component_name="sensors"
+            pushd "src/gg2/components/${component_name}"
+            mkdir -p $component_name
+            cp -r ../../../common/*.py .
+            cp -r ../../../common/sensors/* $component_name
+            gdk component build
+            gdk component publish -b $s3_gg2_path_base
+            popd
+            
+            echo "Uploading actuators component"
+            component_name="policy_manager"
+            pushd "src/gg2/components/${component_name}"
+            mkdir -p $component_name
+            cp -r ../../../common/*.py .
+            cp -r ../../../common/general/* .
+            gdk component build
+            gdk component publish -b $s3_gg2_path_base
+            popd
+      
+
           else
             for d in src/lambdas/*/ ; do
               func_name=$(basename "$"$d"")
