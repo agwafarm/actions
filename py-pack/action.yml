@@ -115,6 +115,8 @@ runs:
             python3 -m pip install --upgrade --force-reinstall setuptools==65.7.0
             python3 -m pip install -q -r requirements-dev.txt
           fi
+            
+          python3 -m pip install git+https://github.com/aws-greengrass/aws-greengrass-gdk-cli.git@v1.6.2
           
           # Copy local common files to layer before zipping
           if [ "$service_name" != "greengrass-parent" ] && [ -d "src/common" ]; then
