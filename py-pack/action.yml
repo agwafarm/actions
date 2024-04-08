@@ -198,11 +198,11 @@ runs:
             popd
             
             echo "Uploading actuators component"
-            component_name="policy_manager"
+            component_name="actuators"
             pushd "src/gg2/components/${component_name}"
             mkdir -p $component_name
             cp -r ../../../common/*.py .
-            cp -r ../../../common/general/* .
+            cp -r ../../../common/actuators/* $component_name
             gdk component build
             gdk component publish -b $s3_gg2_path_base
             popd
