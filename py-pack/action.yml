@@ -67,7 +67,7 @@ runs:
           s3_bucket=agwa-ci-assets
           s3_prefix=$s3_retainment/$service_name/$rc_version
           s3_path_base=s3://$s3_bucket/$s3_prefix
-          s3_gg2_path_base=s3://gg2-agwa-components
+          s3_gg2_path_base=gg2-agwa-components
           echo s3 bucket $s3_bucket
           echo s3 path base $s3_path_base
 
