@@ -22,223 +22,225 @@ runs:
   using: "composite"
   steps:
     - run: |
-          
-          # Compute useful variables
-          service_name=$GITHUB_REPOSITORY
-          service_name=$(echo $service_name | sed -e 's/^agwafarm\///')
-          service_name=$(echo $service_name | sed -e 's/^agwa\-//')
-
-          if [ "$service_name" = "cloud-components" ]; then
-             service_name=cloud-parent
-          fi
-          if [ "$service_name" = "greengrass-service" ]; then
-             service_name=greengrass-parent
-          fi
-
-          echo packing service $service_name
-          echo "::set-output name=service_name::$service_name"
-
-          rc_version=$GITHUB_SHA
-          echo RC version $rc_version
-          echo ::set-output name=rc_version::$rc_version
-
-          event_name=$GITHUB_EVENT_NAME
-          echo github event name $event_name
-
-          if [ "$event_name" = "pull_request" ]; then
-             git_ref=$GITHUB_HEAD_REF
-          else
-             git_ref=$GITHUB_REF
-          fi
-          echo git ref $git_ref
-
-          branch_name=$(echo $git_ref | sed -e 's/^refs\/heads\///')
-          echo branch name $branch_name
-
-          if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ] || [ "${{ inputs.hotfix }}" = "true" ]; then
-             s3_retainment=standard
-          else
-             user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
-             user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
-             echo user name $user_name
-             s3_retainment=low
-          fi
-          
-          s3_bucket=agwa-ci-assets
-          s3_prefix=$s3_retainment/$service_name/$rc_version
-          s3_path_base=s3://$s3_bucket/$s3_prefix
-          s3_gg2_path_base=gg2-agwa-components
-          echo s3 bucket $s3_bucket
-          echo s3 path base $s3_path_base
-
-          current_folder=$(pwd)
-          common_layer_path=artifacts/layers/common
-          asset_name=asset.zip
-
-          if [ -f "package-lock.json" ]; then
-              npm ci
-          elif [ -f "package.json" ]; then
-              npm i
-          fi
-
-          #Synthesize CDK apps into cloudformation templates.
-          if [ -f "cdk.json" ]; then
-              npm i -g aws-cdk@1.94.1
-              mkdir src/gg1/cloudformation
-              export APP_COMPANY_NAME=agwa
-              export APP_STACK=$service_name
-              export APP_SERVICE=$service_name
-              export APP_CORS_ORIGIN="*"
-              export APP_CORS_HEADERS="Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,Accept,User-Agent,Referer"
-              export APP_CORS_METHODS="OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD"
-              cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACK > src/gg1/cloudformation/main.yaml
-          fi
-
-          #Upload CloudFormation Assets, delete files in target folder if they no longer exist.
-          aws s3 sync --delete src/gg1/cloudformation $s3_path_base/cloudformation
-          
-          mkdir -p $common_layer_path
-          
-          if [ -f "requirements.txt" ]; then
-            python3 -m pip install --upgrade pip==20.2.3
-            python3 -m pip install --upgrade --force-reinstall wheel==0.38.4
-            python3 -m pip install --upgrade --force-reinstall setuptools==65.7.0
-            python3 -m pip install -q -r requirements.txt --verbose
-            # Create and Upload Lambda & Layer Assets 
-            common_layer_target_path=$common_layer_path/python
-            python3 -m pip install -q -r requirements.txt --target $common_layer_target_path
-          fi
-
-          if [ -f "requirements-dev.txt" ]; then
-            python3 -m pip install --upgrade pip==20.2.3
-            python3 -m pip install --upgrade --force-reinstall wheel==0.38.4
-            python3 -m pip install --upgrade --force-reinstall setuptools==65.7.0
-            python3 -m pip install git+https://github.com/aws-greengrass/aws-greengrass-gdk-cli.git@v1.6.2
-            python3 -m pip install -q -r requirements-dev.txt
-          fi
-          
-          # Copy local common files to layer before zipping
-          if [ "$service_name" != "greengrass-parent" ] && [ -d "src/common" ]; then
-            cp -r src/common $common_layer_target_path
-          fi
-
-          # upload cloud-common folder if not empty
-          if [ "$(ls -A $common_layer_path)" ]; then
-              cd $common_layer_path
+        
+        # Compute useful variables
+        service_name=$GITHUB_REPOSITORY
+        service_name=$(echo $service_name | sed -e 's/^agwafarm\///')
+        service_name=$(echo $service_name | sed -e 's/^agwa\-//')
+        
+        if [ "$service_name" = "cloud-components" ]; then
+           service_name=cloud-parent
+        fi
+        if [ "$service_name" = "greengrass-service" ]; then
+           service_name=greengrass-parent
+        fi
+        
+        echo packing service $service_name
+        echo "::set-output name=service_name::$service_name"
+        
+        rc_version=$GITHUB_SHA
+        echo RC version $rc_version
+        echo ::set-output name=rc_version::$rc_version
+        
+        event_name=$GITHUB_EVENT_NAME
+        echo github event name $event_name
+        
+        if [ "$event_name" = "pull_request" ]; then
+           git_ref=$GITHUB_HEAD_REF
+        else
+           git_ref=$GITHUB_REF
+        fi
+        echo git ref $git_ref
+        
+        branch_name=$(echo $git_ref | sed -e 's/^refs\/heads\///')
+        echo branch name $branch_name
+        
+        if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ] || [ "${{ inputs.hotfix }}" = "true" ]; then
+           s3_retainment=standard
+        else
+           user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
+           user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
+           echo user name $user_name
+           s3_retainment=low
+        fi
+        
+        s3_bucket=agwa-ci-assets
+        s3_prefix=$s3_retainment/$service_name/$rc_version
+        s3_path_base=s3://$s3_bucket/$s3_prefix
+        s3_gg2_path_base=gg2-agwa-components
+        echo s3 bucket $s3_bucket
+        echo s3 path base $s3_path_base
+        
+        current_folder=$(pwd)
+        common_layer_path=artifacts/layers/common
+        asset_name=asset.zip
+        
+        if [ -f "package-lock.json" ]; then
+            npm ci
+        elif [ -f "package.json" ]; then
+            npm i
+        fi
+        
+        #Synthesize CDK apps into cloudformation templates.
+        if [ -f "cdk.json" ]; then
+            npm i -g aws-cdk@1.94.1
+            mkdir src/gg1/cloudformation
+            export APP_COMPANY_NAME=agwa
+            export APP_STACK=$service_name
+            export APP_SERVICE=$service_name
+            export APP_CORS_ORIGIN="*"
+            export APP_CORS_HEADERS="Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,Accept,User-Agent,Referer"
+            export APP_CORS_METHODS="OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD"
+            cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACK > src/gg1/cloudformation/main.yaml
+        fi
+        
+        #Upload CloudFormation Assets, delete files in target folder if they no longer exist.
+        aws s3 sync --delete src/gg1/cloudformation $s3_path_base/cloudformation
+        
+        mkdir -p $common_layer_path
+        
+        if [ -f "requirements.txt" ]; then
+          python3 -m pip install --upgrade pip==20.2.3
+          python3 -m pip install --upgrade --force-reinstall wheel==0.38.4
+          python3 -m pip install --upgrade --force-reinstall setuptools==65.7.0
+          python3 -m pip install -q -r requirements.txt --verbose
+          # Create and Upload Lambda & Layer Assets 
+          common_layer_target_path=$common_layer_path/python
+          python3 -m pip install -q -r requirements.txt --target $common_layer_target_path
+        fi
+        
+        if [ -f "requirements-dev.txt" ]; then
+          python3 -m pip install --upgrade pip==20.2.3
+          python3 -m pip install --upgrade --force-reinstall wheel==0.38.4
+          python3 -m pip install --upgrade --force-reinstall setuptools==65.7.0
+          python3 -m pip install git+https://github.com/aws-greengrass/aws-greengrass-gdk-cli.git@v1.6.2
+          python3 -m pip install -q -r requirements-dev.txt
+        fi
+        
+        # Copy local common files to layer before zipping
+        if [ "$service_name" != "greengrass-parent" ] && [ -d "src/common" ]; then
+          cp -r src/common $common_layer_target_path
+        fi
+        
+        # upload cloud-common folder if not empty
+        if [ "$(ls -A $common_layer_path)" ]; then
+            cd $common_layer_path
+            zip -q -r $asset_name .
+            aws s3 cp $asset_name $s3_path_base/layers/cloud-common.zip
+            cd $current_folder 
+        fi
+        
+        
+        if [ "$service_name" = "greengrass-parent" ]; then
+          echo "Uploading Greengrass V1 Service"
+        
+          echo "Uploading General Lambdas"
+          for d in src/gg1/lambdas/general/*/ ; do
+            func_name=$(basename "$"$d"")
+            func_s3_key=$s3_path_base/functions/${func_name}.zip
+            pushd "src/gg1/lambdas/general/${func_name}"
+            mkdir -p general/${func_name}
+            cp -r ../../../../common/*.py .
+            cp -r ../../../../common/general/${func_name}/ general/
+            zip -r ../../../../../artifacts/${func_name}.zip .
+            popd
+            aws s3 cp artifacts/${func_name}.zip $func_s3_key
+          done
+        
+          echo "Uploading Sensor Lambdas"
+          for d in src/gg1/lambdas/sensors/*/ ; do
+            func_name=$(basename "$"$d"")
+            func_s3_key=$s3_path_base/functions/${func_name}.zip
+            pushd "src/gg1/lambdas/sensors/${func_name}"
+            mkdir -p sensors/${func_name}
+            cp -r ../../../../common/*.py .
+            cp -r ../../../../common/sensors/common sensors
+            cp -r ../../../../common/sensors/${func_name}/* sensors/${func_name}
+            zip -r ../../../../../artifacts/${func_name}.zip .
+            popd
+            aws s3 cp artifacts/${func_name}.zip $func_s3_key
+          done
+        
+          echo "Uploading Actuator Lambdas"
+          for d in src/gg1/lambdas/actuators/*/ ; do
+            func_name=$(basename "$"$d"")
+            func_s3_key=$s3_path_base/functions/${func_name}.zip
+            pushd "src/gg1/lambdas/actuators/${func_name}"
+            mkdir -p actuators/${func_name}
+            cp -r ../../../../common/*.py .
+            cp -r ../../../../common/actuators/common actuators
+            cp -r ../../../../common/actuators/${func_name}/* actuators/${func_name}
+            zip -r ../../../../../artifacts/${func_name}.zip .
+            popd
+            aws s3 cp artifacts/${func_name}.zip $func_s3_key
+          done
+        
+          echo "Uploading Greengrass V2 Service"
+        
+          echo "Uploading policy_manager component"
+          component_name="policy_manager"
+          pushd "src/gg2/components/${component_name}"
+          mkdir -p $component_name
+          cp -r ../../../common/*.py .
+          cp -r ../../../common/general/* .
+          echo $env
+          jq '.component."'$env'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
+          gdk component build
+          gdk component publish -b $s3_gg2_path_base
+          popd
+        
+          echo "Uploading sensors component"
+          component_name="sensors"
+          pushd "src/gg2/components/${component_name}"
+          mkdir -p $component_name
+          cp -r ../../../common/*.py .
+          cp -r ../../../common/sensors/* $component_name
+          gdk component build
+          gdk component publish -b $s3_gg2_path_base
+          popd
+        
+          echo "Uploading actuators component"
+          component_name="actuators"
+          pushd "src/gg2/components/${component_name}"
+          mkdir -p $component_name
+          cp -r ../../../common/*.py .
+          cp -r ../../../common/actuators/* $component_name
+          gdk component build
+          gdk component publish -b $s3_gg2_path_base
+          popd
+        
+        
+        else
+          for d in src/lambdas/*/ ; do
+            func_name=$(basename "$"$d"")
+            func_path=src/lambdas/${func_name}
+            func_artifact_folder=artifacts/lambdas/${func_name}
+            func_s3_key=$s3_path_base/functions/${func_name}.zip
+            req_path=src/lambdas/${func_name}/requirements.txt
+            layer_path=artifacts/layers/lambdas/${func_name}
+            layer_s3_key=$s3_path_base/layers/${func_name}.zip
+        
+            cd $current_folder
+            mkdir -p $func_artifact_folder
+        
+            #Lambda has specific dependencies
+            if [ -f $req_path ]; then
+              mkdir -p $layer_path
+              target_path=$layer_path/python
+              python3 -m pip install -q -r $req_path --target $target_path
+              python3 -m pip install -q -r $req_path
+              cd $layer_path
               zip -q -r $asset_name .
-              aws s3 cp $asset_name $s3_path_base/layers/cloud-common.zip
-              cd $current_folder 
-          fi
-
-
-          if [ "$service_name" = "greengrass-parent" ]; then
-            echo "Uploading Greengrass V1 Service"
-            
-            echo "Uploading General Lambdas"
-            for d in src/gg1/lambdas/general/*/ ; do
-              func_name=$(basename "$"$d"")
-              func_s3_key=$s3_path_base/functions/${func_name}.zip
-              pushd "src/gg1/lambdas/general/${func_name}"
-              mkdir -p general/${func_name}
-              cp -r ../../../../common/*.py .
-              cp -r ../../../../common/general/${func_name}/ general/
-              zip -r ../../../../../artifacts/${func_name}.zip .
-              popd
-              aws s3 cp artifacts/${func_name}.zip $func_s3_key
-            done
-            
-            echo "Uploading Sensor Lambdas"
-            for d in src/gg1/lambdas/sensors/*/ ; do
-              func_name=$(basename "$"$d"")
-              func_s3_key=$s3_path_base/functions/${func_name}.zip
-              pushd "src/gg1/lambdas/sensors/${func_name}"
-              mkdir -p sensors/${func_name}
-              cp -r ../../../../common/*.py .
-              cp -r ../../../../common/sensors/common sensors
-              cp -r ../../../../common/sensors/${func_name}/* sensors/${func_name}
-              zip -r ../../../../../artifacts/${func_name}.zip .
-              popd
-              aws s3 cp artifacts/${func_name}.zip $func_s3_key
-            done
-            
-            echo "Uploading Actuator Lambdas"
-            for d in src/gg1/lambdas/actuators/*/ ; do
-              func_name=$(basename "$"$d"")
-              func_s3_key=$s3_path_base/functions/${func_name}.zip
-              pushd "src/gg1/lambdas/actuators/${func_name}"
-              mkdir -p actuators/${func_name}
-              cp -r ../../../../common/*.py .
-              cp -r ../../../../common/actuators/common actuators
-              cp -r ../../../../common/actuators/${func_name}/* actuators/${func_name}
-              zip -r ../../../../../artifacts/${func_name}.zip .
-              popd
-              aws s3 cp artifacts/${func_name}.zip $func_s3_key
-            done
-            
-            echo "Uploading Greengrass V2 Service"
-            
-            echo "Uploading policy_manager component"
-            component_name="policy_manager"
-            pushd "src/gg2/components/${component_name}"
-            mkdir -p $component_name
-            cp -r ../../../common/*.py .
-            cp -r ../../../common/general/* .
-            gdk component build
-            gdk component publish -b $s3_gg2_path_base
-            popd
-            
-            echo "Uploading sensors component"
-            component_name="sensors"
-            pushd "src/gg2/components/${component_name}"
-            mkdir -p $component_name
-            cp -r ../../../common/*.py .
-            cp -r ../../../common/sensors/* $component_name
-            gdk component build
-            gdk component publish -b $s3_gg2_path_base
-            popd
-            
-            echo "Uploading actuators component"
-            component_name="actuators"
-            pushd "src/gg2/components/${component_name}"
-            mkdir -p $component_name
-            cp -r ../../../common/*.py .
-            cp -r ../../../common/actuators/* $component_name
-            gdk component build
-            gdk component publish -b $s3_gg2_path_base
-            popd
-      
-
-          else
-            for d in src/lambdas/*/ ; do
-              func_name=$(basename "$"$d"")
-              func_path=src/lambdas/${func_name}
-              func_artifact_folder=artifacts/lambdas/${func_name}
-              func_s3_key=$s3_path_base/functions/${func_name}.zip
-              req_path=src/lambdas/${func_name}/requirements.txt
-              layer_path=artifacts/layers/lambdas/${func_name}
-              layer_s3_key=$s3_path_base/layers/${func_name}.zip
-              
+              aws s3 cp $asset_name $layer_s3_key
               cd $current_folder
-              mkdir -p $func_artifact_folder
-              
-              #Lambda has specific dependencies
-              if [ -f $req_path ]; then
-                mkdir -p $layer_path
-                target_path=$layer_path/python
-                python3 -m pip install -q -r $req_path --target $target_path
-                python3 -m pip install -q -r $req_path
-                cd $layer_path
-                zip -q -r $asset_name .
-                aws s3 cp $asset_name $layer_s3_key
-                cd $current_folder
-              fi
-              
-              cd $func_path
-              zip -q -r $asset_name .
-              aws s3 cp $asset_name $func_s3_key
-              cd $current_folder
-            done
-          fi
+            fi
+        
+            cd $func_path
+            zip -q -r $asset_name .
+            aws s3 cp $asset_name $func_s3_key
+            cd $current_folder
+          done
+        fi
 
       shell: bash
       id: packer
