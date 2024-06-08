@@ -185,37 +185,37 @@ runs:
         
           echo "---------------- Uploading Greengrass V2 Service ----------------"
         
-          echo "Uploading policy_manager component"
-          component_name="policy_manager"
-          pushd "src/gg2/components/${component_name}"
-          mkdir -p $component_name
-          cp -r ../../../common/*.py .
-          cp -r ../../../common/general/* .
+#          echo "Uploading policy_manager component"
+#          component_name="policy_manager"
+#          pushd "src/gg2/components/${component_name}"
+#          mkdir -p $component_name
+#          cp -r ../../../common/*.py .
+#          cp -r ../../../common/general/* .
 #          jq '.component."'${{ inputs.environment }}'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
 #          jq '.component."'$env'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
 #          gdk component build
 #          gdk component publish -b $s3_gg2_path_base
-          popd
-        
-          echo "Uploading sensors component"
-          component_name="sensors"
-          pushd "src/gg2/components/${component_name}"
-          mkdir -p $component_name
-          cp -r ../../../common/*.py .
-          cp -r ../../../common/sensors/* $component_name
+#          popd
+#
+#          echo "Uploading sensors component"
+#          component_name="sensors"
+#          pushd "src/gg2/components/${component_name}"
+#          mkdir -p $component_name
+#          cp -r ../../../common/*.py .
+#          cp -r ../../../common/sensors/* $component_name
 #          gdk component build
 #          gdk component publish -b $s3_gg2_path_base
-          popd
-        
-          echo "Uploading actuators component"
-          component_name="actuators"
-          pushd "src/gg2/components/${component_name}"
-          mkdir -p $component_name
-          cp -r ../../../common/*.py .
-          cp -r ../../../common/actuators/* $component_name
+#          popd
+#
+#          echo "Uploading actuators component"
+#          component_name="actuators"
+#          pushd "src/gg2/components/${component_name}"
+#          mkdir -p $component_name
+#          cp -r ../../../common/*.py .
+#          cp -r ../../../common/actuators/* $component_name
 #          gdk component build
 #          gdk component publish -b $s3_gg2_path_base
-          popd
+#          popd
         
         
         else
