@@ -19,14 +19,13 @@ inputs:
     required: false
     default: "false"
   environment:
-      description: 'Deployment environment'
-      required: true
+    description: 'Deployment environment'
+    required: true
 
 runs:
   using: "composite"
   steps:
     - run: |  
-
         # Compute useful variables
         service_name=$GITHUB_REPOSITORY
         service_name=$(echo $service_name | sed -e 's/^agwafarm\///')
@@ -89,7 +88,7 @@ runs:
             npm i
         fi
         
-        #Synthesize CDK apps into cloudformation templates.
+        # Synthesize CDK apps into cloudformation templates.
         if [ -f "cdk.json" ]; then
             npm i -g aws-cdk@1.94.1
             mkdir src/gg1/cloudformation
@@ -102,7 +101,7 @@ runs:
             cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACK > src/gg1/cloudformation/main.yaml
         fi
         
-        #Upload CloudFormation Assets, delete files in target folder if they no longer exist.
+        # Upload CloudFormation Assets, delete files in target folder if they no longer exist.
         aws s3 sync --delete src/gg1/cloudformation $s3_path_base/cloudformation
         
         mkdir -p $common_layer_path
@@ -138,13 +137,12 @@ runs:
             cd $current_folder 
         fi
         
-        
         if [ "$service_name" = "greengrass-parent" ]; then
-          echo "---------------- Uploading Greengrass V1 Service ----------------"
+          echo "Uploading Greengrass V1 Service"
         
           echo "Uploading General Lambdas"
           for d in src/gg1/lambdas/general/*/ ; do
-            func_name=$(basename "$"$d"")
+            func_name=$(basename "$d")
             func_s3_key=$s3_path_base/functions/${func_name}.zip
             pushd "src/gg1/lambdas/general/${func_name}"
             mkdir -p general/${func_name}
@@ -157,7 +155,7 @@ runs:
         
           echo "Uploading Sensor Lambdas"
           for d in src/gg1/lambdas/sensors/*/ ; do
-            func_name=$(basename "$"$d"")
+            func_name=$(basename "$d")
             func_s3_key=$s3_path_base/functions/${func_name}.zip
             pushd "src/gg1/lambdas/sensors/${func_name}"
             mkdir -p sensors/${func_name}
@@ -171,7 +169,7 @@ runs:
         
           echo "Uploading Actuator Lambdas"
           for d in src/gg1/lambdas/actuators/*/ ; do
-            func_name=$(basename "$"$d"")
+            func_name=$(basename "$d")
             func_s3_key=$s3_path_base/functions/${func_name}.zip
             pushd "src/gg1/lambdas/actuators/${func_name}"
             mkdir -p actuators/${func_name}
@@ -183,44 +181,42 @@ runs:
             aws s3 cp artifacts/${func_name}.zip $func_s3_key
           done
         
-          echo "---------------- Uploading Greengrass V2 Service ----------------"
+          echo "Uploading Greengrass V2 Service"
         
-#          echo "Uploading policy_manager component"
-#          component_name="policy_manager"
-#          pushd "src/gg2/components/${component_name}"
-#          mkdir -p $component_name
-#          cp -r ../../../common/*.py .
-#          cp -r ../../../common/general/* .
-#          jq '.component."'${{ inputs.environment }}'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
-#          jq '.component."'$env'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
-#          gdk component build
-#          gdk component publish -b $s3_gg2_path_base
-#          popd
-#
-#          echo "Uploading sensors component"
-#          component_name="sensors"
-#          pushd "src/gg2/components/${component_name}"
-#          mkdir -p $component_name
-#          cp -r ../../../common/*.py .
-#          cp -r ../../../common/sensors/* $component_name
-#          gdk component build
-#          gdk component publish -b $s3_gg2_path_base
-#          popd
-#
-#          echo "Uploading actuators component"
-#          component_name="actuators"
-#          pushd "src/gg2/components/${component_name}"
-#          mkdir -p $component_name
-#          cp -r ../../../common/*.py .
-#          cp -r ../../../common/actuators/* $component_name
-#          gdk component build
-#          gdk component publish -b $s3_gg2_path_base
-#          popd
+          echo "Uploading policy_manager component"
+          component_name="policy_manager"
+          pushd "src/gg2/components/${component_name}"
+          mkdir -p $component_name
+          cp -r ../../../common/*.py .
+          cp -r ../../../common/general/* .
+          jq '.component."'${{ inputs.environment }}'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
+          gdk component build
+          gdk component publish -b $s3_gg2_path_base
+          popd
         
+          echo "Uploading sensors component"
+          component_name="sensors"
+          pushd "src/gg2/components/${component_name}"
+          mkdir -p $component_name
+          cp -r ../../../common/*.py .
+          cp -r ../../../common/sensors/* $component_name
+          gdk component build
+          gdk component publish -b $s3_gg2_path_base
+          popd
+        
+          echo "Uploading actuators component"
+          component_name="actuators"
+          pushd "src/gg2/components/${component_name}"
+          mkdir -p $component_name
+          cp -r ../../../common/*.py .
+          cp -r ../../../common/actuators/* $component_name
+          gdk component build
+          gdk component publish -b $s3_gg2_path_base
+          popd
         
         else
           for d in src/lambdas/*/ ; do
-            func_name=$(basename "$"$d"")
+            func_name=$(basename "$d")
             func_path=src/lambdas/${func_name}
             func_artifact_folder=artifacts/lambdas/${func_name}
             func_s3_key=$s3_path_base/functions/${func_name}.zip
@@ -231,7 +227,7 @@ runs:
             cd $current_folder
             mkdir -p $func_artifact_folder
         
-            #Lambda has specific dependencies
+            # Lambda has specific dependencies
             if [ -f $req_path ]; then
               mkdir -p $layer_path
               target_path=$layer_path/python
@@ -249,6 +245,5 @@ runs:
             cd $current_folder
           done
         fi
-
       shell: bash
       id: packer
