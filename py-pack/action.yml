@@ -196,6 +196,7 @@ runs:
           mkdir -p $component_name
           cp -r ../../../common/*.py .
           cp -r ../../../common/sensors/* $component_name
+          jq '.component."'${{ inputs.environment }}'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
           gdk component build
           gdk component publish -b $s3_gg2_path_base
           popd
@@ -206,6 +207,7 @@ runs:
           mkdir -p $component_name
           cp -r ../../../common/*.py .
           cp -r ../../../common/actuators/* $component_name
+          jq '.component."'${{ inputs.environment }}'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
           gdk component build
           gdk component publish -b $s3_gg2_path_base
           popd
