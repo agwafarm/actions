@@ -17,12 +17,16 @@ inputs:
   hotfix:
     description: 'whether it is an hotfix version or not'
     required: false
-    default: false
+    default: "false"
+  environment:
+      description: 'Deployment environment'
+      required: true
+
 runs:
   using: "composite"
   steps:
-    - run: |
-        
+    - run: |  
+               
         # Compute useful variables
         service_name=$GITHUB_REPOSITORY
         service_name=$(echo $service_name | sed -e 's/^agwafarm\///')
@@ -37,11 +41,15 @@ runs:
         
         echo packing service $service_name
         echo "::set-output name=service_name::$service_name"
-        
+             
         rc_version=$GITHUB_SHA
         echo RC version $rc_version
         echo ::set-output name=rc_version::$rc_version
         
+        echo ----------------------------------------
+        echo the environment variable
+        echo Environment: ${{ inputs.environment }}
+             
         event_name=$GITHUB_EVENT_NAME
         echo github event name $event_name
         
@@ -132,7 +140,7 @@ runs:
         
         
         if [ "$service_name" = "greengrass-parent" ]; then
-          echo "Uploading Greengrass V1 Service"
+          echo "---------------- Uploading Greengrass V1 Service ----------------"
         
           echo "Uploading General Lambdas"
           for d in src/gg1/lambdas/general/*/ ; do
@@ -175,7 +183,7 @@ runs:
             aws s3 cp artifacts/${func_name}.zip $func_s3_key
           done
         
-          echo "Uploading Greengrass V2 Service"
+          echo "---------------- Uploading Greengrass V2 Service ----------------"
         
           echo "Uploading policy_manager component"
           component_name="policy_manager"
@@ -183,7 +191,7 @@ runs:
           mkdir -p $component_name
           cp -r ../../../common/*.py .
           cp -r ../../../common/general/* .
-          echo $env
+#          jq '.component."'${{ inputs.environment }}'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
           jq '.component."'$env'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
           gdk component build
           gdk component publish -b $s3_gg2_path_base
