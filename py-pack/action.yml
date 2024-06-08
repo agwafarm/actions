@@ -26,7 +26,7 @@ runs:
   using: "composite"
   steps:
     - run: |  
-               
+
         # Compute useful variables
         service_name=$GITHUB_REPOSITORY
         service_name=$(echo $service_name | sed -e 's/^agwafarm\///')
