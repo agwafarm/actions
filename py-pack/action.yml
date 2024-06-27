@@ -190,7 +190,7 @@ runs:
           cp -r ../../../common/general/* .
           echo "policy -----"
           ls
-          sed -i '' "s/++env_place_holder++/env_${environment}/g" recipe.yaml
+          sed -i '' "s/++env_place_holder++/xx/g" recipe.yaml
           jq '.component."'${environment}'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
           gdk component build
           gdk component publish -b $s3_gg2_path_base
