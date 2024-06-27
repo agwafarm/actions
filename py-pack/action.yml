@@ -180,7 +180,7 @@ runs:
           done
         
           echo "------------ Uploading Greengrass V2 Service ------------"
-          environment="${{ inputs.environment }}"
+          export environment="${{ inputs.environment }}"
           
           echo "Uploading policy_manager component"
           component_name="policy_manager"
@@ -188,8 +188,8 @@ runs:
           mkdir -p $component_name
           cp -r ../../../common/*.py .
           cp -r ../../../common/general/* .
-          perl -pi -e 's/\+\+place_holder\+\+/$environment/g' recipe.yaml
-          jq '.component."'${environment}'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
+          perl -pi -e 's/\+\+place_holder\+\+/${{ inputs.environment }}/g' recipe.yaml
+          jq '.component."'${{ inputs.environment }}'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
           gdk component build
           gdk component publish -b $s3_gg2_path_base
           popd
@@ -200,8 +200,8 @@ runs:
           mkdir -p $component_name
           cp -r ../../../common/*.py .
           cp -r ../../../common/sensors/* $component_name
-          perl -pi -e 's/\+\+place_holder\+\+/$environment/g' recipe.yaml
-          jq '.component."'${environment}'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
+          perl -pi -e 's/\+\+place_holder\+\+/${{ inputs.environment }}/g' recipe.yaml
+          jq '.component."'${{ inputs.environment }}'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
           gdk component build
           gdk component publish -b $s3_gg2_path_base
           popd
@@ -212,8 +212,8 @@ runs:
           mkdir -p $component_name
           cp -r ../../../common/*.py .
           cp -r ../../../common/actuators/* $component_name
-          perl -pi -e 's/\+\+place_holder\+\+/$environment/g' recipe.yaml
-          jq '.component."'${environment}'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
+          perl -pi -e 's/\+\+place_holder\+\+/${{ inputs.environment }}/g' recipe.yaml
+          jq '.component."'${{ inputs.environment }}'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
           gdk component build
           gdk component publish -b $s3_gg2_path_base
           popd
