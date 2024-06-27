@@ -200,7 +200,7 @@ runs:
           mkdir -p $component_name
           cp -r ../../../common/*.py .
           cp -r ../../../common/sensors/* $component_name
-          sed -i '' "s/++env_place_holder++/env_${environment}/g" recipe.yaml
+          perl -pi -e 's/\+\+env_place_holder\+\+/xxx/g' recipe.yaml
           jq '.component."'${environment}'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
           gdk component build
           gdk component publish -b $s3_gg2_path_base
@@ -212,7 +212,7 @@ runs:
           mkdir -p $component_name
           cp -r ../../../common/*.py .
           cp -r ../../../common/actuators/* $component_name
-          sed -i '' "s/++env_place_holder++/env_${environment}/g" recipe.yaml
+          perl -pi -e 's/\+\+env_place_holder\+\+/xxx/g' recipe.yaml
           jq '.component."'${environment}'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
           gdk component build
           gdk component publish -b $s3_gg2_path_base
