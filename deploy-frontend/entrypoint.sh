@@ -34,7 +34,7 @@ if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
 else
    s3_retainment=low
    # we do not support per developer frontends until we have lambda @edge capability
-   target_env=dev
+   target_env=devroei111
 fi
 
 export APP_COMPANY_NAME=agwa
@@ -77,6 +77,31 @@ npm run build
 # copy build to bucket for ci / dev environment
 aws s3 sync --no-progress --delete build s3://$APP_BUCKET
 
+# DNS record creation
+HOSTED_ZONE_ID=$(aws ssm get-parameter --name /account/hosted-zone-id --query Parameter.Value --output text)
+echo "Hosted zone id $HOSTED_ZONE_ID"
+
+DNS_RECORD=$(cat <<EOF
+{
+  "Comment": "DNS record for ${target_env} ${service_name}",
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "$ROUTING_DOMAIN",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [{ "Value": "{{resolve:ssm:/infra/${target_env}/frontend/url/get-web}}" }]
+      }
+    }
+  ]
+}
+EOF
+)
+echo "DNS record $DNS_RECORD"
+
+aws route53 change-resource-record-sets --hosted-zone-id $HOSTED_ZONE_ID --change-batch "$DNS_RECORD"
+
 # on merge
 # persist cloudformation output as deployable frontend
 # build and persist web assets for all environments (used later in deployment and post deployment stage)
@@ -95,6 +120,8 @@ if [ "$s3_retainment" = "standard" ]; then
    # TODO remove this loop once we can resolve env variables at runtime using lambda @ edge
    # The below is a patch for now
    # dev must also be here since merge sha is different than PR sha.
+
+   # TODO: Try to delete the "dev" environment from the array and see if it still works
    declare -a arr=("dev" "test" "prod")
 
    for build_env in "${arr[@]}"; do
