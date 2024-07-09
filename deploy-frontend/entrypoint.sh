@@ -91,7 +91,7 @@ DNS_RECORD=$(cat <<EOF
         "Name": "$ROUTING_DOMAIN",
         "Type": "CNAME",
         "TTL": 300,
-        "ResourceRecords": [{ "Value": "{{resolve:ssm:/infra/${target_env}/frontend/url/get-web}}" }]
+        "ResourceRecords": [{ "Value": "$REACT_APP_COOKIE_DOMAIN" }]
       }
     }
   ]
