@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "dependencies": {
     "@aws-cdk/aws-cloudfront": "1.94.1",
-    "@aws-cdk/aws-route53-targets": "1.94.1",
     "@aws-cdk/aws-s3": "1.94.1",
     "@aws-cdk/aws-ssm": "1.94.1",
     "@aws-cdk/core": "1.94.1",

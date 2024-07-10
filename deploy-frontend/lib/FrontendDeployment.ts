@@ -3,7 +3,6 @@ import * as s3 from "@aws-cdk/aws-s3";
 import * as ssm from "@aws-cdk/aws-ssm";
 import * as cloudfront from "@aws-cdk/aws-cloudfront";
 import * as route53 from "@aws-cdk/aws-route53";
-import * as route53targets from "@aws-cdk/aws-route53-targets";
 
 import { BaseStack } from "./base";
 
@@ -97,11 +96,9 @@ export class FrontendDeployment extends BaseStack {
         zoneName: routingDomain,
       }
     );
-    new route53.ARecord(this, "AliasRecord", {
+    new route53.CnameRecord(this, "CnameRecord", {
       zone: hostedZone,
-      target: route53.RecordTarget.fromAlias(
-        new route53targets.CloudFrontTarget(distribution)
-      ),
+      domainName: distribution.distributionDomainName,
       recordName: routingDomain,
       ttl: cdk.Duration.minutes(5),
     });
