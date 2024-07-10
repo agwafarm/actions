@@ -33,8 +33,7 @@ if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
    target_env=ci
 else
    s3_retainment=low
-   # we do not support per developer frontends until we have lambda @edge capability
-   target_env=devroei111
+   target_env="dev${GITHUB_TRIGGERING_ACTOR}"
 fi
 
 export APP_COMPANY_NAME=agwa
@@ -77,10 +76,8 @@ npm run build
 # copy build to bucket for ci / dev environment
 aws s3 sync --no-progress --delete build s3://$APP_BUCKET
 
-# DNS record creation
+echo "Creating DNS record for ${target_env} ${service_name}: $ROUTING_DOMAIN -> $REACT_APP_COOKIE_DOMAIN"
 HOSTED_ZONE_ID=$(aws ssm get-parameter --name /account/hosted-zone-id --query Parameter.Value --output text)
-echo "Hosted zone id $HOSTED_ZONE_ID"
-
 DNS_RECORD=$(cat <<EOF
 {
   "Comment": "DNS record for ${target_env} ${service_name}",
@@ -98,8 +95,6 @@ DNS_RECORD=$(cat <<EOF
 }
 EOF
 )
-echo "DNS record $DNS_RECORD"
-
 aws route53 change-resource-record-sets --hosted-zone-id $HOSTED_ZONE_ID --change-batch "$DNS_RECORD"
 
 # on merge
