@@ -16,6 +16,7 @@ export class FrontendDeployment extends BaseStack {
   constructor(scope: cdk.Construct, id: string) {
     const env = {
       region: "us-west-2",
+      account: "953022346399",
     };
     super(scope, id, { env });
 
