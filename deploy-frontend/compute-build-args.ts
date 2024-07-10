@@ -14,6 +14,12 @@ if (!env) {
   throw new Error("Could not acquire env name");
 }
 
+const frontendRoutingDomain = process.env["ROUTING_DOMAIN"];
+
+if (!frontendRoutingDomain) {
+  throw new Error("Could not acquire frontend routing domain");
+}
+
 class ConfigurationService {
   private client: SSMClient;
 
@@ -107,10 +113,10 @@ async function run() {
       );
     } catch (e) {}
 
-    let frontendUrl = "";
-    try {
-      frontendUrl = await configuration.getEnvParameter(`frontend/url/${app}`);
-    } catch (e) {}
+    // let frontendUrl = "";
+    // try {
+    //   frontendUrl = await configuration.getEnvParameter(`frontend/url/${app}`);
+    // } catch (e) {}
 
     let analyticsDashboardId = "";
     try {
@@ -139,7 +145,7 @@ async function run() {
       plantImageBaseUrl = await configuration.getEnvParameter(
         "cloudfront/url/plant-admin-public"
       );
-      plantImageBaseUrl = `https://${plantImageBaseUrl}/images/vegetables`
+      plantImageBaseUrl = `https://${plantImageBaseUrl}/images/vegetables`;
     } catch (e) {}
 
     let firebaseProjectId = "";
@@ -163,7 +169,7 @@ async function run() {
       REACT_APP_IDENTITY_POOL_ID: identityPoolId,
       REACT_APP_REST_API_URL: httpApiUrl,
       REACT_APP_AWS_REGION: "us-west-2",
-      REACT_APP_COOKIE_DOMAIN: frontendUrl,
+      REACT_APP_COOKIE_DOMAIN: frontendRoutingDomain,
       REACT_APP_ANALYTICS_DASHBOARD_ID: analyticsDashboardId,
       REACT_APP_FIREBASE_API_KEY: firebaseApiKey,
       REACT_APP_FIREBASE_AUTH_DOMAIN: firebaseAuthDomain,
