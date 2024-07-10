@@ -113,11 +113,6 @@ async function run() {
       );
     } catch (e) {}
 
-    // let frontendUrl = "";
-    // try {
-    //   frontendUrl = await configuration.getEnvParameter(`frontend/url/${app}`);
-    // } catch (e) {}
-
     let analyticsDashboardId = "";
     try {
       const analyticsDashboardEnv = env.startsWith("dev") ? "dev" : env;

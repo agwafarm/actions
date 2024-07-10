@@ -94,7 +94,6 @@ if [ "$s3_retainment" = "standard" ]; then
    # TODO remove this loop once we can resolve env variables at runtime using lambda @ edge
    # The below is a patch for now
    # dev must also be here since merge sha is different than PR sha.
-
    declare -a arr=("dev" "test" "prod")
 
    for build_env in "${arr[@]}"; do
