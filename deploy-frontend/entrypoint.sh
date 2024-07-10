@@ -116,7 +116,6 @@ if [ "$s3_retainment" = "standard" ]; then
    # The below is a patch for now
    # dev must also be here since merge sha is different than PR sha.
 
-   # TODO: Try to delete the "dev" environment from the array and see if it still works
    declare -a arr=("dev" "test" "prod")
 
    for build_env in "${arr[@]}"; do
