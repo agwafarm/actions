@@ -14,7 +14,10 @@ export interface FrontendDeploymentProps extends cdk.StackProps {
 
 export class FrontendDeployment extends BaseStack {
   constructor(scope: cdk.Construct, id: string) {
-    super(scope, id, {});
+    const env = {
+      region: "us-west-2",
+    };
+    super(scope, id, { env });
 
     const indexPath = this.getEnvVariable("INDEX_PATH");
     const routingDomain = this.getEnvVariable("ROUTING_DOMAIN");
