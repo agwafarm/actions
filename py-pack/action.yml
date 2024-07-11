@@ -185,7 +185,6 @@ runs:
           echo "Uploading policy_manager component"
           component_name="policy_manager"
           pushd "src/gg2/components/${component_name}"
-          mkdir -p $component_name
           cp -r ../../../common/*.py .
           mkdir -p general
           cp -r ../../../common/general/* general/
