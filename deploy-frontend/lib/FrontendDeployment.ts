@@ -2,6 +2,7 @@ import * as cdk from "@aws-cdk/core";
 import * as s3 from "@aws-cdk/aws-s3";
 import * as ssm from "@aws-cdk/aws-ssm";
 import * as cloudfront from "@aws-cdk/aws-cloudfront";
+import * as route53 from "@aws-cdk/aws-route53";
 
 import { BaseStack } from "./base";
 
@@ -12,7 +13,11 @@ export interface FrontendDeploymentProps extends cdk.StackProps {
 
 export class FrontendDeployment extends BaseStack {
   constructor(scope: cdk.Construct, id: string) {
-    super(scope, id, {});
+    const env = {
+      region: "us-west-2",
+      account: "953022346399",
+    };
+    super(scope, id, { env });
 
     const indexPath = this.getEnvVariable("INDEX_PATH");
     const routingDomain = this.getEnvVariable("ROUTING_DOMAIN");
@@ -23,9 +28,9 @@ export class FrontendDeployment extends BaseStack {
       publicReadAccess: true,
       bucketName: websiteBucketName,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
-      accessControl: s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL
+      accessControl: s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
     });
-   
+
     const distribution = new cloudfront.CloudFrontWebDistribution(
       this,
       "CloudfrontWebDistribution",
@@ -65,10 +70,11 @@ export class FrontendDeployment extends BaseStack {
         viewerCertificate: {
           aliases: [routingDomain],
           props: {
-            acmCertificateArn: "arn:aws:acm:us-east-1:953022346399:certificate/336fae0d-6f3d-4c1c-95eb-9f083c03b57c", // optional
-            sslSupportMethod: cloudfront.SSLMethod.SNI
-          }
-        }
+            acmCertificateArn:
+              "arn:aws:acm:us-east-1:953022346399:certificate/336fae0d-6f3d-4c1c-95eb-9f083c03b57c", // optional
+            sslSupportMethod: cloudfront.SSLMethod.SNI,
+          },
+        },
       }
     );
 
@@ -76,6 +82,25 @@ export class FrontendDeployment extends BaseStack {
       parameterName: this.resolveSSMParameterName("frontend/url"),
       stringValue: distribution.distributionDomainName,
       simpleName: true,
+    });
+
+    const hostedZoneId = ssm.StringParameter.valueFromLookup(
+      this,
+      "/account/hosted-zone-id"
+    );
+    const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
+      this,
+      "HostedZone",
+      {
+        hostedZoneId: hostedZoneId,
+        zoneName: routingDomain,
+      }
+    );
+    new route53.CnameRecord(this, "CnameRecord", {
+      zone: hostedZone,
+      domainName: distribution.distributionDomainName,
+      recordName: routingDomain,
+      ttl: cdk.Duration.minutes(5),
     });
   }
 }

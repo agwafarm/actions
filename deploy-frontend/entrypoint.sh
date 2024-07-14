@@ -33,8 +33,7 @@ if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
    target_env=ci
 else
    s3_retainment=low
-   # we do not support per developer frontends until we have lambda @edge capability
-   target_env=dev
+   target_env="dev${GITHUB_TRIGGERING_ACTOR}"
 fi
 
 export APP_COMPANY_NAME=agwa
