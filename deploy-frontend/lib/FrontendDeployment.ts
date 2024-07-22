@@ -84,6 +84,12 @@ export class FrontendDeployment extends BaseStack {
       simpleName: true,
     });
 
+    new ssm.StringParameter(this, "AppDNSUrlParameter", {
+      parameterName: this.resolveSSMParameterName("frontend/dns-url"),
+      stringValue: routingDomain,
+      simpleName: true,
+    });
+
     const hostedZoneId = ssm.StringParameter.valueFromLookup(
       this,
       "/account/hosted-zone-id"
