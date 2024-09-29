@@ -105,7 +105,7 @@ runs:
         mkdir -p $common_layer_path
 
         if [ -f "requirements.txt" ]; then
-          python3 -m pip install --upgrade 
+          python3 -m pip install --upgrade pip
           python3 -m pip install -q -r requirements.txt --verbose
           # Create and Upload Lambda & Layer Assets 
           common_layer_target_path=$common_layer_path/python
@@ -113,7 +113,7 @@ runs:
         fi
 
         if [ -f "requirements-dev.txt" ]; then
-          python3 -m pip install --upgrade 
+          python3 -m pip install --upgrade pip
           python3 -m pip install git+https://github.com/aws-greengrass/aws-greengrass-gdk-cli.git@v1.6.2
           python3 -m pip install -q -r requirements-dev.txt
         fi
