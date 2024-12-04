@@ -89,18 +89,18 @@ runs:
         # Synthesize CDK apps into cloudformation templates.
         if [ -f "cdk.json" ]; then
             npm i -g aws-cdk@1.94.1
-            mkdir src/gg1/cloudformation
+            mkdir src/cloudformation
             export APP_COMPANY_NAME=agwa
             export APP_STACK=$service_name
             export APP_SERVICE=$service_name
             export APP_CORS_ORIGIN="*"
             export APP_CORS_HEADERS="Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,Accept,User-Agent,Referer"
             export APP_CORS_METHODS="OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD"
-            cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACK > src/gg1/cloudformation/main.yaml
+            cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACK > src/cloudformation/main.yaml
         fi
 
         # Upload CloudFormation Assets, delete files in target folder if they no longer exist.
-        aws s3 sync --delete src/gg1/cloudformation $s3_path_base/cloudformation
+        aws s3 sync --delete src/cloudformation $s3_path_base/cloudformation
 
         mkdir -p $common_layer_path
 
