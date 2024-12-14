@@ -13,7 +13,7 @@ const writeFile = util.promisify(fs.writeFile);
 const artifactsBucket = "agwa-ci-assets";
 const companyName = "agwa";
 
-const s3Client = new S3Client();
+const s3Client = new S3Client({ region: "us-west-2" });
 
 function streamToString(stream) {
   const chunks = [];
