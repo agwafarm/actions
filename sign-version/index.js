@@ -22,22 +22,12 @@ async function run() {
       throw new Error("Version length can not be empty");
     }
 
-    let overrides = core.getInput("overrides");
-
-    if (!overrides) {
-      overrides = {};
-    } else {
-      overrides = JSON.parse(overrides);
-    }
-
     console.log(`signing version: ${versionName}`);
-    console.log(`overrides: ${JSON.stringify(overrides, null, 3)}`);
 
     const spec = await getRcDeploymentSpec(versionName);
 
     await createVersion({
       name: versionName,
-      overrides,
       spec,
       timestamp,
       datetime,
