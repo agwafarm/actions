@@ -24,7 +24,13 @@ async function run() {
 
     console.log(`signing version: ${versionName}`);
 
-    const spec = await getRcDeploymentSpec(versionName);
+    let spec;
+    const versionSpec = core.getInput("versionSpec");
+    if (versionSpec) {
+      spec = JSON.parse(versionSpec);
+    } else {
+      spec = await getRcDeploymentSpec(versionName);
+    }
 
     await createVersion({
       name: versionName,
@@ -33,7 +39,10 @@ async function run() {
       datetime,
       author,
     });
-    await updateCiVersion(versionName);
+
+    if (!versionSpec) {
+      await updateCiVersion(versionName);
+    }
   } catch (error) {
     console.log(error);
     core.setFailed(error.message);
