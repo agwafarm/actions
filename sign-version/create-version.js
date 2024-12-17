@@ -12,7 +12,6 @@ async function createVersion({
   timestamp,
   datetime,
   author,
-  overrides,
 }) {
   const versionPath = `/infra/version/${name}`;
 
@@ -44,7 +43,6 @@ async function createVersion({
         { Key: "timestamp", Value: `${timestamp}` },
         { Key: "datetime", Value: `${datetime.toISOString()}` },
         { Key: "versionName", Value: `${name}` },
-        { Key: "overrides", Value: Object.keys(overrides).join(":") || "none" },
       ],
     })
   );

@@ -7,11 +7,8 @@ inputs:
   awsRegion:
     description: 'The AWS region from which to get SSM parameters'
     required: true
-  overrides:
-    description: 'A map from service name to version'
-    required: false
-  hotfix:
-    description: 'Version hotfix number'
+  versionSpec:
+    description: 'The version spec to sign'
     required: false
 runs:
   using: 'node12'

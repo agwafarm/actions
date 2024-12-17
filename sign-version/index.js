@@ -12,11 +12,6 @@ const { createVersion } = require("./create-version");
 async function run() {
   try {
     let versionName = core.getInput("version", { required: true });
-    const hotfix = core.getInput("hotfix");
-
-    if (hotfix) {
-      versionName = `${versionName}-hotfix-${hotfix}`;
-    }
 
     const timestamp = Date.now();
     const datetime = new Date();
@@ -27,28 +22,27 @@ async function run() {
       throw new Error("Version length can not be empty");
     }
 
-    let overrides = core.getInput("overrides");
-
-    if (!overrides) {
-      overrides = {};
-    } else {
-      overrides = JSON.parse(overrides);
-    }
-
     console.log(`signing version: ${versionName}`);
-    console.log(`overrides: ${JSON.stringify(overrides, null, 3)}`);
 
-    const spec = await getRcDeploymentSpec(versionName);
+    let spec;
+    const versionSpec = core.getInput("versionSpec");
+    if (versionSpec) {
+      spec = JSON.parse(versionSpec);
+    } else {
+      spec = await getRcDeploymentSpec(versionName);
+    }
 
     await createVersion({
       name: versionName,
-      overrides,
       spec,
       timestamp,
       datetime,
       author,
     });
-    await updateCiVersion(versionName);
+
+    if (!versionSpec) {
+      await updateCiVersion(versionName);
+    }
   } catch (error) {
     console.log(error);
     core.setFailed(error.message);

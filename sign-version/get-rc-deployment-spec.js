@@ -6,33 +6,11 @@ const {
 } = require("@aws-sdk/client-ssm");
 
 const ssmClient = new SSMClient({ region: "us-west-2" });
-let overrides = core.getInput("overrides");
-
-if (!overrides) {
-  overrides = {};
-} else {
-  overrides = JSON.parse(overrides);
-}
-
 const github = require("@actions/github");
 const author = github.context.actor;
 
 function resolveVersion(name, version) {
-  if (name === "cloud-parent") {
-    return (
-      overrides["cloud-parent"] || overrides["cloud-components"] || version
-    );
-  }
-
-  if (name === "greengrass-parent") {
-    return (
-      overrides["greengrass-parent"] ||
-      overrides["greengrass-service"] ||
-      version
-    );
-  }
-
-  return overrides[name] || version;
+  return version;
 }
 
 async function getRcServices() {
