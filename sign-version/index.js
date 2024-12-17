@@ -12,11 +12,6 @@ const { createVersion } = require("./create-version");
 async function run() {
   try {
     let versionName = core.getInput("version", { required: true });
-    const hotfix = core.getInput("hotfix");
-
-    if (hotfix) {
-      versionName = `${versionName}-hotfix-${hotfix}`;
-    }
 
     const timestamp = Date.now();
     const datetime = new Date();
