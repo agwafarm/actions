@@ -12,10 +12,10 @@ export interface FrontendDeploymentProps extends cdk.StackProps {
 }
 
 export class FrontendDeployment extends BaseStack {
-  constructor(scope: cdk.Construct, id: string) {
+  constructor(scope: cdk.Construct, id: string, account_id: string) {
     const env = {
       region: "us-west-2",
-      account: "953022346399",
+      account: account_id,
     };
     super(scope, id, { env });
 

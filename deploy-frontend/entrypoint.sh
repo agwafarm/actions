@@ -53,6 +53,10 @@ echo app env $APP_ENV
 export APP_STACK=$target_env-$service_name
 echo app stack $APP_STACK
 
+account_id=$(aws sts get-caller-identity --query Account --output text)
+export ACCOUNT_ID=$account_id
+echo account id $ACCOUNT_ID
+
 # deploy the ci / dev environment resources
 export APP_STACKS=$(cdk list)
 cdk deploy --require-approval never $APP_STACKS --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
@@ -79,6 +83,7 @@ aws s3 sync --no-progress --delete build s3://$APP_BUCKET
 # on merge
 # persist cloudformation output as deployable frontend
 # build and persist web assets for all environments (used later in deployment and post deployment stage)
+#TODO: Fix this to use both dev & prod accounts when CI moves to dev account
 if [ "$s3_retainment" = "standard" ]; then
    s3_path_base=s3://agwa-ci-assets/$s3_retainment/$service_name/$rc_version
 
