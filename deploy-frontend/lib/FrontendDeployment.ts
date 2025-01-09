@@ -26,7 +26,8 @@ export class FrontendDeployment extends BaseStack {
       '953022346399': SSL_CERT_PROD,
       '471112775292': SSL_CERT_DEV
     }
-    const sslCert = awsAccountToSslCert[accountId] || SSL_CERT_PROD
+    const sslCert = awsAccountToSslCert[accountId] || SSL_CERT_PROD;
+    console.log('ssl cert', sslCert, accountId);
 
     const indexPath = this.getEnvVariable("INDEX_PATH");
     const routingDomain = this.getEnvVariable("ROUTING_DOMAIN");
