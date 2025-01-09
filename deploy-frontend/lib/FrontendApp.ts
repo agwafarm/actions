@@ -5,6 +5,10 @@ import { FrontendDeployment } from "./FrontendDeployment";
 export class FrontendApp extends cdk.App {
   constructor() {
     super();
-    new FrontendDeployment(this, process.env["APP_STACK"] as string, process.env["ACCOUNT_ID"] as string);
+    new FrontendDeployment(
+      this, 
+      process.env["APP_STACK"] as string,
+      process.env["ACCOUNT_ID"] as string,
+    );
   }
 }

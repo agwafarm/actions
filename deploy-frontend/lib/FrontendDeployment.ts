@@ -12,10 +12,10 @@ export interface FrontendDeploymentProps extends cdk.StackProps {
 }
 
 export class FrontendDeployment extends BaseStack {
-  constructor(scope: cdk.Construct, id: string, account_id: string) {
+  constructor(scope: cdk.Construct, id: string, accountId: string) {
     const env = {
       region: "us-west-2",
-      account: account_id,
+      account: accountId,
     };
     super(scope, id, { env });
 
@@ -70,8 +70,7 @@ export class FrontendDeployment extends BaseStack {
         viewerCertificate: {
           aliases: [routingDomain],
           props: {
-            acmCertificateArn:
-              "arn:aws:acm:us-east-1:953022346399:certificate/336fae0d-6f3d-4c1c-95eb-9f083c03b57c", // optional
+            acmCertificateArn: this.getSslCert(accountId),
             sslSupportMethod: cloudfront.SSLMethod.SNI,
           },
         },
