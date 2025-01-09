@@ -9,7 +9,6 @@ export class FrontendApp extends cdk.App {
       this, 
       process.env["APP_STACK"] as string,
       process.env["ACCOUNT_ID"] as string,
-      process.env['AWS_ACCOUNT'] as string,
     );
   }
 }

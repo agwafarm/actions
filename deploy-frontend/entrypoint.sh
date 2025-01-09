@@ -36,9 +36,6 @@ else
    target_env="dev${GITHUB_TRIGGERING_ACTOR}"
 fi
 
-AWS_ACCOUNT=${AWS_ACCOUNT:-"prod"}
-echo AWS_ACCOUNT $AWS_ACCOUNT
-
 export APP_COMPANY_NAME=agwa
 
 export APP_SERVICE=$service_name

@@ -15,7 +15,7 @@ const SSL_CERT_PROD = 'arn:aws:acm:us-east-1:953022346399:certificate/336fae0d-6
 const SSL_CERT_DEV = 'arn:aws:acm:us-west-2:471112775292:certificate/b4c424a5-94c6-4e42-ac47-539cfc898e61';
 
 export class FrontendDeployment extends BaseStack {
-  constructor(scope: cdk.Construct, id: string, accountId: string, awsAccount: string) {
+  constructor(scope: cdk.Construct, id: string, accountId: string) {
     const env = {
       region: "us-west-2",
       account: accountId,
@@ -23,10 +23,10 @@ export class FrontendDeployment extends BaseStack {
     super(scope, id, { env });
 
     const awsAccountToSslCert: Record<string, string> = {
-      prod: SSL_CERT_PROD,
-      dev: SSL_CERT_DEV
+      '953022346399': SSL_CERT_PROD,
+      '471112775292': SSL_CERT_DEV
     }
-    const sslCert = awsAccountToSslCert[awsAccount] || SSL_CERT_PROD
+    const sslCert = awsAccountToSslCert[accountId] || SSL_CERT_PROD
 
     const indexPath = this.getEnvVariable("INDEX_PATH");
     const routingDomain = this.getEnvVariable("ROUTING_DOMAIN");
