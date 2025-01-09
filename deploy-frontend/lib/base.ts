@@ -37,6 +37,19 @@ export class BaseStack extends cdk.Stack {
     return value || name;
   };
 
+  public getSslCert = (accountId: string): string => {
+    const awsAccountIdToSslCert: Record<string, string> = {
+      '953022346399': 'arn:aws:acm:us-east-1:953022346399:certificate/336fae0d-6f3d-4c1c-95eb-9f083c03b57c',
+      '471112775292': 'arn:aws:acm:us-west-2:471112775292:certificate/b4c424a5-94c6-4e42-ac47-539cfc898e61'
+    };
+
+    if (!awsAccountIdToSslCert[accountId]) {
+      throw new Error(`invalid account id: ${accountId}`);
+    }
+
+    return awsAccountIdToSslCert[accountId];
+  }
+
   public resolveGlobalResourceName = (name: string): string => {
     if (this.isResolved(name)) {
       return name;

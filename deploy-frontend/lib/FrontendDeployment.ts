@@ -11,9 +11,6 @@ export interface FrontendDeploymentProps extends cdk.StackProps {
   indexDocument: string;
 }
 
-const SSL_CERT_PROD = 'arn:aws:acm:us-east-1:953022346399:certificate/336fae0d-6f3d-4c1c-95eb-9f083c03b57c';
-const SSL_CERT_DEV = 'arn:aws:acm:us-west-2:471112775292:certificate/b4c424a5-94c6-4e42-ac47-539cfc898e61';
-
 export class FrontendDeployment extends BaseStack {
   constructor(scope: cdk.Construct, id: string, accountId: string) {
     const env = {
@@ -21,13 +18,6 @@ export class FrontendDeployment extends BaseStack {
       account: accountId,
     };
     super(scope, id, { env });
-
-    const awsAccountToSslCert: Record<string, string> = {
-      '953022346399': SSL_CERT_PROD,
-      '471112775292': SSL_CERT_DEV
-    }
-    const sslCert = awsAccountToSslCert[accountId] || SSL_CERT_PROD;
-    console.log('ssl cert', sslCert, accountId);
 
     const indexPath = this.getEnvVariable("INDEX_PATH");
     const routingDomain = this.getEnvVariable("ROUTING_DOMAIN");
@@ -80,7 +70,7 @@ export class FrontendDeployment extends BaseStack {
         viewerCertificate: {
           aliases: [routingDomain],
           props: {
-            acmCertificateArn: sslCert, // optional
+            acmCertificateArn: this.getSslCert(accountId),
             sslSupportMethod: cloudfront.SSLMethod.SNI,
           },
         },
