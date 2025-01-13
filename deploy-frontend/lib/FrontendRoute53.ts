@@ -4,19 +4,17 @@ import * as route53 from "@aws-cdk/aws-route53";
 
 import { BaseStack } from "./base";
 
-interface RecordProps {
-  name: string;
-  value: string;
-}
-
 
 export class FrontendRoute53 extends BaseStack {
-  constructor(scope: cdk.Construct, id: string, accountId: string, record: RecordProps) {
+  constructor(scope: cdk.Construct, id: string, accountId: string) {
     super(scope, id, { env: {
       region: "us-west-2",
       account: accountId,
     } });
     
+    const recordName = cdk.Fn.importValue('RoutingDomainOutput');
+    const recordValue = cdk.Fn.importValue('CloudFrontDistributionOutput');
+
     const hostedZoneId = ssm.StringParameter.valueFromLookup(
       this,
       "/account/hosted-zone-id"
@@ -26,13 +24,13 @@ export class FrontendRoute53 extends BaseStack {
       "HostedZone",
       {
         hostedZoneId: hostedZoneId,
-        zoneName: record.name,
+        zoneName: recordName,
       }
     );
     new route53.CnameRecord(this, "CnameRecord", {
       zone: hostedZone,
-      domainName: record.value,
-      recordName: record.name,
+      domainName: recordValue,
+      recordName,
       ttl: cdk.Duration.minutes(5),
     });
   }

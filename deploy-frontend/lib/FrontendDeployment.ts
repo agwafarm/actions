@@ -89,8 +89,17 @@ export class FrontendDeployment extends BaseStack {
       simpleName: true,
     });
 
-    process.env.CF_DIST=distribution.distributionDomainName;
-    process.env.ROUTING_DOMAIN=routingDomain;
+    new cdk.CfnOutput(this, 'CloudFrontDistributionOutput', {
+      value: distribution.distributionDomainName,
+      exportName: 'CloudFrontDistributionOutput'
+    });
+    new cdk.CfnOutput(this, 'RoutingDomainOutput', {
+      value: routingDomain,
+      exportName: 'RoutingDomainOutput'
+    });
+
+    // process.env.CF_DIST=distribution.distributionDomainName;
+    // process.env.ROUTING_DOMAIN=routingDomain;
 
     // // Setup production profile
     // process.env.AWS_PROFILE=process.env.AWS_PROD_PROFILE;
