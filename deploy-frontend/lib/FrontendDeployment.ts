@@ -2,7 +2,7 @@ import * as cdk from "@aws-cdk/core";
 import * as s3 from "@aws-cdk/aws-s3";
 import * as ssm from "@aws-cdk/aws-ssm";
 import * as cloudfront from "@aws-cdk/aws-cloudfront";
-import * as route53 from "@aws-cdk/aws-route53";
+// import * as route53 from "@aws-cdk/aws-route53";
 
 import { BaseStack } from "./base";
 
@@ -12,6 +12,10 @@ export interface FrontendDeploymentProps extends cdk.StackProps {
 }
 
 export class FrontendDeployment extends BaseStack {
+  private cloudFrontDistribution: string;
+
+  private routingDomain: string;
+
   constructor(scope: cdk.Construct, id: string, accountId: string) {
     const env = {
       region: "us-west-2",
@@ -89,26 +93,36 @@ export class FrontendDeployment extends BaseStack {
       simpleName: true,
     });
 
-    // Setup production profile
-    process.env.AWS_PROFILE=process.env.AWS_PROD_PROFILE;
+    this.cloudFrontDistribution = distribution.distributionDomainName;
+    this.routingDomain = routingDomain;
 
-    const hostedZoneId = ssm.StringParameter.valueFromLookup(
-      this,
-      "/account/hosted-zone-id"
-    );
-    const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
-      this,
-      "HostedZone",
-      {
-        hostedZoneId: hostedZoneId,
-        zoneName: routingDomain,
-      }
-    );
-    new route53.CnameRecord(this, "CnameRecord", {
-      zone: hostedZone,
-      domainName: distribution.distributionDomainName,
-      recordName: routingDomain,
-      ttl: cdk.Duration.minutes(5),
-    });
+    // // Setup production profile
+    // process.env.AWS_PROFILE=process.env.AWS_PROD_PROFILE;
+
+    // const hostedZoneId = ssm.StringParameter.valueFromLookup(
+    //   this,
+    //   "/account/hosted-zone-id"
+    // );
+    // const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
+    //   this,
+    //   "HostedZone",
+    //   {
+    //     hostedZoneId: hostedZoneId,
+    //     zoneName: routingDomain,
+    //   }
+    // );
+    // new route53.CnameRecord(this, "CnameRecord", {
+    //   zone: hostedZone,
+    //   domainName: distribution.distributionDomainName,
+    //   recordName: routingDomain,
+    //   ttl: cdk.Duration.minutes(5),
+    // });
+  }
+
+  public getResources = () => {
+    return {
+      cloudFrontDistribution: this.cloudFrontDistribution,
+      routingDomain: this.routingDomain,
+    }
   }
 }
