@@ -14,6 +14,7 @@ if [ "$TARGET_AWS_ACCOUNT" == "dev" ]; then
    aws_profile=$AWS_DEV_PROFILE
 fi
 export AWS_PROFILE=aws_profile
+echo "aws profile $AWS_PROFILE"
 
 cd /action
 
