@@ -11,6 +11,7 @@ export class FrontendApp extends cdk.App {
       process.env["APP_STACK"] as string,
       process.env["ACCOUNT_ID"] as string,
     );
+    process.env.AWS_PROFILE=process.env.AWS_PROD_PROFILE
     new FrontendRoute53(
       this,
       `${process.env["APP_STACK"] as string}-route-53`,
