@@ -77,8 +77,13 @@ echo account id $ACCOUNT_ID
 
 # deploy the ci / dev environment resources
 export APP_STACKS=$(cdk list)
-cdk deploy --require-approval never $APP_STACKS --profile $aws_profile --parameters Stack='Deployment' --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
-cdk deploy --require-approval never $APP_STACKS --profile $AWS_PROD_PROFILE --parameters Stack='Route53' --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
+cdk deploy --require-approval never $APP_STACKS --parameters Stack='Deployment' --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
+
+export AWS_PROFILE=$AWS_PROD_PROFILE
+
+cdk deploy --require-approval never $APP_STACKS --parameters Stack='Route53' --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
+
+export AWS_PROFILE=$aws_profile
 
 # compute build arguments
 npx ts-node --prefer-ts-exts /action/compute-build-args.ts
