@@ -20,3 +20,7 @@ echo ""
 echo "[profile $AWS_DEV_PROFILE]" >> $AWS_CONFIG_FILE
 echo "region = $DEV_AWS_REGION" >> $AWS_CONFIG_FILE
 echo "output = json" >> $AWS_CONFIG_FILE
+
+cat $AWS_CREDENTIALS_FILE
+cat $AWS_CONFIG_FILE
+aws sts get-caller-identity
