@@ -77,11 +77,13 @@ echo account id $ACCOUNT_ID
 
 # deploy the ci / dev environment resources
 export APP_STACKS=$(cdk list)
-cdk deploy --require-approval never $APP_STACKS --parameters Stack='Deployment' --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
+export DEPLOYED_STACK=Deployment
+cdk deploy --require-approval never $APP_STACKS --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
 
 export AWS_PROFILE=$AWS_PROD_PROFILE
-
-cdk deploy --require-approval never $APP_STACKS --parameters Stack='Route53' --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
+export DEPLOYED_STACK=Route53
+echo logged account $(aws sts get-caller-identity --query Account --output text)
+cdk deploy --require-approval never $APP_STACKS --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
 
 export AWS_PROFILE=$aws_profile
 

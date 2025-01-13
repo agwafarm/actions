@@ -29,10 +29,6 @@ export class BaseStack extends cdk.Stack {
       return this.parameters.spaNotFoundPath;
     }
 
-    if (name === "STACK") {
-      return this.parameters.stack;
-    }
-
     const value = process.env[name];
     if (name.startsWith("APP_") && typeof value === "undefined") {
       throw new Error(`required env variable: ${name} could not be resolved`);
@@ -89,7 +85,6 @@ export class BaseStack extends cdk.Stack {
       indexPath: this.parametrize("IndexPath"),
       routingDomain: this.parametrize("RoutingDomain"),
       spaNotFoundPath: this.parametrize("NotFoundPath"),
-      stack: this.parametrize("Stack"),
     };
   }
 }

@@ -4,5 +4,4 @@ export interface DeploymentParameters {
   indexPath: string;
   routingDomain: string;
   spaNotFoundPath: string;
-  stack: string;
 }
