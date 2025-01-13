@@ -12,11 +12,12 @@ export class FrontendApp extends cdk.App {
       process.env["ACCOUNT_ID"] as string,
     );
     const resources = frontendApp.getResources();
-    new FrontendRoute53(
+    const frontendRoute53 = new FrontendRoute53(
       this,
       `${process.env["APP_STACK"] as string}-route-53`,
       process.env["PROD_AWS_ACCOUNT_ID"] as string,
       { name: resources.routingDomain, value: resources.cloudFrontDistribution }
-    )
+    );
+    frontendRoute53.addDependency(frontendApp);
   }
 }
