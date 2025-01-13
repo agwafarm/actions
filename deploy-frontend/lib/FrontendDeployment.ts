@@ -17,11 +17,10 @@ export class FrontendDeployment extends BaseStack {
   private routingDomain: string;
 
   constructor(scope: cdk.Construct, id: string, accountId: string) {
-    const env = {
+    super(scope, id, { env: {
       region: "us-west-2",
       account: accountId,
-    };
-    super(scope, id, { env });
+    } });
 
     const indexPath = this.getEnvVariable("INDEX_PATH");
     const routingDomain = this.getEnvVariable("ROUTING_DOMAIN");

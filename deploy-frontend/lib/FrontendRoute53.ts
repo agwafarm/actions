@@ -12,11 +12,10 @@ interface RecordProps {
 
 export class FrontendRoute53 extends BaseStack {
   constructor(scope: cdk.Construct, id: string, accountId: string, record: RecordProps) {
-    const env = {
+    super(scope, id, { env: {
       region: "us-west-2",
       account: accountId,
-    };
-    super(scope, id, { env });
+    } });
     
     const hostedZoneId = ssm.StringParameter.valueFromLookup(
       this,

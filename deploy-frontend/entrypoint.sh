@@ -7,7 +7,6 @@ export AWS_DEV_PROFILE=dev
 export AWS_PROD_PROFILE=default
 sh /action/build-aws-profile.sh
 
-
 export AWS_PROFILE=$AWS_PROD_PROFILE
 
 prod_account_id=$(aws sts get-caller-identity --query Account --output text)
