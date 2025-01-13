@@ -77,10 +77,8 @@ echo account id $ACCOUNT_ID
 
 # deploy the ci / dev environment resources
 export APP_STACKS=$(cdk list)
-cdk deploy --require-approval never $APP_STACKS --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
-
-# cdk deploy might change the AWS_PROFILE, making sure it will set to the right one
-export AWS_PROFILE=$aws_profile
+cdk deploy --require-approval never $APP_STACKS --profile $aws_profile --parameters Stack='Deployment' --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
+cdk deploy --require-approval never $APP_STACKS --profile $AWS_PROD_PROFILE --parameters Stack='Route53' --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
 
 # compute build arguments
 npx ts-node --prefer-ts-exts /action/compute-build-args.ts
@@ -143,9 +141,6 @@ if [ "$s3_retainment" = "standard" ]; then
 
       export APP_STACKS=$(cdk list)
       cdk deploy --require-approval never $APP_STACKS --parameters Environment=$APP_ENV --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
-
-      # cdk deploy might change the AWS_PROFILE, making sure it will set to the right one
-      export AWS_PROFILE=$aws_profile
 
       # apply build arguments to environment
       npx ts-node --prefer-ts-exts /action/compute-build-args.ts

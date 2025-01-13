@@ -11,27 +11,31 @@ export class FrontendRoute53 extends BaseStack {
       region: "us-west-2",
       account: accountId,
     } });
-    
-    const recordName = cdk.Fn.importValue('RoutingDomainOutput');
-    const recordValue = cdk.Fn.importValue('CloudFrontDistributionOutput');
 
-    const hostedZoneId = ssm.StringParameter.valueFromLookup(
-      this,
-      "/account/hosted-zone-id"
-    );
-    const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
-      this,
-      "HostedZone",
-      {
-        hostedZoneId: hostedZoneId,
-        zoneName: recordName,
-      }
-    );
-    new route53.CnameRecord(this, "CnameRecord", {
-      zone: hostedZone,
-      domainName: recordValue,
-      recordName,
-      ttl: cdk.Duration.minutes(5),
-    });
+    const stackToDeploy = this.getEnvVariable("STACK");
+
+    if (stackToDeploy === "Route53") {
+      const recordName = cdk.Fn.importValue('RoutingDomainOutput');
+      const recordValue = cdk.Fn.importValue('CloudFrontDistributionOutput');
+
+      const hostedZoneId = ssm.StringParameter.valueFromLookup(
+        this,
+        "/account/hosted-zone-id"
+      );
+      const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
+        this,
+        "HostedZone",
+        {
+          hostedZoneId: hostedZoneId,
+          zoneName: recordName,
+        }
+      );
+      new route53.CnameRecord(this, "CnameRecord", {
+        zone: hostedZone,
+        domainName: recordValue,
+        recordName,
+        ttl: cdk.Duration.minutes(5),
+      });
+    }
   }
 }
