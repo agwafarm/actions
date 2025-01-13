@@ -12,15 +12,12 @@ export interface FrontendDeploymentProps extends cdk.StackProps {
 }
 
 export class FrontendDeployment extends BaseStack {
-  private cloudFrontDistribution: string;
-
-  private routingDomain: string;
-
   constructor(scope: cdk.Construct, id: string, accountId: string) {
-    super(scope, id, { env: {
+    const env = {
       region: "us-west-2",
       account: accountId,
-    } });
+    };
+    super(scope, id, { env });
 
     const indexPath = this.getEnvVariable("INDEX_PATH");
     const routingDomain = this.getEnvVariable("ROUTING_DOMAIN");
@@ -92,8 +89,8 @@ export class FrontendDeployment extends BaseStack {
       simpleName: true,
     });
 
-    this.cloudFrontDistribution = distribution.distributionDomainName;
-    this.routingDomain = routingDomain;
+    process.env.CF_DIST=distribution.distributionDomainName;
+    process.env.ROUTING_DOMAIN=routingDomain;
 
     // // Setup production profile
     // process.env.AWS_PROFILE=process.env.AWS_PROD_PROFILE;
@@ -116,12 +113,5 @@ export class FrontendDeployment extends BaseStack {
     //   recordName: routingDomain,
     //   ttl: cdk.Duration.minutes(5),
     // });
-  }
-
-  public getResources = () => {
-    return {
-      cloudFrontDistribution: this.cloudFrontDistribution,
-      routingDomain: this.routingDomain,
-    }
   }
 }
