@@ -89,6 +89,9 @@ export class FrontendDeployment extends BaseStack {
       simpleName: true,
     });
 
+    // Setup production profile
+    process.env.AWS_PROFILE=process.env.AWS_PROD_PROFILE;
+
     const hostedZoneId = ssm.StringParameter.valueFromLookup(
       this,
       "/account/hosted-zone-id"
