@@ -61,20 +61,23 @@ runs:
         echo branch name $branch_name
 
         if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ] || [ "${{ inputs.hotfix }}" = "true" ]; then
-           s3_retainment=standard
+          s3_retainment=standard
+          target_env=ci
         else
-           user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
-           user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
-           echo user name $user_name
-           s3_retainment=low
+          user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
+          user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
+          echo user name $user_name
+          s3_retainment=low
+          target_env="dev${user_name}"
         fi
 
         s3_bucket=agwa-ci-assets
         s3_prefix=$s3_retainment/$service_name/$rc_version
         s3_path_base=s3://$s3_bucket/$s3_prefix
-        s3_gg2_path_base=gg2-agwa-components
+        s3_gg2_path_base="${target_env}-gg2-agwa-components"
         echo s3 bucket $s3_bucket
         echo s3 path base $s3_path_base
+        echo s3 gg2 components bucket $s3_gg2_path_base
 
         current_folder=$(pwd)
         common_layer_path=artifacts/layers/common
@@ -177,6 +180,8 @@ runs:
 
           echo "------------ Uploading Greengrass V2 Service ------------"
           export environment="${{ inputs.environment }}"
+
+          #### TODO fix here
           
           echo "Uploading policy_manager component"
           component_name="policy_manager"
