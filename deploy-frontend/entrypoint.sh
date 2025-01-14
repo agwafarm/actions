@@ -82,7 +82,6 @@ cdk deploy --require-approval never $APP_STACKS --parameters Environment=$target
 
 export AWS_PROFILE=$AWS_PROD_PROFILE
 export DEPLOYED_STACK=Route53
-echo logged account $(aws sts get-caller-identity --query Account --output text)
 cdk deploy --require-approval never $APP_STACKS --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
 
 export AWS_PROFILE=$aws_profile

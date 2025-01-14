@@ -11,6 +11,7 @@ export class FrontendRoute53 extends cdk.Stack {
 
     const recordName = cdk.Fn.importValue('RoutingDomainOutput');
     const recordValue = cdk.Fn.importValue('CloudFrontDistributionOutput');
+    console.log("FrontendRoute53", recordName, recordValue)
 
     const hostedZoneId = ssm.StringParameter.valueFromLookup(
       this,
