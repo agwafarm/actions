@@ -2,7 +2,7 @@ import * as cdk from "@aws-cdk/core";
 import * as s3 from "@aws-cdk/aws-s3";
 import * as ssm from "@aws-cdk/aws-ssm";
 import * as cloudfront from "@aws-cdk/aws-cloudfront";
-// import * as route53 from "@aws-cdk/aws-route53";
+import * as route53 from "@aws-cdk/aws-route53";
 
 import { BaseStack } from "./base";
 
@@ -12,7 +12,7 @@ export interface FrontendDeploymentProps extends cdk.StackProps {
 }
 
 export class FrontendDeployment extends BaseStack {
-  constructor(scope: cdk.Construct, id: string, accountId: string) {
+  constructor(scope: cdk.Construct, id: string, accountId: string, deployDnsRecord: boolean) {
     super(scope, id, { env: {
       region: "us-west-2",
       account: accountId,
@@ -88,39 +88,25 @@ export class FrontendDeployment extends BaseStack {
       simpleName: true,
     });
 
-    new cdk.CfnOutput(this, 'CloudFrontDistributionOutput', {
-      value: distribution.distributionDomainName,
-      exportName: 'CloudFrontDistributionOutput'
-    });
-    new cdk.CfnOutput(this, 'RoutingDomainOutput', {
-      value: routingDomain,
-      exportName: 'RoutingDomainOutput'
-    });
-  
-
-    // process.env.CF_DIST=distribution.distributionDomainName;
-    // process.env.ROUTING_DOMAIN=routingDomain;
-
-    // // Setup production profile
-    // process.env.AWS_PROFILE=process.env.AWS_PROD_PROFILE;
-
-    // const hostedZoneId = ssm.StringParameter.valueFromLookup(
-    //   this,
-    //   "/account/hosted-zone-id"
-    // );
-    // const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
-    //   this,
-    //   "HostedZone",
-    //   {
-    //     hostedZoneId: hostedZoneId,
-    //     zoneName: routingDomain,
-    //   }
-    // );
-    // new route53.CnameRecord(this, "CnameRecord", {
-    //   zone: hostedZone,
-    //   domainName: distribution.distributionDomainName,
-    //   recordName: routingDomain,
-    //   ttl: cdk.Duration.minutes(5),
-    // });
+    if (deployDnsRecord) {
+      const hostedZoneId = ssm.StringParameter.valueFromLookup(
+        this,
+        "/account/hosted-zone-id"
+      );
+      const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
+        this,
+        "HostedZone",
+        {
+          hostedZoneId: hostedZoneId,
+          zoneName: routingDomain,
+        }
+      );
+      new route53.CnameRecord(this, "CnameRecord", {
+        zone: hostedZone,
+        domainName: distribution.distributionDomainName,
+        recordName: routingDomain,
+        ttl: cdk.Duration.minutes(5),
+      });
+    }
   }
 }

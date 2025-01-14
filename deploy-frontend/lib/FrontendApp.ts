@@ -1,24 +1,18 @@
 import * as cdk from "@aws-cdk/core";
 
 import { FrontendDeployment } from "./FrontendDeployment";
-import { FrontendRoute53 } from "./FrontendRoute53";
 
 export class FrontendApp extends cdk.App {
-  constructor(stack: string) {
+  constructor() {
     super();
-    if (stack === 'Deployment') {
-      new FrontendDeployment(
-        this, 
-        process.env["APP_STACK"] as string,
-        process.env["ACCOUNT_ID"] as string,
-      );
-    }
-    if (stack === 'Route53') {
-      new FrontendRoute53(
-        this,
-        process.env["APP_STACK"] as string,
-        process.env["PROD_AWS_ACCOUNT_ID"] as string,
-      );
-    }
+    const awsProfile = process.env["AWS_PROFILE"] as string;
+    const awsDevProfile = process.env["AWS_DEV_PROFILE"] as string;
+    const deployDnsRecord = awsProfile === awsDevProfile;
+    new FrontendDeployment(
+      this, 
+      process.env["APP_STACK"] as string,
+      process.env["ACCOUNT_ID"] as string,
+      deployDnsRecord
+    );
   }
 }
