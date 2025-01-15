@@ -12,12 +12,11 @@ export interface FrontendDeploymentProps extends cdk.StackProps {
 }
 
 export class FrontendDeployment extends BaseStack {
-  constructor(scope: cdk.Construct, id: string, accountId: string) {
-    const env = {
+  constructor(scope: cdk.Construct, id: string, accountId: string, deployDnsRecord: boolean) {
+    super(scope, id, { env: {
       region: "us-west-2",
       account: accountId,
-    };
-    super(scope, id, { env });
+    } });
 
     const indexPath = this.getEnvVariable("INDEX_PATH");
     const routingDomain = this.getEnvVariable("ROUTING_DOMAIN");
@@ -89,23 +88,25 @@ export class FrontendDeployment extends BaseStack {
       simpleName: true,
     });
 
-    const hostedZoneId = ssm.StringParameter.valueFromLookup(
-      this,
-      "/account/hosted-zone-id"
-    );
-    const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
-      this,
-      "HostedZone",
-      {
-        hostedZoneId: hostedZoneId,
-        zoneName: routingDomain,
-      }
-    );
-    new route53.CnameRecord(this, "CnameRecord", {
-      zone: hostedZone,
-      domainName: distribution.distributionDomainName,
-      recordName: routingDomain,
-      ttl: cdk.Duration.minutes(5),
-    });
+    if (deployDnsRecord) {
+      const hostedZoneId = ssm.StringParameter.valueFromLookup(
+        this,
+        "/account/hosted-zone-id"
+      );
+      const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
+        this,
+        "HostedZone",
+        {
+          hostedZoneId: hostedZoneId,
+          zoneName: routingDomain,
+        }
+      );
+      new route53.CnameRecord(this, "CnameRecord", {
+        zone: hostedZone,
+        domainName: distribution.distributionDomainName,
+        recordName: routingDomain,
+        ttl: cdk.Duration.minutes(5),
+      });
+    }
   }
 }

@@ -3,6 +3,17 @@ set -e
 set -u
 set -o pipefail
 
+export AWS_DEV_PROFILE=dev
+export AWS_PROD_PROFILE=default
+sh /action/build-aws-profile.sh
+
+echo target aws account $TARGET_AWS_ACCOUNT
+
+if [ "$TARGET_AWS_ACCOUNT" == "dev" ]; then
+   export AWS_PROFILE=$AWS_DEV_PROFILE
+fi
+echo aws profile $AWS_PROFILE
+
 cd /action
 
 service_name=$GITHUB_REPOSITORY
@@ -83,7 +94,7 @@ aws s3 sync --no-progress --delete build s3://$APP_BUCKET
 # on merge
 # persist cloudformation output as deployable frontend
 # build and persist web assets for all environments (used later in deployment and post deployment stage)
-#TODO: Fix this to use both dev & prod accounts when CI moves to dev account
+# TODO: Fix this to use both dev & prod accounts when CI moves to dev account
 if [ "$s3_retainment" = "standard" ]; then
    s3_path_base=s3://agwa-ci-assets/$s3_retainment/$service_name/$rc_version
 
