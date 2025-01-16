@@ -205,7 +205,6 @@ runs:
               rm -f greengrass_manager_v1.py
               perl -pi -e "s/\+\+place_holder\+\+/${build_env}/g" recipe.yaml
               perl -pi -e "s/\{ENV\}/${build_env}/g" gdk-config.json
-              cat gdk-config.json
               jq '.component."'$build_env'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
               gdk component build
               gdk component publish -b $s3_gg2_path_base
