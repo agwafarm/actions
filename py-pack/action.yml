@@ -185,7 +185,7 @@ runs:
           
           for build_env in "${envs_arr[@]}"; do
             echo "---- uploading to $build_env env ----"
-            s3_gg2_path_base="${build_env}-gg2-agwa-components"
+            s3_gg2_path_base="${build_env}-agwa-gg2-agwa-components-bucket"
             echo s3 gg2 components bucket $s3_gg2_path_base
 
             declare -a components=("policy_manager" "sensors" "actuators")
