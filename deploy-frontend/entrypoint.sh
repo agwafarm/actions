@@ -9,6 +9,7 @@ sh /action/build-aws-profile.sh
 
 echo target aws account $TARGET_AWS_ACCOUNT
 
+export AWS_PROFILE=$AWS_PROD_PROFILE
 if [ "$TARGET_AWS_ACCOUNT" == "dev" ]; then
    export AWS_PROFILE=$AWS_DEV_PROFILE
 fi
