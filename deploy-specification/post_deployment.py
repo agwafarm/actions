@@ -14,12 +14,15 @@ service_names = [service['serviceName'] for service in services]
 version = spec.get('version')
 lambda_client = boto3.client('lambda')
 
+is_greengrass_ci_dev_deployment = 'greengrass-parent' in service_names and (env == 'ci' or env.startswith("dev"))
 
-
-if (mode == 'env' or ('greengrass-parent' in service_names and (env == 'ci'))) \
-        and edge_deployment in ['deploy_tonight', 'deploy_now']:
+if mode == 'env' or is_greengrass_ci_dev_deployment and edge_deployment in ['deploy_tonight', 'deploy_now']:
     print(f'deploying greengrass definitions to devices in environment: {env}')
     payload = {"version_tag": version, "should_deploy_now": edge_deployment == 'deploy_now'}
+    
+    if is_greengrass_ci_dev_deployment:
+        payload["skip_tracking"] = True
+
     for i in range(5):
         try:
             response = lambda_client.invoke(
