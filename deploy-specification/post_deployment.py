@@ -14,7 +14,9 @@ service_names = [service['serviceName'] for service in services]
 version = spec.get('version')
 lambda_client = boto3.client('lambda')
 
-if (mode == 'env' or ('greengrass-parent' in service_names and env == 'ci')) \
+
+
+if (mode == 'env' or ('greengrass-parent' in service_names and (env == 'ci'))) \
         and edge_deployment in ['deploy_tonight', 'deploy_now']:
     print(f'deploying greengrass definitions to devices in environment: {env}')
     payload = {"version_tag": version, "should_deploy_now": edge_deployment == 'deploy_now'}
