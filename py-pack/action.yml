@@ -190,8 +190,6 @@ runs:
 
             declare -a components=("policy_manager" "sensors" "actuators")
 
-            mkdir -p /gg2_temp
-
             for component_name in "${components[@]}"; do
               echo "Uploading $component_name component"
               
