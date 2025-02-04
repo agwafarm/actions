@@ -221,6 +221,8 @@ runs:
             done
           done
 
+          rm -rf $current_path/temp
+
         else
           for d in src/lambdas/*/ ; do
             func_name=$(basename "$d")
