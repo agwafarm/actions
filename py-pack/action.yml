@@ -214,10 +214,10 @@ runs:
               jq '.component."'$build_env'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
               gdk component build
               gdk component publish -b $s3_gg2_path_base
-              popd
               echo "put back original recipe and gdk-config files"
               cp $current_path/temp/recipe.yaml recipe.yaml
               cp $current_path/temp/gdk-config.json gdk-config.json
+              popd
             done
           done
 
