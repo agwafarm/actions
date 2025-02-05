@@ -201,6 +201,16 @@ runs:
               if [ "$component_name" = "policy_manager" ]; then
                 dir_name=general
               fi
+
+              echo "component_name: $component_name"
+              if [ "$component_name" = "agwa_m_web_app" ]; then
+                echo "Downloading agwa m web app build"
+                mkdir -p src/common/$dir_name
+                aws s3 cp s3://${build_env}-agwa-m-app/ src/common/$dir_name --recursive
+
+                echo "Contents of src/common/$dir_name"
+                ls -l src/common/$dir_name
+              fi
               
               pushd "src/gg2/components/${component_name}"
               cp recipe.yaml $current_path/temp/recipe.yaml
