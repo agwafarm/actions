@@ -209,19 +209,21 @@ runs:
 
               echo "component_name: $component_name"
               if [ "$component_name" = "agwa_m_web_app" ]; then
-                echo "Downloading agwa m web app build"
-                mkdir -p $common_path/$dir_name/build
-                aws s3 cp s3://${agwa_m_app_bucket}/ $common_path/$dir_name/build --recursive
+                echo "Downloading agwa m web app build files"
+                aws s3 cp s3://${agwa_m_app_bucket}/ $common_path/$dir_name --recursive
               else
-                echo "Copying common files"
+                echo "Copying common greengrass files"
                 cp -r $common_path/*.py .
-                cp -r $common_path/$dir_name/* $dir_name
                 rm -f greengrass_manager_v1.py
               fi
 
+              echo "Copying $component_name component files to $dir_name folder"
+              cp -r $common_path/$dir_name/* $dir_name
+
               cp recipe.yaml $current_path/temp/recipe.yaml
               cp gdk-config.json $current_path/temp/gdk-config.json
-              
+
+              echo "Replacing place holders in recipe.yaml and gdk-config.json"              
               perl -pi -e "s/\+\+place_holder\+\+/${build_env}/g" recipe.yaml
               perl -pi -e "s/\{ENV\}/${build_env}/g" gdk-config.json
               jq '.component."'$build_env'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
