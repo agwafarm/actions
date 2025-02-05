@@ -192,7 +192,7 @@ runs:
             s3_gg2_path_base="${build_env}-agwa-gg2-agwa-components-bucket"
             echo s3 gg2 components bucket $s3_gg2_path_base
 
-            declare -a components=("policy_manager" "sensors" "actuators")
+            components=($(ls -d src/gg2/components/* | xargs -n 1 basename))
 
             for component_name in "${components[@]}"; do
               echo "Uploading $component_name component"
