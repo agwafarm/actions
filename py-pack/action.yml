@@ -209,16 +209,16 @@ runs:
 
               echo "component_name: $component_name"
               if [ "$component_name" = "agwa_m_web_app" ]; then
-                echo "Downloading agwa m web app build files"
-                aws s3 cp s3://${agwa_m_app_bucket}/ $common_path/$dir_name --recursive
+                echo "Downloading Agwa M web app build files"
+                aws s3 cp s3://${agwa_m_app_bucket}/ web_app_build --recursive
               else
                 echo "Copying common greengrass files"
                 cp -r $common_path/*.py .
                 rm -f greengrass_manager_v1.py
-              fi
 
-              echo "Copying $component_name component files to $dir_name folder"
-              cp -r $common_path/$dir_name/* $dir_name
+                echo "Copying $component_name component files to $dir_name folder"
+                cp -r $common_path/$dir_name/* $dir_name
+              fi
 
               cp recipe.yaml $current_path/temp/recipe.yaml
               cp gdk-config.json $current_path/temp/gdk-config.json
