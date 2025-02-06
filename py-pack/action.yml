@@ -205,7 +205,6 @@ runs:
               if [ "$component_name" = "policy_manager" ]; then
                 dir_name=general
               fi
-              mkdir -p $dir_name
 
               echo "component_name: $component_name"
               if [ "$component_name" = "agwa_m_web_app" ]; then
@@ -217,6 +216,7 @@ runs:
                 rm -f greengrass_manager_v1.py
 
                 echo "Copying $component_name component files to $dir_name folder"
+                mkdir -p $dir_name
                 cp -r $common_path/$dir_name/* $dir_name
               fi
 
