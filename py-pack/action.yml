@@ -190,30 +190,47 @@ runs:
           for build_env in "${envs_arr[@]}"; do
             echo "---- uploading to $build_env env ----"
             s3_gg2_path_base="${build_env}-agwa-gg2-agwa-components-bucket"
+            agwa_m_app_bucket="${build_env}-agwa-m-app"
             echo s3 gg2 components bucket $s3_gg2_path_base
 
             components=($(ls -d src/gg2/components/* | xargs -n 1 basename))
 
             for component_name in "${components[@]}"; do
               echo "Uploading $component_name component"
+
+              pushd "src/gg2/components/${component_name}"
+              common_path=../../../common
               
               dir_name=$component_name
               if [ "$component_name" = "policy_manager" ]; then
                 dir_name=general
               fi
-              
-              pushd "src/gg2/components/${component_name}"
+
+              echo "component_name: $component_name"
+              if [ "$component_name" = "agwa_m_web_app" ]; then
+                echo "Downloading Agwa M web app build files"
+                aws s3 cp s3://${agwa_m_app_bucket}/ web_app_build --recursive
+              else
+                echo "Copying common greengrass files"
+                cp -r $common_path/*.py .
+                rm -f greengrass_manager_v1.py
+
+                echo "Copying $component_name component files to $dir_name folder"
+                mkdir -p $dir_name
+                cp -r $common_path/$dir_name/* $dir_name
+              fi
+
               cp recipe.yaml $current_path/temp/recipe.yaml
               cp gdk-config.json $current_path/temp/gdk-config.json
-              mkdir -p $dir_name
-              cp -r ../../../common/*.py .
-              cp -r ../../../common/$dir_name/* $dir_name
-              rm -f greengrass_manager_v1.py
+
+              echo "Replacing place holders in recipe.yaml and gdk-config.json"              
               perl -pi -e "s/\+\+place_holder\+\+/${build_env}/g" recipe.yaml
               perl -pi -e "s/\{ENV\}/${build_env}/g" gdk-config.json
               jq '.component."'$build_env'_'$component_name'" = .component.place_holder | del(.component.place_holder)' gdk-config.json > tmp.json && mv tmp.json gdk-config.json
+              
               gdk component build
               gdk component publish -b $s3_gg2_path_base
+
               echo "put back original recipe and gdk-config files"
               cp $current_path/temp/recipe.yaml recipe.yaml
               cp $current_path/temp/gdk-config.json gdk-config.json
