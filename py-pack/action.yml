@@ -215,9 +215,11 @@ runs:
                 cp -r $common_path/*.py .
                 rm -f greengrass_manager_v1.py
 
-                echo "Copying $component_name component files to $dir_name folder"
-                mkdir -p $dir_name
-                cp -r $common_path/$dir_name/* $dir_name
+                if [ -d $common_path/$dir_name ]; then
+                  echo "Copying $component_name component common files to $dir_name folder"
+                  mkdir -p $dir_name
+                  cp -r $common_path/$dir_name/* $dir_name
+                fi
               fi
 
               cp recipe.yaml $current_path/temp/recipe.yaml
