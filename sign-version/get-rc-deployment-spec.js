@@ -1,4 +1,4 @@
-// this file is duplicated in resolve-deployment-spec
+// this file is duplicated in resolve-deployment-spec except for the gg2_components
 const core = require("@actions/core");
 const {
   SSMClient,
@@ -62,49 +62,55 @@ async function getRcServices() {
 }
 
 async function getRcGG2Components() {
+  const components = await fetchAllComponents();
+
+  const prodComponents = filterComponentsByPrefix(components, "prod");
+  const testComponents = filterComponentsByPrefix(components, "test");
+
+  const prodComponentMap = mapComponentsByName(prodComponents, "prod_");
+  const testComponentMap = mapComponentsByName(testComponents, "test_");
+
+  return compareAndBuildComponentList(prodComponentMap, testComponentMap);
+}
+
+async function fetchAllComponents() {
   const components = [];
-  const command = new ListComponentsCommand();
-  const response = await gg_client.send(command);
-  components.push(...response.components);
-  while (response.nextToken) {
-    command.input.nextToken = response.nextToken;
+  let command = new ListComponentsCommand();
+  let response;
+
+  do {
     response = await gg_client.send(command);
     components.push(...response.components);
-  }
+    command.input.nextToken = response.nextToken;
+  } while (response.nextToken);
 
-  if (components.length === 0) {
-    throw new Error("No GreengrassV2 components detected");
-  }
+  return components;
+}
 
-  const prodComponents = components.filter((component) =>
-    component.name.startsWith("prod")
+function filterComponentsByPrefix(components, prefix) {
+  return components.filter((component) =>
+    component.componentName.startsWith(prefix)
   );
+}
 
-  const testComponents = components.filter((component) =>
-    component.name.startsWith("test")
-  );
+function mapComponentsByName(components, prefix) {
+  return components.reduce((map, component) => {
+    const name = component.componentName.replace(prefix, "");
+    map[name] = component;
+    return map;
+  }, {});
+}
 
-  const prodComponentMap = {};
-  const testComponentMap = {};
-
-  for (const component of prodComponents) {
-    const name = component.name.replace("prod_", "");
-    prodComponentMap[name] = component;
-  }
-
-  for (const component of testComponents) {
-    const name = component.name.replace("test_", "");
-    testComponentMap[name] = component;
-  }
-
+function compareAndBuildComponentList(prodComponentMap, testComponentMap) {
   const gg2_components = [];
+
   for (const name in prodComponentMap) {
     if (!testComponentMap[name]) {
       throw new Error(`Component ${name} not found in test environment`);
     }
 
-    const prodVersion = prodComponentMap[name].latestVersion;
-    const testVersion = testComponentMap[name].latestVersion;
+    const prodVersion = prodComponentMap[name].latestVersion.componentVersion;
+    const testVersion = testComponentMap[name].latestVersion.componentVersion;
 
     if (prodVersion !== testVersion) {
       throw new Error(
@@ -114,6 +120,8 @@ async function getRcGG2Components() {
 
     gg2_components.push({ name, version: prodVersion });
   }
+
+  return gg2_components;
 }
 
 async function getRcDeploymentSpec(versionName) {

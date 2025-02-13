@@ -6,8 +6,8 @@ const core = require("@actions/core");
 const github = require("@actions/github");
 
 const { getRcDeploymentSpec } = require("./get-rc-deployment-spec");
-// const { updateCiVersion } = require("./update-ci-version");
-// const { createVersion } = require("./create-version");
+const { updateCiVersion } = require("./update-ci-version");
+const { createVersion } = require("./create-version");
 
 async function run() {
   try {
@@ -32,18 +32,17 @@ async function run() {
       spec = await getRcDeploymentSpec(versionName);
     }
 
-    console.log("****Rc Deployment Spec", spec);
-    // await createVersion({
-    //   name: versionName,
-    //   spec,
-    //   timestamp,
-    //   datetime,
-    //   author,
-    // });
+    await createVersion({
+      name: versionName,
+      spec,
+      timestamp,
+      datetime,
+      author,
+    });
 
-    // if (!versionSpec) {
-    //   await updateCiVersion(versionName);
-    // }
+    if (!versionSpec) {
+      await updateCiVersion(versionName);
+    }
   } catch (error) {
     console.log(error);
     core.setFailed(error.message);
