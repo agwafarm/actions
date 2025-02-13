@@ -1,15 +1,20 @@
-name: 'sign-version'
-description: 'Creates a named version from current RC pointers'
+name: "sign-version"
+description: "Creates a named version from current RC pointers"
 inputs:
   version:
-    description: 'The version name'
+    description: "The version name"
     required: true
   awsRegion:
-    description: 'The AWS region from which to get SSM parameters'
+    description: "The AWS region from which to get SSM parameters"
     required: true
   versionSpec:
-    description: 'The version spec to sign'
+    description: "The version spec to sign"
     required: false
 runs:
-  using: 'node12'
-  main: 'index.js'
+  using: "node12"
+  pre:
+    steps:
+      - name: Install sign-version dependencies
+        run: npm ci
+        shell: bash
+  main: "index.js"
