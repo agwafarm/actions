@@ -13,6 +13,9 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Change to action directory
+      run: cd ${{ github.action_path }}
+      shell: bash
     - name: Install dependencies
       run: npm ci
       shell: bash
