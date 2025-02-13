@@ -4,7 +4,7 @@ package-lock.json
 cdk.out
 specs/
 
-node_modules
+**/node_modules
 .pyenv
 .venv
 !resolve-deployment-spec/**
