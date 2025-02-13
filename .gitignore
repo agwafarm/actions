@@ -1,13 +1,13 @@
 .vscode
 .DS_Store
-package-lock.json
 cdk.out
 specs/
 
-**/node_modules
 .pyenv
 .venv
 !resolve-deployment-spec/**
 !sign-version/**
 playground.sh
 .idea
+node_modules
+package-lock.json
