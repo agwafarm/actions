@@ -4,7 +4,7 @@
   "description": "build args resolver action",
   "main": "index.js",
   "dependencies": {
-    "@actions/core": "1.11.1",
+    "@actions/core": "1.2.6",
     "@actions/github": "4.0.0",
     "@aws-sdk/client-greengrassv2": "3.744.0",
     "@aws-sdk/client-ssm": "3.8.1",
