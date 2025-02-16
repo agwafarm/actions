@@ -64,11 +64,11 @@ async function getRcServices() {
 async function getRcGG2Components() {
   const components = await fetchAllComponents();
 
-  const prodComponents = filterComponentsByPrefix(components, "prod");
-  const testComponents = filterComponentsByPrefix(components, "test");
+  const prodComponents = filterComponentsByEnv(components, "prod");
+  const testComponents = filterComponentsByEnv(components, "test");
 
-  const prodComponentMap = mapComponentsByName(prodComponents, "prod_");
-  const testComponentMap = mapComponentsByName(testComponents, "test_");
+  const prodComponentMap = mapComponentsByName(prodComponents, "prod");
+  const testComponentMap = mapComponentsByName(testComponents, "test");
 
   return compareAndBuildComponentList(prodComponentMap, testComponentMap);
 }
@@ -87,15 +87,15 @@ async function fetchAllComponents() {
   return components;
 }
 
-function filterComponentsByPrefix(components, prefix) {
+function filterComponentsByEnv(components, env) {
   return components.filter((component) =>
-    component.componentName.startsWith(prefix)
+    component.componentName.startsWith(env)
   );
 }
 
-function mapComponentsByName(components, prefix) {
+function mapComponentsByName(components, env) {
   return components.reduce((map, component) => {
-    const name = component.componentName.replace(prefix, "");
+    const name = component.componentName.replace(`${env}_`, "");
     map[name] = component;
     return map;
   }, {});
