@@ -1,11 +1,15 @@
-// this file is duplicated in resolve-deployment-spec
+// this file is duplicated in resolve-deployment-spec except for the gg2_components
 const core = require("@actions/core");
 const {
   SSMClient,
   GetParametersByPathCommand,
 } = require("@aws-sdk/client-ssm");
-
+const {
+  GreengrassV2Client,
+  ListComponentsCommand,
+} = require("@aws-sdk/client-greengrassv2");
 const ssmClient = new SSMClient({ region: "us-west-2" });
+const gg_client = new GreengrassV2Client({ region: "us-west-2" });
 const github = require("@actions/github");
 const author = github.context.actor;
 
@@ -57,12 +61,77 @@ async function getRcServices() {
   return { services, frontends };
 }
 
+async function getRcGG2Components() {
+  const components = await fetchAllComponents();
+
+  const prodComponents = filterComponentsByEnv(components, "prod");
+  const testComponents = filterComponentsByEnv(components, "test");
+
+  const prodComponentMap = mapComponentsByName(prodComponents, "prod");
+  const testComponentMap = mapComponentsByName(testComponents, "test");
+
+  return compareAndBuildComponentList(prodComponentMap, testComponentMap);
+}
+
+async function fetchAllComponents() {
+  const components = [];
+  let command = new ListComponentsCommand();
+  let response;
+
+  do {
+    response = await gg_client.send(command);
+    components.push(...response.components);
+    command.input.nextToken = response.nextToken;
+  } while (response.nextToken);
+
+  return components;
+}
+
+function filterComponentsByEnv(components, env) {
+  return components.filter((component) =>
+    component.componentName.startsWith(env)
+  );
+}
+
+function mapComponentsByName(components, env) {
+  return components.reduce((map, component) => {
+    const name = component.componentName.replace(`${env}_`, "");
+    map[name] = component;
+    return map;
+  }, {});
+}
+
+function compareAndBuildComponentList(prodComponentMap, testComponentMap) {
+  const gg2_components = [];
+
+  for (const name in prodComponentMap) {
+    if (!testComponentMap[name]) {
+      throw new Error(`Component ${name} not found in test environment`);
+    }
+
+    const prodVersion = prodComponentMap[name].latestVersion.componentVersion;
+    const testVersion = testComponentMap[name].latestVersion.componentVersion;
+
+    if (prodVersion !== testVersion) {
+      throw new Error(
+        `Component ${name} version mismatch: prod=${prodVersion}, test=${testVersion}`
+      );
+    }
+
+    gg2_components.push({ name, version: prodVersion });
+  }
+
+  return gg2_components;
+}
+
 async function getRcDeploymentSpec(versionName) {
   const services = await getRcServices();
+  const gg2_components = await getRcGG2Components();
   const timestamp = Date.now();
 
   return {
     ...services,
+    gg2_components,
     name: versionName,
     timestamp,
     author,

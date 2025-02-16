@@ -1,4 +1,4 @@
-// this file is duplicated from sign-version
+// this file is duplicated from sign-version except for the gg2_components
 const core = require("@actions/core");
 const {
   SSMClient,
