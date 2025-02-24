@@ -213,6 +213,7 @@ runs:
               else
                 echo "Copying common greengrass files"
                 cp -r $common_path/*.py .
+                cp -r $common_path/utils .
                 rm -f greengrass_manager_v1.py
 
                 if [ -d $common_path/$dir_name ]; then
