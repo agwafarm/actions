@@ -178,7 +178,7 @@ runs:
 
           echo "------------ Uploading Greengrass V2 Service ------------"
 
-          declare -a envs_arr=("$target_env")
+          declare -a envs_arr=()
           if [ "$s3_retainment" = "standard" ]; then
             envs_arr+=("test" "prod")
           fi
