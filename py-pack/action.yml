@@ -156,6 +156,7 @@ runs:
             pushd "src/gg1/lambdas/sensors/${func_name}"
             mkdir -p sensors/${func_name}
             cp -r ../../../../common/*.py .
+            cp -r ../../../../common/utils .
             cp -r ../../../../common/sensors/common sensors
             cp -r ../../../../common/sensors/${func_name}/* sensors/${func_name}
             zip -r ../../../../../artifacts/${func_name}.zip .
@@ -170,6 +171,7 @@ runs:
             pushd "src/gg1/lambdas/actuators/${func_name}"
             mkdir -p actuators/${func_name}
             cp -r ../../../../common/*.py .
+            cp -r ../../../../common/utils .
             cp -r ../../../../common/actuators/common actuators
             cp -r ../../../../common/actuators/${func_name}/* actuators/${func_name}
             zip -r ../../../../../artifacts/${func_name}.zip .
