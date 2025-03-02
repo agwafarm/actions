@@ -142,6 +142,7 @@ runs:
             pushd "src/gg1/lambdas/general/${func_name}"
             mkdir -p general/${func_name}
             cp -r ../../../../common/*.py .
+            cp -r ../../../../common/utils .
             cp -r ../../../../common/general/${func_name}/ general/
             zip -r ../../../../../artifacts/${func_name}.zip .
             popd
