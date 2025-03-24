@@ -60,7 +60,7 @@ runs:
         branch_name=$(echo $git_ref | sed -e 's/^refs\/heads\///')
         echo branch name $branch_name
 
-        if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ] || [ "${{ inputs.hotfix }}" = "true" ]; then
+        if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ] || [ "$branch_name" = "hotfix/water_level" ] || [ "${{ inputs.hotfix }}" = "true" ]; then
           s3_retainment=standard
           target_env=ci
         else
