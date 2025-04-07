@@ -1,6 +1,7 @@
 import * as cdk from "@aws-cdk/core";
 import * as s3 from "@aws-cdk/aws-s3";
 import * as ssm from "@aws-cdk/aws-ssm";
+import * as iam from "@aws-cdk/aws-iam";
 import * as cloudfront from "@aws-cdk/aws-cloudfront";
 import * as route53 from "@aws-cdk/aws-route53";
 
@@ -12,11 +13,19 @@ export interface FrontendDeploymentProps extends cdk.StackProps {
 }
 
 export class FrontendDeployment extends BaseStack {
-  constructor(scope: cdk.Construct, id: string, accountId: string, deployDnsRecord: boolean) {
-    super(scope, id, { env: {
-      region: "us-west-2",
-      account: accountId,
-    } });
+  constructor(
+    scope: cdk.Construct,
+    id: string,
+    accountId: string,
+    deployDnsRecord: boolean,
+    isNonDevAccountBucket: boolean
+  ) {
+    super(scope, id, {
+      env: {
+        region: "us-west-2",
+        account: accountId,
+      },
+    });
 
     const indexPath = this.getEnvVariable("INDEX_PATH");
     const routingDomain = this.getEnvVariable("ROUTING_DOMAIN");
@@ -29,6 +38,32 @@ export class FrontendDeployment extends BaseStack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
       accessControl: s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
     });
+
+    if (isNonDevAccountBucket) {
+      websiteBucket.addToResourcePolicy(
+        new iam.PolicyStatement({
+          sid: "AllowAccountBReadAccess",
+          effect: iam.Effect.ALLOW,
+          principals: [
+            new iam.ArnPrincipal("arn:aws:iam::471112775292:user/github"),
+          ],
+          actions: ["s3:GetObject"],
+          resources: [`${websiteBucket.bucketArn}/*`],
+        })
+      );
+
+      websiteBucket.addToResourcePolicy(
+        new iam.PolicyStatement({
+          sid: "AllowAccountBListAccess",
+          effect: iam.Effect.ALLOW,
+          principals: [
+            new iam.ArnPrincipal("arn:aws:iam::471112775292:user/github"),
+          ],
+          actions: ["s3:ListBucket"],
+          resources: [websiteBucket.bucketArn],
+        })
+      );
+    }
 
     const distribution = new cloudfront.CloudFrontWebDistribution(
       this,

@@ -247,6 +247,8 @@ runs:
           rm -rf $current_path/temp
 
         else
+          # Not greengrass
+          
           for d in src/lambdas/*/ ; do
             func_name=$(basename "$d")
             func_path=src/lambdas/${func_name}
