@@ -3,6 +3,12 @@ set -e
 set -u
 set -o pipefail
 
+account_id=$(aws sts get-caller-identity --query Account --output text)
+if [ "$account_id" != "953022346399" ]; then
+   echo "invalid aws account, aborting"
+   exit 1
+fi
+
 rc_version=$GITHUB_SHA
 
 service_name=$GITHUB_REPOSITORY
