@@ -8,8 +8,6 @@ export AWS_PROD_PROFILE=default
 export AWS_PROFILE=$AWS_DEV_PROFILE
 sh /action/build-aws-profile.sh
 
-echo target aws account $TARGET_AWS_ACCOUNT
-
 cd /action
 
 service_name=$GITHUB_REPOSITORY
