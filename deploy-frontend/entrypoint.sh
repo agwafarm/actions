@@ -38,6 +38,7 @@ if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
    target_env=ci
 else
    s3_retainment=low
+   lower_case_github_actor=$(echo $GITHUB_TRIGGERING_ACTOR | tr '[:upper:]' '[:lower:]')
    target_env="dev${GITHUB_TRIGGERING_ACTOR}"
 fi
 
