@@ -39,7 +39,8 @@ if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
 else
    s3_retainment=low
    lower_case_github_actor=$(echo $GITHUB_TRIGGERING_ACTOR | tr '[:upper:]' '[:lower:]')
-   target_env="dev${GITHUB_TRIGGERING_ACTOR}"
+   target_env="dev${lower_case_github_actor}"
+   echo target env $target_env
 fi
 
 export APP_COMPANY_NAME=agwa
