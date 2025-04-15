@@ -40,8 +40,9 @@ else
    s3_retainment=low
    lower_case_github_actor=$(echo $GITHUB_TRIGGERING_ACTOR | tr '[:upper:]' '[:lower:]')
    target_env="dev${lower_case_github_actor}"
-   echo target env $target_env
 fi
+echo s3 retainment $s3_retainment
+echo target env $target_env
 
 export APP_COMPANY_NAME=agwa
 
