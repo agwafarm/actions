@@ -133,6 +133,11 @@ runs:
         fi
 
         if [ "$service_name" = "greengrass-parent" ]; then
+          export AWS_DEV_PROFILE=dev
+          export AWS_PROD_PROFILE=default
+          export AWS_PROFILE=$AWS_DEV_PROFILE
+          sh /action/build-aws-profile.sh
+
           echo "------------ Uploading Greengrass V1 Service ------------"
 
           echo "Uploading General Lambdas"
@@ -192,6 +197,15 @@ runs:
           
           for build_env in "${envs_arr[@]}"; do
             echo "---- uploading to $build_env env ----"
+
+            if [ "$build_env" = "test" ] || [ "$build_env" = "prod" ]; then
+              echo "Using prod profile"
+              export AWS_PROFILE=$AWS_PROD_PROFILE
+            else
+              echo "Using dev profile"
+              export AWS_PROFILE=$AWS_DEV_PROFILE
+            fi
+
             s3_gg2_path_base="${build_env}-agwa-gg2-agwa-components-bucket"
             agwa_m_app_bucket="${build_env}-agwa-m-app"
             echo s3 gg2 components bucket $s3_gg2_path_base
