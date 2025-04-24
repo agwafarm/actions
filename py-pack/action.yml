@@ -36,6 +36,7 @@ runs:
         fi
         if [ "$service_name" = "greengrass-service" ]; then
            service_name=greengrass-parent
+           export AWS_PROFILE=dev
         fi
 
         echo Environment: ${{ inputs.environment }}
@@ -192,6 +193,18 @@ runs:
           
           for build_env in "${envs_arr[@]}"; do
             echo "---- uploading to $build_env env ----"
+
+            if [ "$build_env" = "test" ] || [ "$build_env" = "prod" ]; then
+              echo "Using prod profile"
+              export AWS_PROFILE=production
+            else
+              echo "Using dev profile"
+              export AWS_PROFILE=dev
+            fi
+
+            aws_account_id=$(aws sts get-caller-identity --query Account --output text)
+            echo "aws_account_id: $aws_account_id"
+
             s3_gg2_path_base="${build_env}-agwa-gg2-agwa-components-bucket"
             agwa_m_app_bucket="${build_env}-agwa-m-app"
             echo s3 gg2 components bucket $s3_gg2_path_base
