@@ -83,6 +83,7 @@ cd /github/workspace
 # We need to save time on our four builds during merge
 export DISABLE_ESLINT_PLUGIN=true
 export NODE_OPTIONS="--max-old-space-size=8192"
+export GENERATE_SOURCEMAP=false
 npm run build
 
 # copy build to bucket for ci / dev environment
