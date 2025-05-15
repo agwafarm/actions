@@ -221,6 +221,12 @@ runs:
               if [ "$component_name" = "policy_manager" ]; then
                 dir_name=general
               fi
+              if [ "$component_name" = "sensors_agwa_m" ]; then
+                dir_name=sensors
+              fi
+              if [ "$component_name" = "actuators_agwa_m" ]; then
+                dir_name=actuators
+              fi
 
               echo "component_name: $component_name"
               if [ "$component_name" = "agwa_m_web_app" ]; then
