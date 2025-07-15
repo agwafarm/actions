@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:20
 
 # Install AWS CLI
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.1.30.zip" -o "awscliv2.zip"
