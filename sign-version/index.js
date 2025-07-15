@@ -32,17 +32,19 @@ async function run() {
       spec = await getRcDeploymentSpec(versionName);
     }
 
-    await createVersion({
-      name: versionName,
-      spec,
-      timestamp,
-      datetime,
-      author,
-    });
+    console.log("spec", spec);
 
-    if (!versionSpec) {
-      await updateCiVersion(versionName);
-    }
+    // await createVersion({
+    //   name: versionName,
+    //   spec,
+    //   timestamp,
+    //   datetime,
+    //   author,
+    // });
+
+    // if (!versionSpec) {
+    //   await updateCiVersion(versionName);
+    // }
   } catch (error) {
     console.log(error);
     core.setFailed(error.message);
