@@ -48,7 +48,13 @@ async function resolveDeploymentSpec(env, version, versionSpec) {
   const services = await Promise.all(servicePromises);
   const frontends = await Promise.all(frontendPromises);
 
-  return { services, frontends, version, env };
+  return {
+    services,
+    frontends,
+    gg2_components: versionSpec.gg2_components || [],
+    version,
+    env,
+  };
 }
 
 async function resolveSignedVersion(env, version) {
