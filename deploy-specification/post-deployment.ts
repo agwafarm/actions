@@ -27,7 +27,7 @@ async function updateEnvPointer() {
   );
 }
 
-function syncBuckets(sourcePrefix: string, targetBucket: string) {
+function syncForntendBuckets(sourcePrefix: string, targetBucket: string) {
   return new Promise((resolve, reject) => {
     // First, list the source files to see what's available
     const listArgs = [
@@ -134,7 +134,10 @@ async function updateS3Artifacts() {
   for (const frontend of frontends) {
     const frontendBucket = frontend.parameters.BucketName;
     const sourcePrefix = `standard/${frontend.serviceName}/${frontend.version}/web/${env}`;
-    const syncBucketsPromise = syncBuckets(sourcePrefix, frontendBucket);
+    const syncBucketsPromise = syncForntendBuckets(
+      sourcePrefix,
+      frontendBucket
+    );
 
     promises.push(syncBucketsPromise);
   }
