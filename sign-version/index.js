@@ -34,17 +34,17 @@ async function run() {
 
     console.log("spec", spec);
 
-    // await createVersion({
-    //   name: versionName,
-    //   spec,
-    //   timestamp,
-    //   datetime,
-    //   author,
-    // });
+    await createVersion({
+      name: versionName,
+      spec,
+      timestamp,
+      datetime,
+      author,
+    });
 
-    // if (!versionSpec) {
-    //   await updateCiVersion(versionName);
-    // }
+    if (!versionSpec) {
+      await updateCiVersion(versionName);
+    }
   } catch (error) {
     console.log(error);
     core.setFailed(error.message);
