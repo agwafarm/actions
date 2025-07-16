@@ -19,8 +19,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      NODE_OPTIONS: --openssl-legacy-provider
     steps:
       - name: "Checkout Repository"
         uses: actions/checkout@v2
