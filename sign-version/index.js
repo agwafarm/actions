@@ -32,6 +32,8 @@ async function run() {
       spec = await getRcDeploymentSpec(versionName);
     }
 
+    console.log("spec", spec);
+
     await createVersion({
       name: versionName,
       spec,
