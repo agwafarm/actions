@@ -27,8 +27,29 @@ async function updateEnvPointer() {
   );
 }
 
-function syncBuckets(sourcePrefix: string, targetBucket: string) {
+function syncForntendBuckets(sourcePrefix: string, targetBucket: string) {
   return new Promise((resolve, reject) => {
+    // First, list the source files to see what's available
+    const listArgs = [
+      "s3",
+      "ls",
+      "--recursive",
+      `s3://agwa-ci-assets/${sourcePrefix}`,
+    ];
+
+    console.log(`listing source files: aws ${listArgs.join(" ")}`);
+
+    const listChild = spawnSync("aws", listArgs, {
+      env: process.env,
+      cwd: process.cwd(),
+      stdio: "pipe",
+      encoding: "ascii",
+    });
+
+    console.log(
+      `source files in ${sourcePrefix}:${EOL}${listChild.stdout}${EOL}`
+    );
+
     const syncArgs = [
       "s3",
       "sync",
@@ -39,6 +60,7 @@ function syncBuckets(sourcePrefix: string, targetBucket: string) {
     ];
 
     console.log(`syncing: ${sourcePrefix} with target bucket ${targetBucket}.`);
+    console.log(`sync command: aws ${syncArgs.join(" ")}`);
 
     const child = spawnSync("aws", syncArgs, {
       env: process.env,
@@ -49,13 +71,48 @@ function syncBuckets(sourcePrefix: string, targetBucket: string) {
 
     console.log(`sync ${targetBucket} output:${EOL}${child.stdout}${EOL}`);
 
+    if (child.stderr) {
+      console.log(`sync ${targetBucket} stderr:${EOL}${child.stderr}${EOL}`);
+    }
+
+    // Force copy index.html specifically to ensure it's always updated
+    const indexCopyArgs = [
+      "s3",
+      "cp",
+      `s3://agwa-ci-assets/${sourcePrefix}/index.html`,
+      `s3://${targetBucket}/index.html`,
+      "--content-type",
+      "text/html",
+    ];
+
+    console.log(`force copying index.html: aws ${indexCopyArgs.join(" ")}`);
+
+    const indexChild = spawnSync("aws", indexCopyArgs, {
+      env: process.env,
+      cwd: process.cwd(),
+      stdio: "pipe",
+      encoding: "ascii",
+    });
+
+    console.log(`index.html copy output:${EOL}${indexChild.stdout}${EOL}`);
+
+    if (indexChild.stderr) {
+      console.log(`index.html copy stderr:${EOL}${indexChild.stderr}${EOL}`);
+    }
+
     const failure = child.status || child.signal;
+    const indexFailure = indexChild.status || indexChild.signal;
+
     if (failure) {
       console.log(
         `failed to sync source: ${sourcePrefix} with target bucket ${targetBucket}. reason: ${failure}`
       );
-
       reject(failure);
+    } else if (indexFailure) {
+      console.log(
+        `failed to copy index.html from source: ${sourcePrefix} to target bucket ${targetBucket}. reason: ${indexFailure}`
+      );
+      reject(indexFailure);
     } else {
       console.log(
         `successfully synced source: ${sourcePrefix} with target bucket: ${targetBucket}`
@@ -77,7 +134,10 @@ async function updateS3Artifacts() {
   for (const frontend of frontends) {
     const frontendBucket = frontend.parameters.BucketName;
     const sourcePrefix = `standard/${frontend.serviceName}/${frontend.version}/web/${env}`;
-    const syncBucketsPromise = syncBuckets(sourcePrefix, frontendBucket);
+    const syncBucketsPromise = syncForntendBuckets(
+      sourcePrefix,
+      frontendBucket
+    );
 
     promises.push(syncBucketsPromise);
   }
