@@ -2,19 +2,16 @@
   "name": "deploy-frontend",
   "version": "0.1.0",
   "dependencies": {
-    "@aws-cdk/aws-cloudfront": "1.94.1",
-    "@aws-cdk/aws-s3": "1.94.1",
-    "@aws-cdk/aws-ssm": "1.94.1",
-    "@aws-cdk/core": "1.94.1",
-    "@aws-sdk/client-ssm": "3.8.1",
-    "@types/url-join": "4.0.1",
-    "dotenv": "8.2.0",
-    "source-map-support": "0.5.16",
-    "ts-node": "^9.0.0",
-    "typescript": "~3.9.7",
-    "url-join": "4.0.1"
+    "aws-cdk-lib": "^2.206.0",
+    "constructs": "^10.4.2",
+    "@aws-sdk/client-ssm": "^3.849.0",
+    "dotenv": "^17.2.0",
+    "source-map-support": "^0.5.21",
+    "url-join": "^5.0.0"
   },
   "devDependencies": {
+    "typescript": "^5.8.3",
+    "ts-node": "^10.9.2",
     "@types/node": "^22.10.5"
   }
 }
