@@ -5,9 +5,7 @@ import {
   aws_ssm as ssm,
   aws_iam as iam,
   aws_cloudfront as cloudfront,
-  aws_cloudfront_origins as origins,
   aws_route53 as route53,
-  aws_certificatemanager as acm,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -71,38 +69,49 @@ export class FrontendDeployment extends BaseStack {
       );
     }
 
-    const distribution = new cloudfront.Distribution(
+    const distribution = new cloudfront.CloudFrontWebDistribution(
       this,
       "CloudfrontWebDistribution",
       {
         defaultRootObject: indexPath,
-        defaultBehavior: {
-          origin: new origins.S3Origin(websiteBucket),
-          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED, // SPA, no HTML caching
-          viewerProtocolPolicy:
-            cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        },
-        errorResponses: [
+        errorConfigurations: [
           // Give SPA control over navigation- reroute all 404 to index.html
           {
-            ttl: Duration.days(365),
-            httpStatus: 404,
-            responseHttpStatus: 200,
+            errorCachingMinTtl: Duration.days(365).toSeconds(),
+            errorCode: 404,
+            responseCode: 200,
             responsePagePath: this.getEnvVariable("NOT_FOUND_PATH"),
           },
           {
-            ttl: Duration.days(365),
-            httpStatus: 403,
-            responseHttpStatus: 200,
+            errorCachingMinTtl: Duration.days(365).toSeconds(),
+            errorCode: 403,
+            responseCode: 200,
             responsePagePath: this.getEnvVariable("NOT_FOUND_PATH"),
           },
         ],
-        domainNames: [routingDomain],
-        certificate: acm.Certificate.fromCertificateArn(
-          this,
-          "Certificate",
-          this.getSslCert(accountId)
-        ),
+        originConfigs: [
+          {
+            s3OriginSource: {
+              s3BucketSource: websiteBucket,
+            },
+            behaviors: [
+              {
+                // index.html should not be cached based on name
+                defaultTtl: Duration.seconds(0),
+                maxTtl: Duration.days(0),
+                minTtl: Duration.days(0),
+                isDefaultBehavior: true,
+              },
+            ],
+          },
+        ],
+        viewerCertificate: {
+          aliases: [routingDomain],
+          props: {
+            acmCertificateArn: this.getSslCert(accountId),
+            sslSupportMethod: cloudfront.SSLMethod.SNI,
+          },
+        },
       }
     );
 
