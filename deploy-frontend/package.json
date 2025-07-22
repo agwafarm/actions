@@ -2,15 +2,15 @@
   "name": "deploy-frontend",
   "version": "0.1.0",
   "dependencies": {
-    "aws-cdk-lib": "^2.206.0",
-    "constructs": "^10.4.2",
-    "@aws-sdk/client-ssm": "^3.849.0",
-    "dotenv": "^17.2.0",
-    "source-map-support": "^0.5.21",
-    "url-join": "^5.0.0"
+    "aws-cdk-lib": "2.206.0",
+    "constructs": "10.4.2",
+    "@aws-sdk/client-ssm": "3.849.0",
+    "dotenv": "17.2.0",
+    "source-map-support": "0.5.21",
+    "url-join": "5.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.8.3",
+    "typescript": "5.8.3",
     "ts-node": "^10.9.2",
     "@types/node": "^22.10.5"
   }

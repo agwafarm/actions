@@ -8,7 +8,7 @@ RUN sh ./aws/install
 RUN apt update -y
 RUN apt install -y jq
 
-RUN npm i -g aws-cdk@1.94.1
+RUN npm install -g aws-cdk@2.206.0
 
 WORKDIR /action
 
