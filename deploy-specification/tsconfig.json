@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "module": "commonjs",
-    "lib": ["ES2020"],
-
+    "lib": ["es2022"],
     "declaration": true,
     "strict": true,
     "noImplicitAny": true,
@@ -14,13 +13,10 @@
     "noUnusedParameters": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": false,
-
     "inlineSourceMap": true,
     "inlineSources": true,
-
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
-
     "typeRoots": ["./node_modules/@types"],
     "esModuleInterop": true,
     "skipLibCheck": true
