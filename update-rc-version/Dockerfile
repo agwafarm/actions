@@ -1,4 +1,4 @@
-FROM agwafarm/base
+FROM agwafarm/base:v2
 
 WORKDIR /action
 
