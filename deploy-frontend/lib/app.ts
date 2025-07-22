@@ -3,7 +3,7 @@ import "source-map-support/register";
 
 import * as env from "dotenv";
 
-env.config({ path: ".config" });
+env.config({ path: ".config", quiet: true });
 
 import { FrontendApp } from "./FrontendApp";
 
