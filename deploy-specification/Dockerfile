@@ -1,11 +1,6 @@
-FROM agwafarm/base:v2
+FROM agwafarm/deploy-specification:v2
 
 WORKDIR /action
-
-COPY package-lock.json package.json ./
-RUN npm ci
-
-ENV PATH="/action/node_modules/.bin:${PATH}"
 
 COPY . .
 
