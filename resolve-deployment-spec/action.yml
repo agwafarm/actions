@@ -2,7 +2,7 @@ name: "resolve-deployment-spec"
 description: "Resolves the deployment specification"
 inputs:
   environment:
-    description: "Environment to apply to the speification"
+    description: "Environment to apply to the specification"
     required: true
   service:
     description: "Service to resolve (if applicable). If not specified, resolves all services"
