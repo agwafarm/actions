@@ -4,10 +4,10 @@
   "description": "build args resolver action",
   "main": "index.js",
   "dependencies": {
-    "@actions/core": "1.2.6",
-    "@actions/github": "4.0.0",
+    "@actions/core": "1.11.1",
+    "@actions/github": "6.0.1",
     "@aws-sdk/client-greengrassv2": "3.744.0",
-    "@aws-sdk/client-ssm": "3.8.1",
-    "dotenv": "8.2.0"
+    "@aws-sdk/client-ssm": "3.849.0",
+    "dotenv": "17.2.0"
   }
 }

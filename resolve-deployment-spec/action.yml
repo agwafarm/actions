@@ -1,18 +1,18 @@
-name: 'resolve-deployment-spec'
-description: 'Resolves the deployment specification'
+name: "resolve-deployment-spec"
+description: "Resolves the deployment specification"
 inputs:
   environment:
-    description: 'Environment to apply to the speification'
+    description: "Environment to apply to the specification"
     required: true
   service:
-    description: 'Service to resolve (if applicable). If not specified, resolves all services'
+    description: "Service to resolve (if applicable). If not specified, resolves all services"
     required: false
   version:
-    description: 'If service specified, shall be considered version to resolve (defaults to latest). Otherwise - becomes required. shall be considered the signed version to deploy.'
+    description: "If service specified, shall be considered version to resolve (defaults to latest). Otherwise - becomes required. shall be considered the signed version to deploy."
     required: false
 outputs:
   spec:
-    description: 'A JSON string representing the deployment specification'
+    description: "A JSON string representing the deployment specification"
 runs:
-  using: 'node12'
-  main: 'index.js'
+  using: "node20"
+  main: "index.js"

@@ -1,6 +1,9 @@
-FROM agwafarm/base
+FROM agwafarm/base:v2
 
 WORKDIR /action
+
+RUN npm config -g set prefix /usr/local \
+    && npm install -g aws-cdk@2.1021.0
 
 COPY package-lock.json package.json ./
 RUN npm ci

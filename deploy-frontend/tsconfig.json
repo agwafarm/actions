@@ -1,32 +1,38 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "commonjs",
-    "lib": [
-      "ESNext"
-    ],
-    "declaration": false,
+    /* ---------- language & emit ---------- */
+    "target": "ES2022", // matches Node 22 feature set
+    "module": "commonjs", // CDK/ts-node friendly (change to "es2022" for full ESM)
+    "moduleResolution": "node",
+    "lib": ["ES2022"],
+    "resolveJsonModule": true,
+
+    /* ---------- strictness ---------- */
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noImplicitThis": true,
+    "strictPropertyInitialization": true,
     "alwaysStrict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+
+    /* ---------- source maps ---------- */
     "inlineSourceMap": true,
     "inlineSources": true,
-    "experimentalDecorators": false,
-    "strictPropertyInitialization": true,
-    "typeRoots": [
-      "./node_modules/@types"
-    ],
+
+    /* ---------- interop & tooling ---------- */
+    "esModuleInterop": true,
     "allowJs": true,
     "checkJs": false,
-    "esModuleInterop": true
+    "typeRoots": ["./node_modules/@types"],
+    "declaration": false,
+
+    /* ---------- type‑checking ---------- */
+    "skipLibCheck": false // leave on for full safety; flip to true if builds get slow
   },
-  "exclude": [
-    "cdk.out"
-  ]
+
+  "exclude": ["cdk.out"]
 }

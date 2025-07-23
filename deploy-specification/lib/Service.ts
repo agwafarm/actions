@@ -1,5 +1,6 @@
-import * as cdk from "@aws-cdk/core";
-import * as cinc from "@aws-cdk/cloudformation-include";
+import * as cdk from "aws-cdk-lib";
+import * as cinc from "aws-cdk-lib/cloudformation-include";
+import { Construct } from "constructs";
 
 export interface ServiceDefinition {
   stackName: string;
@@ -17,7 +18,7 @@ export interface ServiceProps {
 export class Service extends cdk.Stack {
   public readonly included: cinc.CfnInclude;
 
-  constructor(scope: cdk.Construct, id: string, props: ServiceProps) {
+  constructor(scope: Construct, id: string, props: ServiceProps) {
     super(scope, id);
 
     const { service } = props;

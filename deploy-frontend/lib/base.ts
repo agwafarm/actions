@@ -1,4 +1,5 @@
-import * as cdk from "@aws-cdk/core";
+import * as cdk from "aws-cdk-lib";
+import { Construct } from "constructs";
 import { DeploymentParameters } from "./types";
 
 export class BaseStack extends cdk.Stack {
@@ -39,8 +40,10 @@ export class BaseStack extends cdk.Stack {
 
   public getSslCert = (accountId: string): string => {
     const awsAccountIdToSslCert: Record<string, string> = {
-      '953022346399': 'arn:aws:acm:us-east-1:953022346399:certificate/336fae0d-6f3d-4c1c-95eb-9f083c03b57c',
-      '471112775292': 'arn:aws:acm:us-east-1:471112775292:certificate/fec1980a-f656-4d52-b4cc-4bccc0dc0b1b'
+      "953022346399":
+        "arn:aws:acm:us-east-1:953022346399:certificate/336fae0d-6f3d-4c1c-95eb-9f083c03b57c",
+      "471112775292":
+        "arn:aws:acm:us-east-1:471112775292:certificate/fec1980a-f656-4d52-b4cc-4bccc0dc0b1b",
     };
 
     if (!awsAccountIdToSslCert[accountId]) {
@@ -48,7 +51,7 @@ export class BaseStack extends cdk.Stack {
     }
 
     return awsAccountIdToSslCert[accountId];
-  }
+  };
 
   public resolveGlobalResourceName = (name: string): string => {
     if (this.isResolved(name)) {
@@ -76,7 +79,7 @@ export class BaseStack extends cdk.Stack {
     }).valueAsString;
   };
 
-  constructor(scope: cdk.Construct, id: string, props: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: cdk.StackProps) {
     super(scope, id, props);
 
     this.parameters = {
