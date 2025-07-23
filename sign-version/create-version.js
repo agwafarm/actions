@@ -26,20 +26,20 @@ async function createVersion({ name, spec, timestamp, datetime, author }) {
   console.log(`creating version ${name} in path: ${versionPath} with spec:`);
   console.log(JSON.stringify(spec, null, 3));
 
-  // await ssmClient.send(
-  //   new PutParameterCommand({
-  //     Name: versionPath,
-  //     Value: JSON.stringify(spec),
-  //     Description: `Version Specification for ${name}`,
-  //     Type: "String",
-  //     Tags: [
-  //       { Key: "author", Value: `${author}` },
-  //       { Key: "timestamp", Value: `${timestamp}` },
-  //       { Key: "datetime", Value: `${datetime.toISOString()}` },
-  //       { Key: "versionName", Value: `${name}` },
-  //     ],
-  //   })
-  // );
+  await ssmClient.send(
+    new PutParameterCommand({
+      Name: versionPath,
+      Value: JSON.stringify(spec),
+      Description: `Version Specification for ${name}`,
+      Type: "String",
+      Tags: [
+        { Key: "author", Value: `${author}` },
+        { Key: "timestamp", Value: `${timestamp}` },
+        { Key: "datetime", Value: `${datetime.toISOString()}` },
+        { Key: "versionName", Value: `${name}` },
+      ],
+    })
+  );
 
   console.log(`version spec created`);
 }
