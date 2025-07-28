@@ -1,4 +1,4 @@
-FROM node:20
+FROM node:22
 
 # Install AWS CLI
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.1.30.zip" -o "awscliv2.zip"
@@ -8,7 +8,7 @@ RUN sh ./aws/install
 RUN apt update -y
 RUN apt install -y jq
 
-RUN npm i -g aws-cdk@1.94.1
+RUN npm install -g aws-cdk@2.1021.0
 
 WORKDIR /action
 

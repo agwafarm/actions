@@ -1,4 +1,4 @@
-FROM agwafarm/deploy-specification
+FROM agwafarm/deploy-specification:v2
 
 WORKDIR /action
 
