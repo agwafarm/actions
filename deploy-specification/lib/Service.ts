@@ -19,7 +19,12 @@ export class Service extends cdk.Stack {
   public readonly included: cinc.CfnInclude;
 
   constructor(scope: Construct, id: string, props: ServiceProps) {
-    super(scope, id);
+    super(scope, id, {
+      // Prevent CDK from adding Parameters.BootstrapVersion and the rule
+      synthesizer: new cdk.DefaultStackSynthesizer({
+        generateBootstrapVersionRule: false,
+      }),
+    });
 
     const { service } = props;
 
