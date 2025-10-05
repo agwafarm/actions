@@ -155,6 +155,11 @@ async function run() {
       firebaseAppId = await configuration.getSecret(`firebase/${app}/appId`);
     } catch (e) {}
 
+    let intercomAppId = "";
+    try {
+      intercomAppId = await configuration.getSecret("intercom/appId");
+    } catch (e) {}
+
     const mqttEndpoint = await configuration.getParameter(`mqtt/endpoint`);
 
     const variables = {
@@ -173,6 +178,7 @@ async function run() {
       REACT_APP_MQTT_ENDPOINT: mqttEndpoint,
       REACT_APP_AGWA_ENV: env,
       REACT_APP_PLANT_IMAGE_BASE_URL: plantImageBaseUrl,
+      REACT_APP_INTERCOM_APP_ID: intercomAppId,
     };
 
     console.log("variables: ", JSON.stringify(variables, null, 3));
