@@ -157,7 +157,7 @@ async function run() {
 
     let intercomAppId = "";
     try {
-      intercomAppId = await configuration.getSecret("/secret/intercom/appId");
+      intercomAppId = await configuration.getSecret("intercom/appId");
     } catch (e) {}
 
     const mqttEndpoint = await configuration.getParameter(`mqtt/endpoint`);
