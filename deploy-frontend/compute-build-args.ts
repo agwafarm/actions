@@ -27,8 +27,14 @@ class ConfigurationService {
     this.client = new SSMClient({ region: "us-west-2" });
   }
 
-  getEnvParameter = async (key: string, paramEnvironment?: string) => {
-    const name = `/infra/${paramEnvironment || env}/${key}`;
+  getEnvParameter = async (
+    key: string,
+    paramEnvironment?: string,
+    withPrefix: boolean = true
+  ) => {
+    const name = withPrefix
+      ? `/infra/${paramEnvironment || env}/${key}`
+      : `/${paramEnvironment || env}/${key}`;
     console.log(`fetching parameter: ${name}`);
     const response = await this.client.send(
       new GetParameterCommand({
@@ -160,6 +166,15 @@ async function run() {
       intercomAppId = await configuration.getSecret("intercom/appId");
     } catch (e) {}
 
+    let mixpanelToken = "";
+    try {
+      mixpanelToken = await configuration.getEnvParameter(
+        "agwa_m/mixpanel_token-ssm-param",
+        env,
+        false
+      );
+    } catch (e) {}
+
     const mqttEndpoint = await configuration.getParameter(`mqtt/endpoint`);
 
     const variables = {
@@ -179,6 +194,7 @@ async function run() {
       REACT_APP_AGWA_ENV: env,
       REACT_APP_PLANT_IMAGE_BASE_URL: plantImageBaseUrl,
       REACT_APP_INTERCOM_APP_ID: intercomAppId,
+      REACT_APP_MIXPANEL_TOKEN: mixpanelToken,
     };
 
     console.log("variables: ", JSON.stringify(variables, null, 3));
