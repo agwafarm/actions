@@ -175,6 +175,11 @@ async function run() {
       );
     } catch (e) {}
 
+    let smartlookApiKey = "";
+    try {
+      smartlookApiKey = await configuration.getSecret("smartlook/api_key");
+    } catch (e) {}
+
     const mqttEndpoint = await configuration.getParameter(`mqtt/endpoint`);
 
     const variables = {
@@ -195,6 +200,7 @@ async function run() {
       REACT_APP_PLANT_IMAGE_BASE_URL: plantImageBaseUrl,
       REACT_APP_INTERCOM_APP_ID: intercomAppId,
       REACT_APP_MIXPANEL_TOKEN: mixpanelToken,
+      REACT_APP_SMARTLOOK_API_KEY: smartlookApiKey,
     };
 
     console.log("variables: ", JSON.stringify(variables, null, 3));
