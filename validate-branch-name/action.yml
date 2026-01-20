@@ -1,0 +1,20 @@
+name: 'validate-branch-name'
+description: 'Validate branch name format'
+inputs:
+  branch_name:
+    description: 'The branch name to validate'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        BRANCH_NAME="${{ inputs.branch_name }}"
+        echo "Validating branch format: $BRANCH_NAME"
+        if [[ ! $BRANCH_NAME =~ ^[a-zA-Z0-9_-]+/[0-9]+/[a-zA-Z0-9_-]+$ ]]; then
+          echo "Branch format validation failed!"
+          echo "Expected format: word/ticketnumber/feature-name"
+          echo "Current format: $BRANCH_NAME"
+          exit 1
+        fi
+        echo "Branch format validation passed!"
+      shell: bash

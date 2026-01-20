@@ -1,0 +1,39 @@
+name: 'add-pr-link-to-monday-ticket'
+description: 'Add PR link to Monday.com ticket'
+inputs:
+  branch_name:
+    description: 'The branch name'
+    required: true
+  pr_url:
+    description: 'The PR URL'
+    required: true
+  pr_title:
+    description: 'The PR title'
+    required: true
+  monday_api_key:
+    description: 'Monday.com API key'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        BRANCH_NAME="${{ inputs.branch_name }}"
+        PR_URL="${{ inputs.pr_url }}"
+        PR_TITLE="${{ inputs.pr_title }}"
+        MONDAY_API_KEY="${{ inputs.monday_api_key }}"
+
+        TICKET_NUMBER=$(echo "$BRANCH_NAME" | cut -d'/' -f2)
+
+        if [[ "$TICKET_NUMBER" == "9999" || "$BRANCH_NAME" == "master" || "$BRANCH_NAME" == "main" ]]; then
+          echo "Skipping for branch: $BRANCH_NAME or ticket: $TICKET_NUMBER"
+          exit 0
+        fi
+
+        curl -sS -X POST https://api.monday.com/v2 \
+          -H "Content-Type: application/json" \
+          -H "Authorization: ${MONDAY_API_KEY}" \
+          --data-binary "{
+            \"query\": \"mutation (\$itemId: ID!, \$body: String!) { create_update(item_id: \$itemId, body: \$body) { id } }\",
+            \"variables\": { \"itemId\": \"$TICKET_NUMBER\", \"body\": \"🔗Pull Request Created\\n\\nTitle: $PR_TITLE\\nLink: $PR_URL\\n\\nMerged via GitHub Actions ✅\" }
+          }"
+      shell: bash
