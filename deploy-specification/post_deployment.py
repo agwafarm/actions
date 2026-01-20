@@ -16,7 +16,7 @@ lambda_client = boto3.client('lambda')
 
 is_greengrass_ci_dev_deployment = 'greengrass-parent' in service_names and (env == 'ci' or env.startswith("dev"))
 
-if mode == 'env' or is_greengrass_ci_dev_deployment and edge_deployment in ['deploy_tonight', 'deploy_now']:
+if is_greengrass_ci_dev_deployment or (mode == 'env' and edge_deployment != 'skip'):
     print(f'deploying greengrass definitions to devices in environment: {env}')
     payload = {"version_tag": version, "should_deploy_now": edge_deployment == 'deploy_now'}
     
