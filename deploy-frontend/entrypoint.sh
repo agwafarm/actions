@@ -17,6 +17,9 @@ service_name=$(echo $service_name | sed -e 's/^agwa\-//')
 
 echo deploying frontend $service_name
 
+hotfix="${INPUT_HOTFIX:-false}"
+echo hotfix $hotfix
+
 rc_version=$GITHUB_SHA
 echo RC version $rc_version
 
@@ -33,7 +36,7 @@ echo git ref $git_ref
 branch_name=$(echo $git_ref | sed -e 's/^refs\/heads\///')
 echo branch name $branch_name
 
-if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
+if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ] || [ "$hotfix" = "true" ]; then
    s3_retainment=standard
    target_env=ci
 else
