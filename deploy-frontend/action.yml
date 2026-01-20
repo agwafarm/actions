@@ -1,5 +1,12 @@
 name: 'deploy-frontend'
 description: 'Deploys a frontend application into the dev/ci environment and enables deployment to other environments'
+
+inputs:
+  hotfix:
+    description: "whether it is a hotfix version or not"
+    required: false
+    default: "false"
+
 runs:
   using: 'docker'
   image: 'Dockerfile'
