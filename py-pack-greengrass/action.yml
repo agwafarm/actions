@@ -87,6 +87,8 @@ runs:
 
         echo "------------ Uploading Greengrass V1 Service ------------"
 
+        mkdir -p artifacts
+
         echo "Uploading General Lambdas"
         for d in src/gg1/lambdas/general/*/ ; do
           func_name=$(basename "$d")
