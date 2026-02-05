@@ -26,6 +26,8 @@ runs:
   using: "composite"
   steps:
     - run: |
+        set -euo pipefail
+
         # Compute useful variables
         service_name=cloud-parent
 
@@ -92,10 +94,26 @@ runs:
 
         if [ -f "requirements.txt" ]; then
           python3 -m pip install --upgrade pip
-          python3 -m pip install -q -r requirements.txt --verbose
-          # Create and Upload Lambda & Layer Assets 
+          echo "Installing dependencies into Lambda layer…"
           common_layer_target_path=$common_layer_path/python
-          python3 -m pip install -q -r requirements.txt --no-cache-dir --target $common_layer_target_path
+          rm -rf "$common_layer_target_path"
+          mkdir -p "$common_layer_target_path"
+
+          python3 -m pip install \
+            -r requirements.txt \
+            --no-cache-dir \
+            --target "$common_layer_target_path"
+
+          echo "Layer size before trim:"
+          du -sh "$common_layer_target_path"
+
+          echo "Removing caches, tests, and compiled files…"
+          find "$common_layer_target_path" -type d -name "__pycache__" -prune -exec rm -rf {} +
+          find "$common_layer_target_path" -type d \( -name "tests" -o -name "test" \) -prune -exec rm -rf {} +
+          find "$common_layer_target_path" -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete
+
+          echo "Layer size after trim:"
+          du -sh "$common_layer_target_path"
         fi
 
         if [ -f "requirements-dev.txt" ]; then
@@ -113,31 +131,32 @@ runs:
         aws s3 cp $asset_name $s3_path_base/layers/cloud-common.zip
         cd $current_folder
 
-        # Build and upload layers
-        layers=(base_layer)
+        # Preparation for multi layers
+        # # Build and upload layers
+        # layers=(base_layer)
 
-        for layer in "${layers[@]}"; do
-          echo "Building and uploading layer $layer"
-          # Build and upload layer
-          layer_path="artifacts/layers/$layer"
-          mkdir -p "$layer_path"
+        # for layer in "${layers[@]}"; do
+        #   echo "Building and uploading layer $layer"
+        #   # Build and upload layer
+        #   layer_path="artifacts/layers/$layer"
+        #   mkdir -p "$layer_path"
 
-          layer_target_path="$layer_path/python"
+        #   layer_target_path="$layer_path/python"
 
-          # Copy local layer files to layer before zipping
-          cp -r "src/$layer" "$layer_target_path"
+        #   # Copy local layer files to layer before zipping
+        #   cp -r "src/$layer" "$layer_target_path"
 
-          python3 -m pip install -q \
-            -r "src/$layer/requirements.txt" \
-            --no-cache-dir \
-            --target "$layer_target_path"
+        #   python3 -m pip install -q \
+        #     -r "src/$layer/requirements.txt" \
+        #     --no-cache-dir \
+        #     --target "$layer_target_path"
 
-          # Upload layer folder
-          cd "$layer_path"
-          zip -q -r "$asset_name" .
-          aws s3 cp "$asset_name" "$s3_path_base/layers/$layer.zip"
-          cd $current_folder
-        done
+        #   # Upload layer folder
+        #   cd "$layer_path"
+        #   zip -q -r "$asset_name" .
+        #   aws s3 cp "$asset_name" "$s3_path_base/layers/$layer.zip"
+        #   cd $current_folder
+        # done
 
 
         for d in src/lambdas/*/ ; do
