@@ -1,0 +1,193 @@
+name: "py-pack-cloud"
+description: "Package RC for this service"
+outputs:
+  service-name:
+    description: "Service Name"
+    value: ${{ steps.packer.outputs.service_name }}
+  s3-prefix:
+    description: "S3 key prefix where the RC was uploaded"
+    value: ${{ steps.packer.outputs.s3_prefix }}
+  s3-bucket:
+    description: "S3 bucket to where the RC was uploaded"
+    value: ${{ steps.packer.outputs.s3_bucket }}
+  version:
+    description: "RC version"
+    value: ${{ steps.packer.outputs.rc_version }}
+inputs:
+  hotfix:
+    description: "whether it is an hotfix version or not"
+    required: false
+    default: "false"
+  environment:
+    description: "Deployment environment"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        set -euo pipefail
+
+        # Compute useful variables
+        service_name=cloud-parent
+
+        echo Environment: ${{ inputs.environment }}
+
+        echo packing service $service_name
+        rc_version=$GITHUB_SHA
+        echo RC version $rc_version
+        echo "service_name=$service_name" >> "$GITHUB_OUTPUT"
+        echo "rc_version=$rc_version" >> "$GITHUB_OUTPUT"
+             
+        event_name=$GITHUB_EVENT_NAME
+        echo github event name $event_name
+
+        if [ "$event_name" = "pull_request" ]; then
+          git_ref=$GITHUB_HEAD_REF
+        else
+          git_ref=$GITHUB_REF
+        fi
+        echo git ref $git_ref
+
+        branch_name=$(echo $git_ref | sed -e 's/^refs\/heads\///')
+        echo branch name $branch_name
+
+        if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ] || [ "${{ inputs.hotfix }}" = "true" ]; then
+          s3_retainment=standard
+          target_env=ci
+        else
+          user_name=$(echo $GITHUB_ACTOR | sed -e 's/[^[:alnum:]]+/_/g')
+          user_name=$(echo $user_name | sed -e 's/\(.*\)/\L\1/')
+          echo user name $user_name
+          s3_retainment=low
+          target_env="dev${user_name}"
+        fi
+
+        s3_bucket=agwa-ci-assets
+        s3_prefix=$s3_retainment/$service_name/$rc_version
+        s3_path_base=s3://$s3_bucket/$s3_prefix
+        echo s3 bucket $s3_bucket
+        echo s3 path base $s3_path_base
+
+        # Synthesize CDK apps into cloudformation templates.
+        if [ -f "cdk.json" ]; then
+          npm i -g aws-cdk@1.94.1
+          mkdir src/cloudformation
+          export APP_COMPANY_NAME=agwa
+          export APP_STACK=$service_name
+          export APP_SERVICE=$service_name
+          export APP_CORS_ORIGIN="*"
+          export APP_CORS_HEADERS="Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,Accept,User-Agent,Referer"
+          export APP_CORS_METHODS="OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD"
+          cdk synthesize --no-version-reporting --asset-metadata false --path-metadata false $APP_STACK > src/cloudformation/main.yaml
+        fi
+
+        # Upload CloudFormation Assets, delete files in target folder if they no longer exist.
+        aws s3 sync --delete src/cloudformation $s3_path_base/cloudformation
+
+        current_folder=$(pwd)
+        asset_name=asset.zip
+
+        # Build and upload common layer
+        common_layer_path=artifacts/layers/common
+        mkdir -p $common_layer_path
+
+        if [ -f "requirements.txt" ]; then
+          python3 -m pip install --upgrade pip
+          echo "Installing dependencies into Lambda layer…"
+          common_layer_target_path=$common_layer_path/python
+          rm -rf "$common_layer_target_path"
+          mkdir -p "$common_layer_target_path"
+
+          python3 -m pip install \
+            -r requirements.txt \
+            --no-cache-dir \
+            --target "$common_layer_target_path"
+
+          echo "Layer size before trim:"
+          du -sh "$common_layer_target_path"
+
+          echo "Removing caches, tests, and compiled files…"
+          find "$common_layer_target_path" -type d -name "__pycache__" -prune -exec rm -rf {} +
+          find "$common_layer_target_path" -type d \( -name "tests" -o -name "test" \) -prune -exec rm -rf {} +
+          find "$common_layer_target_path" -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete
+
+          echo "Layer size after trim:"
+          du -sh "$common_layer_target_path"
+        fi
+
+        if [ -f "requirements-dev.txt" ]; then
+          python3 -m pip install --upgrade pip
+          python3 -m pip install git+https://github.com/aws-greengrass/aws-greengrass-gdk-cli.git@v1.6.2
+          python3 -m pip install -q -r requirements-dev.txt
+        fi
+
+        # Copy local common files to layer before zipping
+        cp -r src/common $common_layer_target_path
+
+        # Upload cloud-common folder if not empty
+        cd $common_layer_path
+        zip -q -r $asset_name .
+        aws s3 cp $asset_name $s3_path_base/layers/cloud-common.zip
+        cd $current_folder
+
+        # Preparation for multi layers
+        # # Build and upload layers
+        # layers=(base_layer)
+
+        # for layer in "${layers[@]}"; do
+        #   echo "Building and uploading layer $layer"
+        #   # Build and upload layer
+        #   layer_path="artifacts/layers/$layer"
+        #   mkdir -p "$layer_path"
+
+        #   layer_target_path="$layer_path/python"
+
+        #   # Copy local layer files to layer before zipping
+        #   cp -r "src/$layer" "$layer_target_path"
+
+        #   python3 -m pip install -q \
+        #     -r "src/$layer/requirements.txt" \
+        #     --no-cache-dir \
+        #     --target "$layer_target_path"
+
+        #   # Upload layer folder
+        #   cd "$layer_path"
+        #   zip -q -r "$asset_name" .
+        #   aws s3 cp "$asset_name" "$s3_path_base/layers/$layer.zip"
+        #   cd $current_folder
+        # done
+
+
+        for d in src/lambdas/*/ ; do
+          func_name=$(basename "$d")
+          func_path=src/lambdas/${func_name}
+          func_artifact_folder=artifacts/lambdas/${func_name}
+          func_s3_key=$s3_path_base/functions/${func_name}.zip
+          req_path=src/lambdas/${func_name}/requirements.txt
+          layer_path=artifacts/layers/lambdas/${func_name}
+          layer_s3_key=$s3_path_base/layers/${func_name}.zip
+
+          cd $current_folder
+          mkdir -p $func_artifact_folder
+
+          # Lambda has specific dependencies
+          if [ -f $req_path ]; then
+            mkdir -p $layer_path
+            target_path=$layer_path/python
+            python3 -m pip install -q -r $req_path --target $target_path
+            python3 -m pip install -q -r $req_path
+            cd $layer_path
+            zip -q -r $asset_name .
+            aws s3 cp $asset_name $layer_s3_key
+            cd $current_folder
+          fi
+
+          cd $func_path
+          zip -q -r $asset_name .
+          aws s3 cp $asset_name $func_s3_key
+          cd $current_folder
+        done
+
+      shell: bash
+      id: packer
