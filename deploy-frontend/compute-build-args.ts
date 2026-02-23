@@ -180,6 +180,11 @@ async function run() {
       smartlookApiKey = await configuration.getSecret("smartlook/api_key");
     } catch (e) {}
 
+    let googleMapApiKey = ""
+    try {
+      googleMapApiKey = await configuration.getSecret("google_maps/api_key");
+    } catch (e) {}
+
     const mqttEndpoint = await configuration.getParameter(`mqtt/endpoint`);
 
     const variables = {
@@ -201,6 +206,7 @@ async function run() {
       REACT_APP_INTERCOM_APP_ID: intercomAppId,
       REACT_APP_MIXPANEL_TOKEN: mixpanelToken,
       REACT_APP_SMARTLOOK_API_KEY: smartlookApiKey,
+      REACT_APP_GOOGLE_MAPS_API_KEY: googleMapApiKey,
     };
 
     console.log("variables: ", JSON.stringify(variables, null, 3));
