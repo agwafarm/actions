@@ -36,9 +36,14 @@ echo git ref $git_ref
 branch_name=$(echo $git_ref | sed -e 's/^refs\/heads\///')
 echo branch name $branch_name
 
+skip_live_deploy=false
 if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ] || [ "$hotfix" = "true" ]; then
    s3_retainment=standard
    target_env=ci
+elif [ "$branch_name" = "fastlane" ]; then
+   s3_retainment=standard
+   target_env=ci
+   skip_live_deploy=true
 else
    s3_retainment=low
    lower_case_github_actor=$(echo $GITHUB_TRIGGERING_ACTOR | tr '[:upper:]' '[:lower:]')
@@ -46,6 +51,7 @@ else
 fi
 echo s3 retainment $s3_retainment
 echo target env $target_env
+echo skip live deploy $skip_live_deploy
 
 export APP_COMPANY_NAME=agwa
 
@@ -68,9 +74,12 @@ account_id=$(aws sts get-caller-identity --query Account --output text)
 export ACCOUNT_ID=$account_id
 echo account id $ACCOUNT_ID
 
-# deploy the ci / dev environment resources
 export APP_STACKS=$(cdk list)
-cdk deploy --require-approval never $APP_STACKS --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
+
+# deploy the ci / dev environment resources (fastlane skips this - it must not touch the live ci env)
+if [ "$skip_live_deploy" != "true" ]; then
+   cdk deploy --require-approval never $APP_STACKS --parameters Environment=$target_env --parameters BucketName=$APP_BUCKET --parameters IndexPath='index.html' --parameters NotFoundPath='/index.html' --parameters RoutingDomain=$ROUTING_DOMAIN
+fi
 
 # compute build arguments
 npx ts-node --prefer-ts-exts /action/compute-build-args.ts
@@ -156,17 +165,19 @@ if [ "$s3_retainment" = "standard" ]; then
       aws s3 sync --no-progress --delete build $s3_path_base/web/$build_env
    done
 
-   # update RC pointer
-   param_name=/infra/rc-version/$service_name
-   param_value=$(jq -n \
-      --arg t "frontend" \
-      --arg v "$rc_version" \
-      '{version: $v, type: $t}')
+   # update RC pointer (skip on fastlane - it must not overwrite the main-branch RC pointer)
+   if [ "$branch_name" != "fastlane" ]; then
+      param_name=/infra/rc-version/$service_name
+      param_value=$(jq -n \
+         --arg t "frontend" \
+         --arg v "$rc_version" \
+         '{version: $v, type: $t}')
 
-   echo "Updating RC pointer"
-   echo "RC pointer name" $param_name
-   echo "RC pointer value" $param_value
+      echo "Updating RC pointer"
+      echo "RC pointer name" $param_name
+      echo "RC pointer value" $param_value
 
-   aws ssm put-parameter --overwrite --type String --name $param_name --value "$param_value"
+      aws ssm put-parameter --overwrite --type String --name $param_name --value "$param_value"
+   fi
 
 fi
