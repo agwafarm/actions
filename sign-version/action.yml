@@ -10,6 +10,10 @@ inputs:
   versionSpec:
     description: "The version spec to sign"
     required: false
+  overwrite:
+    description: "Overwrite the version spec if it already exists, instead of failing"
+    required: false
+    default: "false"
 runs:
   using: "node20"
   main: "index.js"
