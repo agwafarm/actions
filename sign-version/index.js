@@ -12,6 +12,7 @@ const { createVersion } = require("./create-version");
 async function run() {
   try {
     let versionName = core.getInput("version", { required: true });
+    const overwrite = core.getInput("overwrite") === "true";
 
     const timestamp = Date.now();
     const datetime = new Date();
@@ -40,6 +41,7 @@ async function run() {
       timestamp,
       datetime,
       author,
+      overwrite,
     });
 
     if (!versionSpec) {
