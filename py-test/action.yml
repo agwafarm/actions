@@ -1,9 +1,14 @@
 name: 'py-test'
 description: 'Test python code'
 inputs:
+  use_codecov:
+    description: 'Collect coverage and upload it to Codecov ("true" / "false")'
+    required: false
+    default: 'true'
   codecov_token:
-    description: 'Token to use for coverage'
-    required: true
+    description: 'Token to use for coverage. Required only when use_codecov is "true"'
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
@@ -16,11 +21,16 @@ runs:
             test_dir=./src
         fi
         
-        pip install pytest-cov
-        pytest $test_dir --cov=./ --cov-report=xml
+        if [ "${{ inputs.use_codecov }}" = "true" ]; then
+            pip install pytest-cov
+            pytest $test_dir --cov=./ --cov-report=xml
+        else
+            pytest $test_dir
+        fi
       shell: bash
 
     - name: Upload coverage
+      if: ${{ inputs.use_codecov == 'true' }}
       uses: codecov/codecov-action@v3
       with:
         token: ${{ inputs.codecov_token }}
